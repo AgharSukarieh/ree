@@ -15,6 +15,7 @@ class Project extends Model
         'description',
         'technologies_used',
         'link',
+        'project_image',
     ];
 
     public function user()

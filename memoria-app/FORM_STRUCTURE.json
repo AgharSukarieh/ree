@@ -1,0 +1,799 @@
+{
+  "form_structure": {
+    "form_id": "cvForm",
+    "form_action": "register.store",
+    "form_method": "POST",
+    "enctype": "multipart/form-data",
+    
+    "sections": {
+      "1_personal_information": {
+        "section_name": "المعلومات الشخصية الأساسية",
+        "section_id": "personalInformation",
+        "required": true,
+        "fields": [
+          {
+            "name": "profile_image",
+            "type": "file",
+            "label_ar": "الصورة الشخصية",
+            "label_en": "Profile Picture",
+            "required": false,
+            "accept": "image/*"
+          },
+          {
+            "name": "name",
+            "type": "text",
+            "label_ar": "الاسم الكامل",
+            "label_en": "Full Name",
+            "required": true,
+            "placeholder_ar": "أدخل اسمك الكامل",
+            "placeholder_en": "Enter your full name"
+          },
+          {
+            "name": "jop_title",
+            "type": "text",
+            "label_ar": "المسمى الوظيفي",
+            "label_en": "Job Title",
+            "required": true,
+            "placeholder_ar": "مطور برمجيات، طبيب، مهندس",
+            "placeholder_en": "Software Developer, Doctor, Engineer"
+          },
+          {
+            "name": "phone",
+            "type": "tel",
+            "label_ar": "رقم الهاتف",
+            "label_en": "Phone Number",
+            "required": false,
+            "placeholder_ar": "+966 50 123 4567",
+            "placeholder_en": "+1 234 567 8900"
+          },
+          {
+            "name": "email",
+            "type": "email",
+            "label_ar": "البريد الإلكتروني",
+            "label_en": "Email Address",
+            "required": false,
+            "placeholder_ar": "example@email.com",
+            "placeholder_en": "example@email.com"
+          },
+          {
+            "name": "city",
+            "type": "text",
+            "label_ar": "المدينة",
+            "label_en": "City",
+            "required": false,
+            "placeholder_ar": "الرياض، جدة، الدمام",
+            "placeholder_en": "Riyadh, Jeddah, Dammam"
+          },
+          {
+            "name": "major",
+            "type": "select",
+            "label_ar": "التخصص الرئيسي",
+            "label_en": "Major Field",
+            "required": true,
+            "options": [
+              {"value": "", "label_ar": "اختر التخصص", "label_en": "Select Major"},
+              {"value": "IT", "label_ar": "تقنية المعلومات", "label_en": "Information Technology"},
+              {"value": "Medicine", "label_ar": "الطب", "label_en": "Medicine"},
+              {"value": "Business", "label_ar": "إدارة الأعمال", "label_en": "Business"},
+              {"value": "Engineering", "label_ar": "الهندسة", "label_en": "Engineering"}
+            ]
+          },
+          {
+            "name": "linkedin_profile",
+            "type": "url",
+            "label_ar": "ملف LinkedIn",
+            "label_en": "LinkedIn Profile",
+            "required": false,
+            "placeholder_ar": "https://linkedin.com/in/yourprofile",
+            "placeholder_en": "https://linkedin.com/in/yourprofile"
+          },
+          {
+            "name": "github_profile",
+            "type": "url",
+            "label_ar": "ملف GitHub",
+            "label_en": "GitHub Profile",
+            "required": false,
+            "placeholder_ar": "https://github.com/yourusername",
+            "placeholder_en": "https://github.com/yourusername"
+          },
+          {
+            "name": "profile_summary",
+            "type": "textarea",
+            "label_ar": "الملخص المهني",
+            "label_en": "Professional Summary",
+            "required": false,
+            "placeholder_ar": "اكتب ملخصاً مهنياً عن خبراتك ومهاراتك",
+            "placeholder_en": "Write a professional summary about your experience and skills"
+          }
+        ]
+      },
+      
+      "2_languages": {
+        "section_name": "اللغات",
+        "section_id": "languages",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "language_name[]",
+            "type": "text",
+            "label_ar": "اسم اللغة",
+            "label_en": "Language Name",
+            "required": false,
+            "placeholder_ar": "العربية، الإنجليزية، الفرنسية",
+            "placeholder_en": "Arabic, English, French"
+          },
+          {
+            "name": "proficiency_level[]",
+            "type": "select",
+            "label_ar": "مستوى الإتقان",
+            "label_en": "Proficiency Level",
+            "required": false,
+            "options": [
+              {"value": "Beginner", "label_ar": "مبتدئ", "label_en": "Beginner"},
+              {"value": "Intermediate", "label_ar": "متوسط", "label_en": "Intermediate"},
+              {"value": "Advanced", "label_ar": "متقدم", "label_en": "Advanced"},
+              {"value": "Native", "label_ar": "لغة أم", "label_en": "Native"}
+            ]
+          }
+        ]
+      },
+      
+      "3_soft_skills": {
+        "section_name": "المهارات الشخصية",
+        "section_id": "softSkills",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "soft_name[]",
+            "type": "text",
+            "label_ar": "اسم المهارة",
+            "label_en": "Skill Name",
+            "required": false,
+            "placeholder_ar": "التواصل، القيادة، العمل الجماعي",
+            "placeholder_en": "Communication, Leadership, Teamwork"
+          }
+        ]
+      },
+      
+      "4_experiences": {
+        "section_name": "الخبرات العملية",
+        "section_id": "experiences",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "title[]",
+            "type": "text",
+            "label_ar": "المسمى الوظيفي",
+            "label_en": "Job Title",
+            "required": false,
+            "placeholder_ar": "مطور برمجيات، مهندس، طبيب",
+            "placeholder_en": "Software Developer, Engineer, Doctor"
+          },
+          {
+            "name": "company[]",
+            "type": "text",
+            "label_ar": "اسم الشركة",
+            "label_en": "Company Name",
+            "required": false,
+            "placeholder_ar": "شركة التقنية المتقدمة",
+            "placeholder_en": "Advanced Technology Company"
+          },
+          {
+            "name": "location[]",
+            "type": "text",
+            "label_ar": "الموقع",
+            "label_en": "Location",
+            "required": false,
+            "placeholder_ar": "الرياض، السعودية",
+            "placeholder_en": "Riyadh, Saudi Arabia"
+          },
+          {
+            "name": "start_date[]",
+            "type": "date",
+            "label_ar": "تاريخ البداية",
+            "label_en": "Start Date",
+            "required": false
+          },
+          {
+            "name": "end_date[]",
+            "type": "date",
+            "label_ar": "تاريخ النهاية",
+            "label_en": "End Date",
+            "required": false
+          },
+          {
+            "name": "description[]",
+            "type": "textarea",
+            "label_ar": "وصف العمل",
+            "label_en": "Job Description",
+            "required": false,
+            "placeholder_ar": "اكتب وصفاً مفصلاً عن مهامك ومسؤولياتك",
+            "placeholder_en": "Write a detailed description of your tasks and responsibilities"
+          },
+          {
+            "name": "is_internship[]",
+            "type": "checkbox",
+            "value": "1",
+            "label_ar": "تدريب تعاوني",
+            "label_en": "Internship",
+            "required": false
+          }
+        ]
+      },
+      
+      "5_education": {
+        "section_name": "المؤهلات الأكاديمية",
+        "section_id": "education",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "degree_name[]",
+            "type": "text",
+            "label_ar": "اسم الدرجة",
+            "label_en": "Degree Name",
+            "required": false,
+            "placeholder_ar": "بكالوريوس، ماجستير، دكتوراه",
+            "placeholder_en": "Bachelor's, Master's, PhD"
+          },
+          {
+            "name": "field_of_study[]",
+            "type": "text",
+            "label_ar": "مجال الدراسة",
+            "label_en": "Field of Study",
+            "required": false,
+            "placeholder_ar": "علوم الحاسوب، الطب، الهندسة",
+            "placeholder_en": "Computer Science, Medicine, Engineering"
+          },
+          {
+            "name": "university_name[]",
+            "type": "text",
+            "label_ar": "اسم الجامعة",
+            "label_en": "University Name",
+            "required": false,
+            "placeholder_ar": "جامعة الملك سعود",
+            "placeholder_en": "King Saud University"
+          },
+          {
+            "name": "start_year[]",
+            "type": "date",
+            "label_ar": "سنة البداية",
+            "label_en": "Start Year",
+            "required": false,
+            "min": "1950",
+            "max": "2030"
+          },
+          {
+            "name": "end_year[]",
+            "type": "date",
+            "label_ar": "سنة التخرج",
+            "label_en": "End Year",
+            "required": false,
+            "min": "1950",
+            "max": "2030"
+          }
+        ]
+      },
+      
+      "6_certifications": {
+        "section_name": "الشهادات",
+        "section_id": "certifications",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "certifications_name[]",
+            "type": "text",
+            "label_ar": "اسم الشهادة",
+            "label_en": "Certification Name",
+            "required": false,
+            "placeholder_ar": "AWS Certified, PMP, CISSP",
+            "placeholder_en": "AWS Certified, PMP, CISSP"
+          },
+          {
+            "name": "issuing_org[]",
+            "type": "text",
+            "label_ar": "الجهة المانحة",
+            "label_en": "Issuing Organization",
+            "required": false,
+            "placeholder_ar": "Amazon, PMI, ISC2",
+            "placeholder_en": "Amazon, PMI, ISC2"
+          },
+          {
+            "name": "issue_date[]",
+            "type": "date",
+            "label_ar": "تاريخ الإصدار",
+            "label_en": "Issue Date",
+            "required": false
+          },
+          {
+            "name": "expiration_date-disable[]",
+            "type": "date",
+            "label_ar": "تاريخ الانتهاء",
+            "label_en": "Expiration Date",
+            "required": false
+          },
+          {
+            "name": "link_driver[]",
+            "type": "url",
+            "label_ar": "رابط الشهادة",
+            "label_en": "Certificate Link",
+            "required": false,
+            "placeholder_ar": "https://certificate-link.com",
+            "placeholder_en": "https://certificate-link.com"
+          }
+        ]
+      },
+      
+      "7_memberships": {
+        "section_name": "العضويات المهنية",
+        "section_id": "memberships",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "organization_name[]",
+            "type": "text",
+            "label_ar": "اسم المنظمة",
+            "label_en": "Organization Name",
+            "required": false,
+            "placeholder_ar": "الجمعية السعودية للحاسب الآلي",
+            "placeholder_en": "Saudi Computer Society"
+          },
+          {
+            "name": "membership_type[]",
+            "type": "text",
+            "label_ar": "نوع العضوية",
+            "label_en": "Membership Type",
+            "required": false,
+            "placeholder_ar": "عضو عامل، عضو مؤسس",
+            "placeholder_en": "Active Member, Founding Member"
+          },
+          {
+            "name": "start_date_membership[]",
+            "type": "date",
+            "label_ar": "تاريخ البداية",
+            "label_en": "Start Date",
+            "required": false
+          },
+          {
+            "name": "end_date_membership[]",
+            "type": "date",
+            "label_ar": "تاريخ النهاية",
+            "label_en": "End Date",
+            "required": false
+          },
+          {
+            "name": "membership_status[]",
+            "type": "select",
+            "label_ar": "حالة العضوية",
+            "label_en": "Membership Status",
+            "required": false,
+            "options": [
+              {"value": "Active", "label_ar": "نشطة", "label_en": "Active"},
+              {"value": "Inactive", "label_ar": "غير نشطة", "label_en": "Inactive"},
+              {"value": "Expired", "label_ar": "منتهية", "label_en": "Expired"}
+            ]
+          }
+        ]
+      },
+      
+      "8_activities": {
+        "section_name": "الأنشطة",
+        "section_id": "activities",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "activity_title[]",
+            "type": "text",
+            "label_ar": "عنوان النشاط",
+            "label_en": "Activity Title",
+            "required": false,
+            "placeholder_ar": "تطوع في جمعية خيرية",
+            "placeholder_en": "Volunteer at Charity Organization"
+          },
+          {
+            "name": "organization[]",
+            "type": "text",
+            "label_ar": "اسم المنظمة",
+            "label_en": "Organization",
+            "required": false,
+            "placeholder_ar": "جمعية البر الخيرية",
+            "placeholder_en": "Al-Birr Charity Organization"
+          },
+          {
+            "name": "activity_date[]",
+            "type": "date",
+            "label_ar": "تاريخ النشاط",
+            "label_en": "Activity Date",
+            "required": false
+          },
+          {
+            "name": "description_activity[]",
+            "type": "textarea",
+            "label_ar": "وصف النشاط",
+            "label_en": "Activity Description",
+            "required": false,
+            "placeholder_ar": "اكتب وصفاً مفصلاً عن النشاط ودورك فيه",
+            "placeholder_en": "Write a detailed description of the activity and your role in it"
+          },
+          {
+            "name": "activity_link[]",
+            "type": "url",
+            "label_ar": "رابط النشاط",
+            "label_en": "Activity Link",
+            "required": false,
+            "placeholder_ar": "https://activity-link.com",
+            "placeholder_en": "https://activity-link.com"
+          }
+        ]
+      },
+      
+      "9_it_skills": {
+        "section_name": "المهارات التقنية",
+        "section_id": "itSkills",
+        "major": "IT",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "skill_name[]",
+            "type": "text",
+            "label_ar": "اسم المهارة",
+            "label_en": "Skill Name",
+            "required": false,
+            "placeholder_ar": "JavaScript, Python, React",
+            "placeholder_en": "JavaScript, Python, React"
+          },
+          {
+            "name": "category_id[]",
+            "type": "select",
+            "label_ar": "فئة المهارة",
+            "label_en": "Skill Category",
+            "required": false,
+            "options": [
+              {"value": "1", "label": "Programming Languages"},
+              {"value": "2", "label": "Web Development"},
+              {"value": "3", "label": "Mobile Development"},
+              {"value": "4", "label": "Database Management"},
+              {"value": "5", "label": "DevOps & Cloud"},
+              {"value": "6", "label": "Data Science & Analytics"},
+              {"value": "7", "label": "Machine Learning & AI"},
+              {"value": "8", "label": "Cybersecurity"},
+              {"value": "9", "label": "UI/UX Design"},
+              {"value": "10", "label": "Project Management"},
+              {"value": "11", "label": "Quality Assurance"},
+              {"value": "12", "label": "System Administration"},
+              {"value": "13", "label": "Network Administration"},
+              {"value": "14", "label": "Game Development"},
+              {"value": "15", "label": "Blockchain & Cryptocurrency"},
+              {"value": "16", "label": "IoT Development"},
+              {"value": "17", "label": "AR/VR Development"},
+              {"value": "18", "label": "Microservices Architecture"},
+              {"value": "19", "label": "API Development"},
+              {"value": "20", "label": "Version Control"},
+              {"value": "21", "label": "Testing Frameworks"},
+              {"value": "22", "label": "Performance Optimization"},
+              {"value": "23", "label": "Code Review"},
+              {"value": "24", "label": "Documentation"}
+            ]
+          }
+        ]
+      },
+      
+      "10_it_projects": {
+        "section_name": "المشاريع",
+        "section_id": "itProjects",
+        "major": "IT",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "project_title[]",
+            "type": "text",
+            "label_ar": "عنوان المشروع",
+            "label_en": "Project Title",
+            "required": false,
+            "placeholder_ar": "نظام إدارة المحتوى",
+            "placeholder_en": "Content Management System"
+          },
+          {
+            "name": "technologies_used[]",
+            "type": "text",
+            "label_ar": "التقنيات المستخدمة",
+            "label_en": "Technologies Used",
+            "required": false,
+            "placeholder_ar": "React, Node.js, MongoDB",
+            "placeholder_en": "React, Node.js, MongoDB"
+          },
+          {
+            "name": "description_project[]",
+            "type": "textarea",
+            "label_ar": "وصف المشروع",
+            "label_en": "Project Description",
+            "required": false,
+            "placeholder_ar": "اكتب وصفاً مفصلاً عن المشروع وأهدافه",
+            "placeholder_en": "Write a detailed description of the project and its objectives"
+          },
+          {
+            "name": "link[]",
+            "type": "url",
+            "label_ar": "رابط المشروع",
+            "label_en": "Project Link",
+            "required": false,
+            "placeholder_ar": "https://github.com/username/project",
+            "placeholder_en": "https://github.com/username/project"
+          }
+        ]
+      },
+      
+      "11_it_analytical_skills": {
+        "section_name": "المهارات التحليلية",
+        "section_id": "itAnalytical",
+        "major": "IT",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "analytical_skill_name[]",
+            "type": "text",
+            "label_ar": "اسم المهارة التحليلية",
+            "label_en": "Analytical Skill Name",
+            "required": false,
+            "placeholder_ar": "تحليل البيانات، حل المشكلات، التفكير النقدي",
+            "placeholder_en": "Data Analysis, Problem Solving, Critical Thinking"
+          }
+        ]
+      },
+      
+      "12_medical_skills": {
+        "section_name": "المهارات الطبية",
+        "section_id": "medicalSkills",
+        "major": "Medicine",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "medical_skill_name[]",
+            "type": "text",
+            "label_ar": "اسم المهارة الطبية",
+            "label_en": "Medical Skill Name",
+            "required": false,
+            "placeholder_ar": "الجراحة، التشخيص، العلاج",
+            "placeholder_en": "Surgery, Diagnosis, Treatment"
+          },
+          {
+            "name": "medical_category_id[]",
+            "type": "select",
+            "label_ar": "فئة المهارة الطبية",
+            "label_en": "Medical Skill Category",
+            "required": false,
+            "options": [
+              {"value": "1", "label": "Clinical Skills"},
+              {"value": "2", "label": "Diagnostic Skills"},
+              {"value": "3", "label": "Surgical Skills"},
+              {"value": "4", "label": "Emergency Medicine"},
+              {"value": "5", "label": "Pediatric Care"},
+              {"value": "6", "label": "Geriatric Care"},
+              {"value": "7", "label": "Mental Health"},
+              {"value": "8", "label": "Radiology"},
+              {"value": "9", "label": "Pathology"},
+              {"value": "10", "label": "Pharmacology"},
+              {"value": "11", "label": "Cardiology"},
+              {"value": "12", "label": "Neurology"},
+              {"value": "13", "label": "Oncology"},
+              {"value": "14", "label": "Dermatology"},
+              {"value": "15", "label": "Orthopedics"},
+              {"value": "16", "label": "Ophthalmology"}
+            ]
+          }
+        ]
+      },
+      
+      "13_medical_research": {
+        "section_name": "الأبحاث الطبية",
+        "section_id": "medicalResearch",
+        "major": "Medicine",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "research_title[]",
+            "type": "text",
+            "label_ar": "عنوان البحث",
+            "label_en": "Research Title",
+            "required": false,
+            "placeholder_ar": "دراسة حول علاج السكري",
+            "placeholder_en": "Study on Diabetes Treatment"
+          },
+          {
+            "name": "publication_year[]",
+            "type": "number",
+            "label_ar": "سنة النشر",
+            "label_en": "Publication Year",
+            "required": false,
+            "min": "1950",
+            "max": "2030",
+            "placeholder_ar": "2024",
+            "placeholder_en": "2024"
+          },
+          {
+            "name": "research_description[]",
+            "type": "textarea",
+            "label_ar": "وصف البحث",
+            "label_en": "Research Description",
+            "required": false,
+            "placeholder_ar": "اكتب وصفاً مفصلاً عن البحث ونتائجه",
+            "placeholder_en": "Write a detailed description of the research and its results"
+          },
+          {
+            "name": "research_link[]",
+            "type": "url",
+            "label_ar": "رابط البحث",
+            "label_en": "Research Link",
+            "required": false,
+            "placeholder_ar": "https://research-link.com",
+            "placeholder_en": "https://research-link.com"
+          }
+        ]
+      },
+      
+      "14_business_skills": {
+        "section_name": "مهارات الأعمال",
+        "section_id": "businessSkills",
+        "major": "Business",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "business_skill_name[]",
+            "type": "text",
+            "label_ar": "اسم المهارة",
+            "label_en": "Skill Name",
+            "required": false,
+            "placeholder_ar": "إدارة المشاريع، التسويق الرقمي، التحليل المالي",
+            "placeholder_en": "Project Management, Digital Marketing, Financial Analysis"
+          },
+          {
+            "name": "business_category_id[]",
+            "type": "select",
+            "label_ar": "فئة المهارة",
+            "label_en": "Skill Category",
+            "required": false,
+            "options": [
+              {"value": "25", "label": "Legal Research"},
+              {"value": "26", "label": "Case Analysis"},
+              {"value": "27", "label": "Accounting Software"},
+              {"value": "28", "label": "Financial Reporting"},
+              {"value": "29", "label": "Business Strategy"},
+              {"value": "30", "label": "Market Analysis"},
+              {"value": "31", "label": "Human Resource Management"},
+              {"value": "32", "label": "Teaching Skills"},
+              {"value": "33", "label": "Educational Planning"},
+              {"value": "34", "label": "Negotiation & Conflict Resolution"},
+              {"value": "35", "label": "Leadership & Management"},
+              {"value": "36", "label": "Project Coordination"},
+              {"value": "37", "label": "Public Speaking"},
+              {"value": "38", "label": "Time Management"},
+              {"value": "39", "label": "Critical Thinking"},
+              {"value": "24", "label": "Other"}
+            ]
+          }
+        ]
+      },
+      
+      "15_business_competencies": {
+        "section_name": "الكفاءات الأساسية",
+        "section_id": "businessCompetencies",
+        "major": "Business",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "competency_name[]",
+            "type": "text",
+            "label_ar": "اسم الكفاءة",
+            "label_en": "Competency Name",
+            "required": false,
+            "placeholder_ar": "القيادة، التخطيط الاستراتيجي، اتخاذ القرار",
+            "placeholder_en": "Leadership, Strategic Planning, Decision Making"
+          },
+          {
+            "name": "competency_description[]",
+            "type": "textarea",
+            "label_ar": "وصف الكفاءة",
+            "label_en": "Competency Description",
+            "required": false,
+            "placeholder_ar": "اكتب وصفاً مفصلاً عن هذه الكفاءة وكيف طبقتها",
+            "placeholder_en": "Write a detailed description of this competency and how you applied it"
+          }
+        ]
+      },
+      
+      "16_business_interests": {
+        "section_name": "الاهتمامات التجارية",
+        "section_id": "businessInterests",
+        "major": "Business",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "interest_name[]",
+            "type": "text",
+            "label_ar": "اسم الاهتمام",
+            "label_en": "Interest Name",
+            "required": false,
+            "placeholder_ar": "ريادة الأعمال، الاستثمار، التجارة الإلكترونية",
+            "placeholder_en": "Entrepreneurship, Investment, E-commerce"
+          }
+        ]
+      },
+      
+      "17_engineering_skills": {
+        "section_name": "المهارات الهندسية",
+        "section_id": "engineeringSkills",
+        "major": "Engineering",
+        "dynamic": true,
+        "array_fields": [
+          {
+            "name": "engineering_skill_name[]",
+            "type": "text",
+            "label_ar": "اسم المهارة",
+            "label_en": "Skill Name",
+            "required": false,
+            "placeholder_ar": "AutoCAD، SolidWorks، تحليل الهياكل",
+            "placeholder_en": "AutoCAD, SolidWorks, Structural Analysis"
+          },
+          {
+            "name": "engineering_category_id[]",
+            "type": "select",
+            "label_ar": "فئة المهارة",
+            "label_en": "Skill Category",
+            "required": false,
+            "options": [
+              {"value": "8", "label": "CAD Software"},
+              {"value": "9", "label": "3D Modeling"},
+              {"value": "10", "label": "Simulation & Analysis"},
+              {"value": "11", "label": "Technical Drawing"},
+              {"value": "12", "label": "Manufacturing Tools"},
+              {"value": "13", "label": "Control Systems"},
+              {"value": "14", "label": "Building Information Modeling (BIM)"},
+              {"value": "15", "label": "Robotics & Automation"},
+              {"value": "16", "label": "Electrical Design Tools"},
+              {"value": "24", "label": "Other"}
+            ]
+          }
+        ]
+      }
+    },
+    
+    "majors": {
+      "IT": {
+        "sections": [
+          "9_it_skills",
+          "10_it_projects",
+          "11_it_analytical_skills"
+        ]
+      },
+      "Medicine": {
+        "sections": [
+          "12_medical_skills",
+          "13_medical_research"
+        ]
+      },
+      "Business": {
+        "sections": [
+          "14_business_skills",
+          "15_business_competencies",
+          "16_business_interests"
+        ]
+      },
+      "Engineering": {
+        "sections": [
+          "17_engineering_skills"
+        ]
+      }
+    },
+    
+    "common_sections": [
+      "1_personal_information",
+      "2_languages",
+      "3_soft_skills",
+      "4_experiences",
+      "5_education",
+      "6_certifications",
+      "7_memberships",
+      "8_activities"
+    ]
+  }
+}
+

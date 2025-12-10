@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+    ],
+
+    'cloudinary' => [
+        'url' => env('CLOUDINARY_URL'),
+        // Fallback to individual variables if URL is not set
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+        'api_key' => env('CLOUDINARY_API_KEY'),
+        'api_secret' => env('CLOUDINARY_API_SECRET'),
+    ],
+
 ];

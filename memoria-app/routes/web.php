@@ -11,6 +11,11 @@ Route::get('/profile/{qr_id}', [WebController::class, 'profile'])->name('profile
 // Registration routes
 Route::get('/register', [RegisterController::class, 'index'])->name('register');
 Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+Route::get('/register/success', [RegisterController::class, 'success'])->name('register.success');
+
+// OpenAI Form Filler routes
+Route::post('/api/openai/fill-form', [\App\Http\Controllers\OpenAIController::class, 'fillForm'])->name('openai.fill-form');
+Route::get('/openai/response', [\App\Http\Controllers\OpenAIController::class, 'showResponse'])->name('openai.response');
 
 // Test registration page
 Route::get('/register-test', function () {

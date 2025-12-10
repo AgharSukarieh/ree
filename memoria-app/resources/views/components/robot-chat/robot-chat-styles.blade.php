@@ -1,63 +1,5 @@
-<div class="robot-chat-container">
-    <div class="robot">
-        <div class="robot-shadow"></div>
-        
-        <div class="robot-head">
-            <div class="robot-face">
-                <div class="face-shine"></div>
-                <div class="eye left"></div>
-                <div class="eye right"></div>
-            </div>
-        </div>
-        
-        <div class="robot-body">
-            <div class="body-shine"></div>
-            
-            <div class="arm left">
-                <div class="arm-shape">
-                    <div class="arm-highlight"></div>
-                </div>
-            </div>
-            
-            <div class="arm right">
-                <div class="arm-shape">
-                    <div class="arm-highlight"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="chat-bubble" id="chatBubble">
-            <div class="text-line" data-ar="مرحباً 👋" data-en="Hello 👋">مرحباً 👋</div>
-            <div class="text-line" data-ar="أنا ميموريا" data-en="I'm Memoria">أنا ميموريا</div>
-            <div class="text-line" data-ar="مساعدك الذكي" data-en="Your Smart Assistant">مساعدك الذكي</div>
-            <div class="text-line" data-ar="اضغط عليّ 👆" data-en="Click Me 👆">اضغط عليّ 👆</div>
-            <div class="text-line" data-ar="لنتحدث! 💬" data-en="Let's Talk! 💬">لنتحدث! 💬</div>
-        </div>
-        
-        <!-- Input للـ prompts عندما يكون الروبوت في المنتصف -->
-        <div class="prompt-input-container" id="promptInputContainer">
-            <div class="input-wrapper">
-                <textarea id="promptInput" data-ar-placeholder="انا محمد طالب هندسة برمجيات ادرس بجامعة البلقاء التطبيقيه حاب اتخصص ب فلتر موبايل ابلكيشين فروند ايند عندي سكيلز تاكنيكل جافا و دارت و جيت هاب بعرف انجليزي وعربي واخدت كورس جافا من ميتا واخدت كورس بايثون من علي بابا" data-en-placeholder="I am Mohammed, a software engineering student at Al-Balqa Applied University. I want to specialize in Flutter mobile application front-end. I have technical skills in Java, Dart, and GitHub. I know English and Arabic. I took a Java course from Meta and a Python course from Alibaba." placeholder="انا محمد طالب هندسة برمجيات ادرس بجامعة البلقاء التطبيقيه حاب اتخصص ب فلتر موبايل ابلكيشين فروند ايند عندي سكيلز تاكنيكل جافا و دارت و جيت هاب بعرف انجليزي وعربي واخدت كورس جافا من ميتا واخدت كورس بايثون من علي بابا" autocomplete="off" rows="3"></textarea>
-                <div class="input-buttons">
-                    <button id="sendPrompt" class="send-button">
-                        <span data-ar="تعبئة الفورم" data-en="Fill Form">تعبئة الفورم</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                        </svg>
-                    </button>
-                    <button id="closePrompt" class="close-button">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
-    .robot-chat-container {
+.robot-chat-container {
         position: relative;
         display: flex;
         justify-content: center;
@@ -73,22 +15,9 @@
         filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.3));
     }
     
-    /* صورة البيت تحت الروبوت */
+    /* إخفاء الصورة في الحالة العادية */
     .robot::before {
-        content: '';
-        position: absolute;
-        bottom: -80px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 120px;
-        height: 80px;
-        background-image: url('/images/Polygon%202.png');
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        filter: drop-shadow(0 0 20px rgba(117, 239, 248, 0.6));
-        animation: lightBeam 3s ease-in-out infinite;
-        z-index: -1;
+        display: none !important;
     }
     
     @keyframes lightBeam {
@@ -154,13 +83,13 @@
         background: transparent;
         border: none;
         outline: none;
-        color: #ffffff;
-        font-size: 9px;
-        font-weight: 400;
+        color: #000000;
+        font-size: 14px;
+        font-weight: 600;
         padding: 15px 20px;
         width: 100%;
-        min-height: 80px;
-        max-height: 140px;
+        min-height: 120px;
+        max-height: 200px;
         resize: none;
         font-family: inherit;
         line-height: 1.4;
@@ -169,7 +98,7 @@
     #promptInput::placeholder {
         color: rgba(255, 255, 255, 0.6);
         font-style: italic;
-        font-size: 11px;
+        font-size: 14px;
     }
     
     .input-buttons {
@@ -269,6 +198,22 @@
         }
         50% {
             transform: translateY(-25px);
+        }
+    }
+    
+    /* animation للطيران في الشاشات الكبيرة */
+    @keyframes floatLarge {
+        0%, 100% {
+            transform: scale(0.7) translateY(0px) rotate(0deg);
+        }
+        25% {
+            transform: scale(0.7) translateY(-15px) rotate(0deg);
+        }
+        50% {
+            transform: scale(0.7) translateY(-25px) rotate(0deg);
+        }
+        75% {
+            transform: scale(0.7) translateY(-15px) rotate(0deg);
         }
     }
     
@@ -374,6 +319,7 @@
         transform: rotate(-8deg);
         --moveX: 0;
         --moveY: 0;
+        overflow: hidden; /* منع العيون البيضاء من الخروج */
     }
     
     .eye::before {
@@ -1017,6 +963,8 @@
         #promptInput {
             font-size: 9px !important;
             min-height: 80px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
         }
         
         .send-button {
@@ -1036,6 +984,11 @@
     
     /* Samsung Galaxy A15 & Similar (393-410px width) */
     @media (max-width: 410px) and (min-width: 393px) {
+        /* إخفاء الصورة في الحالة العادية */
+        .robot::before {
+            display: none !important;
+        }
+        
         .prompt-input-container {
             width: 95% !important;
             max-width: 390px !important;
@@ -1063,6 +1016,8 @@
             min-height: 80px !important;
             width: 100% !important;
             padding: 15px 20px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
         }
         
         .input-buttons {
@@ -1123,6 +1078,8 @@
             min-height: 78px !important;
             width: 100% !important;
             padding: 14px 19px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
         }
         
         .input-buttons {
@@ -1148,6 +1105,11 @@
     
     /* Smaller Phones (360-374px) */
     @media (max-width: 374px) and (min-width: 360px) {
+        /* إخفاء الصورة في الحالة العادية */
+        .robot::before {
+            display: none !important;
+        }
+        
         .prompt-input-container {
             width: 93% !important;
             max-width: 350px !important;
@@ -1175,6 +1137,8 @@
             min-height: 76px !important;
             width: 100% !important;
             padding: 13px 18px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
         }
         
         .input-buttons {
@@ -1236,6 +1200,8 @@
             min-height: 74px !important;
             width: 100% !important;
             padding: 12px 17px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
         }
         
         .input-buttons {
@@ -1678,6 +1644,11 @@
     
     /* موبايل كبير */
     @media (max-width: 576px) {
+        .container {
+            padding: 0 0.5rem;
+            margin: -27px auto 0 auto;
+        }
+        
         .robot-chat-container {
             min-height: 130px;
             padding: 10px 3px;
@@ -1875,35 +1846,404 @@
         }
     }
     
-    /* تصميم للشاشات الكبيرة جداً (> 1200px) */
+    /* تصميم عام للشاشات الكبيرة */
+    .robot-chat-container {
+        position: fixed;
+        top: 84%;
+        right: 20px;
+        transform: translateY(-50%);
+        z-index: 1000;
+        pointer-events: none;
+    }
+    
+    /* تصميم الروبوت للشاشات الكبيرة واللابتوب (> 1200px) */
     @media (min-width: 1201px) {
-        .chat-bubble {
-            position: absolute !important;
-            left: 150px !important;
+        .robot-chat-container {
+            position: fixed !important;
+            top: 50% !important;
+            left: 20px !important;
             right: auto !important;
-            top: 15% !important;
-            transform: translateY(-50%) !important;
-            min-width: 250px !important;
-            max-width: 320px !important;
-            font-size: 15px !important;
-            padding: 16px 24px !important;
+            bottom: auto !important;
+            transform: translateY(-50%) rotate(0deg) !important;
+            z-index: 1000 !important;
+            pointer-events: none !important;
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            align-items: center !important;
+            gap: 40px !important;
+            width: auto !important;
+            height: auto !important;
+            min-height: auto !important;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+        }
+        
+        /* للغة الإنجليزية: الروبوت على يمين الفورم */
+        html:not([dir="rtl"]) .robot-chat-container {
+            left: calc(50% + 25% + 20px) !important;
+            right: auto !important;
+        }
+        
+        /* الروبوت بشكل مستقيم تماماً مع animation الطيران - حجم أصغر */
+        .robot {
+            position: relative !important;
+            pointer-events: auto !important;
+            flex-shrink: 0 !important;
+            animation: floatLarge 4s ease-in-out infinite !important;
+        }
+        
+        /* إلغاء دوران الرأس */
+        .robot-head {
+            transform: rotate(0deg) !important;
+            animation: none !important;
+        }
+        
+        /* إلغاء دوران الجسم */
+        .robot-body {
+            transform: rotate(0deg) !important;
+            animation: none !important;
+        }
+        
+        /* السماح للعيون بالحركة باستخدام CSS variables */
+        .robot .eye {
+            transform: rotate(0deg) !important;
+            animation: eyeBlink 6s infinite, eyeGlow 2.5s ease-in-out infinite !important;
+            overflow: hidden !important; /* منع العيون البيضاء من الخروج */
+        }
+        
+        .robot .eye.left {
+            transform: rotate(0deg) !important;
+        }
+        
+        .robot .eye.right {
+            transform: rotate(0deg) !important;
+        }
+        
+        /* السماح للعيون بالحركة في ::before - بدون !important للسماح بالحركة */
+        .robot .eye::before {
+            transform: translate(calc(-50% + var(--moveX, 0)), calc(-50% + var(--moveY, 0)));
+        }
+        
+        /* إلغاء دوران الذراعين */
+        .robot .arm {
+            transform: rotate(0deg) !important;
+            animation: none !important;
+        }
+        
+        .robot .arm.left {
+            transform: rotate(0deg) !important;
+            animation: none !important;
+        }
+        
+        .robot .arm.right {
+            transform: rotate(0deg) !important;
+            animation: none !important;
+        }
+        
+        /* chatBubble بجانب الروبوت - حجم أصغر وبعيد أكثر */
+        .chat-bubble {
+            position: relative !important;
+            left: clamp(75px, 15vw, 167px) !important;
+            right: auto !important;
+            top: clamp(1px, -15vh, -180px) !important;
+            transform: scale(0.8) !important;
+            min-width: 220px !important;
+            max-width: 280px !important;
+            font-size: 13px !important;
+            padding: 14px 20px !important;
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            align-self: flex-start !important;
+            margin-top: -60px !important;
+        }
+        
+        /* للغة العربية: إبعاد chat-bubble أكثر إلى اليسار */
+        html[dir="rtl"] .chat-bubble {
+            left: clamp(95px, 18vw, 178px) !important;
+            right: auto !important;
         }
         
         html:not([dir="rtl"]) .chat-bubble {
-            left: auto !important;
-            right: 150px !important;
+            left: clamp(75px, 15vw, 167px) !important;
+            right: auto !important;
+            /* margin-left: 80px !important; بعيد أكثر عن وجه الروبوت باتجاه اليسار للغة الإنجليزية */
         }
         
         .chat-bubble::after {
-            right: -15px !important;
+            left: -15px !important;
+            right: auto !important;
             top: 50% !important;
             transform: translateY(-50%) !important;
+            border-width: 12px 15px 12px 0 !important;
+            border-color: transparent rgba(255, 255, 255, 0.15) transparent transparent !important;
         }
         
         html:not([dir="rtl"]) .chat-bubble::after {
             left: -15px !important;
             right: auto !important;
+            border-width: 12px 15px 12px 0 !important;
+            border-color: transparent rgba(255, 255, 255, 0.15) transparent transparent !important;
         }
+    }
+    
+    /* جعل form-section في نصف الشاشة للشاشات الكبيرة */
+    @media (min-width: 1201px) {
+        /* للغة الإنجليزية: form-section في نصف الشاشة */
+        html:not([dir="rtl"]) body .container {
+            max-width: 50% !important;
+            width: 50% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        
+        html:not([dir="rtl"]) body .form-container {
+            margin-left: 0 !important;
+            margin-right: auto !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* للغة العربية: form-section في نصف الشاشة */
+        html[dir="rtl"] body .container,
+        body .container {
+            max-width: 50% !important;
+            width: 50% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        
+        html[dir="rtl"] body .form-container,
+        body .form-container {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* التأكد من أن form-section نفسه في نصف الشاشة */
+        body .form-section {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* إظهار prompt-input-container تحت الروبوت عند النقر */
+        .prompt-input-container {
+            position: absolute !important;
+            bottom: -200px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 95% !important;
+            max-width: 400px !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            z-index: 1000 !important;
+        }
+        
+        .prompt-input-container.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            bottom: -180px !important;
+        }
+    }
+    
+    /* تعديل موضع prompt-input-container في الشاشات الكبيرة */
+    @media (min-width: 1201px) {
+        .prompt-input-container.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            bottom: -275px !important;
+            left: -27% !important;
+        }
+    }
+    
+    /* CSS للشاشات الكبيرة - إظهار prompt-input-container */
+    @media (min-width: 1201px) {
+        .input-wrapper {
+            padding: 20px 30px !important;
+            min-height: 200px !important;
+            width: 100% !important;
+            /* max-width: 224% !important; */
+            min-width: 237% !important;
+        }
+        
+        #promptInput {
+            font-size: 18px !important;
+            min-height: 150px !important;
+            max-height: 250px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
+        }
+        
+        .send-button {
+            height: 40px !important;
+            min-height: 40px !important;
+            font-size: 16px !important;
+            padding: 0 25px !important;
+        }
+        
+        .close-button {
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+        }
+    }
+    
+    /* للشاشات الكبيرة (1201px وأكثر) - robot-section للغة الإنجليزية فقط */
+    @media (min-width: 1201px) {
+        html:not([dir="rtl"]) .robot-section {
+            left: 91% !important;
+            right: auto !important;
+            transform: translateY(-50%) rotate(8deg) !important;
+        }
+        
+        /* robot-section في النصف فقط عندما يكون الروبوت مفتوحاً */
+        .robot-section.robot-opened {
+            left: 50% !important;
+            right: auto !important;
+            transform: translateY(-50%) !important;
+        }
+        
+        html:not([dir="rtl"]) .robot-section.robot-opened {
+            left: 50% !important;
+            right: auto !important;
+            transform: translateY(-50%) !important;
+        }
+        
+        /* Overlay غامق كامل عند النقر على الروبوت */
+        .robot-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: rgba(0, 0, 0, 0.85) !important;
+            z-index: 999 !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            transition: opacity 0.3s ease, visibility 0.3s ease !important;
+        }
+        
+        .robot-overlay.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+        
+        /* الروبوت في منتصف الشاشة عند النقر */
+        .robot-chat-container.robot-centered {
+            left: 50% !important;
+            right: auto !important;
+            top: 50% !important;
+            bottom: auto !important;
+            transform: translate(-50%, -50%) rotate(0deg) !important;
+            z-index: 1001 !important;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+        }
+        
+        html:not([dir="rtl"]) .robot-chat-container.robot-centered {
+            left: 50% !important;
+            right: auto !important;
+            transform: translate(-50%, -50%) rotate(0deg) !important;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+        }
+        
+        /* Shadow تحت الروبوت في المنتصف - استخدام الصورة */
+        .robot-chat-container.robot-centered .robot-shadow {
+            position: absolute !important;
+            bottom: -90px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 200px !important;
+            height: 135px !important;
+            background-image: url('/images/Polygon%202.png') !important;
+            background-size: contain !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            filter: drop-shadow(0 0 30px rgba(117, 239, 248, 0.8)) !important;
+            opacity: 0 !important;
+            display: none !important;
+            z-index: -1 !important;
+        }
+        
+        /* للغة الإنجليزية: التأكد من أن shadow في المنتصف */
+        html:not([dir="rtl"]) .robot-chat-container.robot-centered .robot-shadow {
+            left: 50% !important;
+            width: 405px !important;
+            height: 195px !important;
+            bottom: -147px !important;
+        }
+        
+        /* للغة العربية: التأكد من أن shadow في المنتصف */
+        html[dir="rtl"] .robot-chat-container.robot-centered .robot-shadow {
+            left: 53% !important;
+            width: 406px !important;
+            height: 163px !important;
+            bottom: -128px !important;
+        }
+        
+        .robot-chat-container.robot-centered .robot-shadow {
+            opacity: 1 !important;
+            display: block !important;
+        }
+        
+        /* تعديل موضع prompt-input-container تحت الروبوت في المنتصف */
+        .robot-chat-container.robot-centered .prompt-input-container {
+            position: absolute !important;
+            bottom: -322px !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            width: 119% !important;
+            max-width: 500px !important;
+            z-index: 1002 !important;
+        }
+        
+        /* للغة الإنجليزية: prompt-input-container في المنتصف */
+        html:not([dir="rtl"]) .robot-chat-container.robot-centered .prompt-input-container {
+            left: -35% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+        }
+        
+        /* للغة العربية: prompt-input-container في المنتصف */
+        html[dir="rtl"] .robot-chat-container.robot-centered .prompt-input-container {
+            left: 137% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+        }
+        
+        .robot-chat-container.robot-centered .prompt-input-container.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+    }
+    
+    /* للشاشات الكبيرة جداً (1600px وأكثر) */
+    @media (min-width: 1600px) {
+        .robot-section {
+            left: 125px !important;
+        }
+        
+        /* robot-section في النصف فقط عندما يكون الروبوت مفتوحاً */
+        .robot-section.robot-opened {
+            left: 50% !important;
+        }
+        
+        /* للغة الإنجليزية: التأكد من أن الروبوت على يمين الفورم */
+        html:not([dir="rtl"]) .robot-chat-container {
+            left: calc(50% + 25% + 20px) !important;
+            right: auto !important;
+        }
+    }
+    
+    @keyframes robotSpin {
+        0% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.1) rotate(180deg); }
+        100% { transform: scale(1.2) rotate(360deg); }
     }
     
     /* تصميم خاص للشاشات 820x1180 (iPad Portrait) */
@@ -1996,8 +2336,11 @@
         }
         
         #promptInput {
-            font-size: 16px !important;
-            min-height: 110px !important;
+            font-size: 18px !important;
+            min-height: 160px !important;
+            max-height: 280px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
         }
         
         .send-button {
@@ -2105,8 +2448,11 @@
         }
         
         #promptInput {
-            font-size: 15px !important;
-            min-height: 100px !important;
+            font-size: 17px !important;
+            min-height: 140px !important;
+            max-height: 240px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
         }
         
         .send-button {
@@ -2135,10 +2481,10 @@
             /* اختر أحد هذه الخيارات: */
             
             /* الخيار 1: الزاوية السفلية اليمنى */
-            left: -50px !important;
+            left: -690px !important;
             /* right: 20px !important; */
             bottom: 20px !important;
-            top: auto !important;
+            top: 250px !important;
             rotate: 20deg !important;
             /* الخيار 2: الزاوية السفلية اليسرى */
             /* left: 20px !important;
@@ -2175,9 +2521,9 @@
         /* تصميم معكوس للغة الإنجليزية */
         html:not([dir="rtl"]) .robot-chat-container {
             left: auto !important;
-            right: -50px !important;
+            right: -190px !important;
             bottom: 20px !important;
-            top: auto !important;
+            top: 250px !important;
             rotate: -20deg !important;
         }
         
@@ -2269,6 +2615,8 @@
         /* تحريك الشادو شوي لليسار للإنجليزية */
         html:not([dir="rtl"]) .robot-chat-container.fly-to-center .robot::after {
             left: 50% !important;
+            width: 265px !important;
+            height: 160px !important;
         }
         
         .robot-chat-container.fly-to-center .robot {
@@ -2343,8 +2691,12 @@
         }
         
         #promptInput {
-            font-size: 14px !important;
-            padding: 10px 12px !important;
+            font-size: 16px !important;
+            padding: 12px 15px !important;
+            min-height: 120px !important;
+            max-height: 220px !important;
+            color: #000000 !important;
+            font-weight: 600 !important;
         }
         
         .send-button {
@@ -2355,6 +2707,28 @@
     
     /* تحسينات خاصة لشاشات Samsung Galaxy A15 */
     @media (max-width: 412px) and (min-width: 360px) {
+        /* إخفاء الصورة في الحالة العادية */
+        .robot::before {
+            display: none !important;
+        }
+        
+        /* موقع الروبوت للعربي */
+        .robot-chat-container {
+            left: -590px !important;
+            bottom: 25px !important;
+            top: 250px !important;
+            rotate: 18deg !important;
+        }
+        
+        /* موقع الروبوت للإنجليزي */
+        html:not([dir="rtl"]) .robot-chat-container {
+            left: auto !important;
+            right:  -120px !important;
+            bottom: 25px !important;
+            top: 250px !important;
+            rotate: -12deg !important;
+        }
+        
         .chat-bubble {
             left: 80px !important;
             top: -140px !important;
@@ -2376,6 +2750,23 @@
             white-space: normal !important;
             word-wrap: break-word !important;
             word-break: break-all !important;
+        }
+        
+        /* تقليل عرض الشادو لـ Galaxy A15 */
+        .robot-chat-container.fly-to-center .robot::after {
+            width: 220px !important;
+            height: 140px !important;
+            bottom: -30px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+        }
+        
+        /* ضبط الشادو للإنجليزي في Galaxy A15 */
+        html:not([dir="rtl"]) .robot-chat-container.fly-to-center .robot::after {
+            left: 50% !important;
+            width: 200px !important;
+            height: 135px !important;
+            bottom: -35px !important;
         }
     }
     
@@ -2487,283 +2878,579 @@
             height: 8px;
         }
     }
-</style>
+<style>
+/* Responsive positioning using vw/vh units */
+.robot-chat-container {
+    position: fixed !important;
+    z-index: 1000 !important;
+    pointer-events: none !important;
+    /* Default positioning using vw/vh */
+    left: -4vw !important;
+    bottom: 4vh !important;
+}
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const robot = document.querySelector('.robot');
-    const eyes = document.querySelectorAll('.eye');
-    const chatBubble = document.getElementById('chatBubble');
-    const promptInputContainer = document.getElementById('promptInputContainer');
-    const promptInput = document.getElementById('promptInput');
-    const sendButton = document.getElementById('sendPrompt');
-    const closeButton = document.getElementById('closePrompt');
-    
-    if (!robot || !eyes.length || !chatBubble) return;
-    
-    // Get messages from the HTML data attributes
-    const textLines = chatBubble.querySelectorAll('.text-line');
-    
-    let currentMessageIndex = 0;
-    let isAnimating = false;
-    let messageInterval;
-    
-    // Function to get current language text from a line
-    function getLineText(line) {
-        const currentLang = document.documentElement.lang || 'ar';
-        const arText = line.getAttribute('data-ar');
-        const enText = line.getAttribute('data-en');
-        return currentLang === 'ar' ? arText : enText;
+.robot-chat-container .robot {
+    pointer-events: auto !important;
+}
+
+.robot-chat-container .chat-bubble {
+    pointer-events: auto !important;
+}
+
+/* English mode positioning */
+html:not([dir="rtl"]) .robot-chat-container {
+    left: auto !important;
+    right: -4vw !important;
+}
+
+/* Small screens (≤430px) */
+@media (max-width: 430px) {
+    .robot-chat-container {
+        left: -6vw !important;
+        bottom: 3vh !important;
     }
     
-    function showNextMessage() {
-        if (isAnimating) return;
-        isAnimating = true;
-        
-        textLines.forEach(line => {
-            line.style.animation = 'none';
-            line.style.opacity = '0';
-            line.style.transform = 'translateY(20px)';
-        });
-        
-        setTimeout(() => {
-            // Show only the current message line with language support
-            textLines.forEach((line, index) => {
-                if (index === currentMessageIndex) {
-                    line.innerHTML = getLineText(line);
-                    line.style.animation = 'continuousLoop 4s ease-in-out forwards';
-                } else {
-                    line.style.opacity = '0';
-                }
-            });
-            
-            currentMessageIndex = (currentMessageIndex + 1) % textLines.length;
-            
-            setTimeout(() => {
-                isAnimating = false;
-                showNextMessage(); // Continue to next message
-            }, 4000); // Increased duration for better readability
-        }, 300); // Reduced transition time
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -6vw !important;
+        left: auto !important;
+    }
+}
+
+/* Medium screens (431px - 768px) */
+@media (min-width: 431px) and (max-width: 768px) {
+    .robot-chat-container {
+        left: -4vw !important;
+        bottom: 4vh !important;
     }
     
-    function startMessaging() {
-        if (messageInterval) clearInterval(messageInterval);
-        setTimeout(showNextMessage, 1500); // Slightly delayed start
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -4vw !important;
+        left: auto !important;
+    }
+}
+
+/* Large screens (≥1025px) */
+@media (min-width: 1025px) {
+    .robot-chat-container {
+        left: -4vw !important;
+        bottom: 5vh !important;
     }
     
-    function stopMessaging() {
-        if (messageInterval) clearInterval(messageInterval);
-        isAnimating = false;
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -4vw !important;
+        left: auto !important;
+    }
+}
+
+/* iPhone 12 Pro Max reference positioning */
+@media (max-width: 428px) and (min-width: 413px) {
+    .robot-chat-container {
+        left: -30px !important;
+        bottom: 30px !important;
+        transform: rotate(15deg) !important;
     }
     
-    // Start continuous messaging
-    startMessaging();
-    
-    // تتبع حركة العيون مع الماوس أو اللمس
-    function updateEyePosition(clientX, clientY) {
-        const eyeLeft = document.querySelector('.eye.left');
-        const eyeRight = document.querySelector('.eye.right');
-        
-        if (!eyeLeft || !eyeRight) return;
-        
-        const eyeLeftRect = eyeLeft.getBoundingClientRect();
-        const eyeRightRect = eyeRight.getBoundingClientRect();
-        
-        const eyeLeftCenterX = eyeLeftRect.left + eyeLeftRect.width / 2;
-        const eyeLeftCenterY = eyeLeftRect.top + eyeLeftRect.height / 2;
-        const eyeRightCenterX = eyeRightRect.left + eyeRightRect.width / 2;
-        const eyeRightCenterY = eyeRightRect.top + eyeRightRect.height / 2;
-        
-        const angleLeft = Math.atan2(clientY - eyeLeftCenterY, clientX - eyeLeftCenterX);
-        const angleRight = Math.atan2(clientY - eyeRightCenterY, clientX - eyeRightCenterX);
-        
-        // تحديد مساحة الحركة حسب حجم الشاشة
-        const maxMove = window.innerWidth <= 768 ? 4 : 12; // حركة أقل للهواتف
-        const moveXLeft = Math.cos(angleLeft) * maxMove;
-        const moveYLeft = Math.sin(angleLeft) * maxMove;
-        const moveXRight = Math.cos(angleRight) * maxMove;
-        const moveYRight = Math.sin(angleRight) * maxMove;
-        
-        eyeLeft.style.setProperty('--moveX', `${moveXLeft}px`);
-        eyeLeft.style.setProperty('--moveY', `${moveYLeft}px`);
-        eyeRight.style.setProperty('--moveX', `${moveXRight}px`);
-        eyeRight.style.setProperty('--moveY', `${moveYRight}px`);
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -30px !important;
+        left: auto !important;
+        transform: rotate(-15deg) !important;
+    }
+}
+
+/* iPad Mini and below - specific positioning */
+@media (max-width: 768px) and (min-width: 600px) {
+    .robot-chat-container {
+        left: -20px !important;
+        bottom: 20px !important;
+        transform: rotate(15deg) !important;
+        scale: 1.0 !important;
     }
     
-    document.addEventListener('mousemove', (e) => {
-        // منع الحركة في الهواتف
-        if (window.innerWidth <= 768) return;
-        
-        const x = (e.clientX / window.innerWidth - 0.5) * 15;
-        const y = (e.clientY / window.innerHeight - 0.5) * 15;
-        
-        robot.style.transform = `translate(${x}px, ${y}px)`;
-        updateEyePosition(e.clientX, e.clientY);
-    });
-    
-    document.addEventListener('touchmove', (e) => {
-        const touch = e.touches[0];
-        updateEyePosition(touch.clientX, touch.clientY);
-    });
-    
-    document.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        updateEyePosition(touch.clientX, touch.clientY);
-    });
-    
-    // رمشة عشوائية للعيون
-    function randomBlink() {
-        const blinkTime = Math.random() * 5000 + 3000;
-        setTimeout(() => {
-            eyes.forEach(eye => {
-                eye.style.animation = 'none';
-                setTimeout(() => {
-                    eye.style.animation = '';
-                }, 10);
-            });
-            randomBlink();
-        }, blinkTime);
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -20px !important;
+        left: auto !important;
+        transform: rotate(-15deg) !important;
+        scale: 1.0 !important;
+    }
+}
+
+/* iPad Mini specific (744x1024) */
+@media (max-width: 768px) and (min-width: 744px) {
+    .robot-chat-container {
+        left: -30px !important;
+        bottom: 30px !important;
+        transform: rotate(12deg) !important;
+        scale: 1.1 !important;
+        z-index: 1000 !important;
     }
     
-    randomBlink();
-    
-    // تفاعل الطيران السلس للهواتف والتابلت
-    function handleRobotClick() {
-        if (window.innerWidth <= 1024) {
-            const robotContainer = document.querySelector('.robot-chat-container');
-            const robotShadow = document.querySelector('.robot-shadow');
-            
-            if (robotContainer.classList.contains('fly-to-center')) {
-                // لا نغلق الـ input عند النقر على الروبوت
-                // فقط نعيد الرسائل
-                    chatBubble.style.opacity = '1';
-                    chatBubble.style.pointerEvents = 'auto';
-                    stopMessaging();
-                    startMessaging();
-            } else {
-                // طيران الروبوت إلى المنتصف
-                robotContainer.classList.add('fly-to-center');
-                
-                // إخفاء الشات بابل تدريجياً
-                chatBubble.style.opacity = '0';
-                chatBubble.style.pointerEvents = 'none';
-                stopMessaging();
-                
-                // إظهار الـ input بعد الطيران
-                setTimeout(() => {
-                    showPromptInput();
-                }, 800);
-            }
-        } else {
-            // تفاعل الشاشات الكبيرة
-            robot.style.transition = 'transform 0.3s ease';
-            robot.style.transform = 'scale(1.1)';
-            
-            setTimeout(() => {
-                robot.style.transform = 'scale(1)';
-            }, 300);
-        }
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -30px !important;
+        left: auto !important;
+        transform: rotate(-12deg) !important;
+        scale: 1.1 !important;
     }
     
-    // وظائف الـ input
-    function showPromptInput() {
-        if (promptInputContainer) {
-            promptInputContainer.classList.add('show');
-            setTimeout(() => {
-                if (promptInput) {
-                    promptInput.focus();
-                }
-            }, 500);
-        }
+    /* Chat bubble positioning for iPad Mini */
+    .chat-bubble {
+        left: 120px !important;
+        top: -180px !important;
+        font-size: 16px !important;
+        padding: 12px 16px !important;
+        min-width: 200px !important;
+        max-width: 250px !important;
     }
     
-    function hidePromptInput() {
-        if (promptInputContainer) {
-            promptInputContainer.classList.remove('show');
-        }
+    html:not([dir="rtl"]) .chat-bubble {
+        right: 120px !important;
+        left: auto !important;
+        top: -180px !important;
+    }
+}
+
+/* iPhone 14 Pro Max (430x932) */
+@media (max-width: 430px) and (min-width: 430px) and (max-height: 932px) and (min-height: 932px) {
+    .robot-chat-container {
+        left: -28px !important;
+        bottom: 28px !important;
+        transform: rotate(14deg) !important;
+        z-index: 1000 !important;
     }
     
-    function closePromptInput() {
-        hidePromptInput();
-        // إعادة الروبوت إلى مكانه الأصلي
-        const robotContainer = document.querySelector('.robot-chat-container');
-        if (robotContainer && robotContainer.classList.contains('fly-to-center')) {
-            robotContainer.classList.remove('fly-to-center');
-            setTimeout(() => {
-                robot.style.animation = 'float 4s ease-in-out infinite';
-                const robotShadow = document.querySelector('.robot-shadow');
-                if (robotShadow) robotShadow.style.opacity = '1';
-                chatBubble.style.opacity = '1';
-                chatBubble.style.pointerEvents = 'auto';
-                stopMessaging();
-                startMessaging();
-            }, 100);
-        }
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -28px !important;
+        left: auto !important;
+        transform: rotate(-14deg) !important;
+    }
+}
+
+/* iPad Mini (768x1024) */
+@media (max-width: 768px) and (min-width: 768px) and (max-height: 1024px) and (min-height: 1024px) {
+    .robot-chat-container {
+        left: -35px !important;
+        bottom: 35px !important;
+        transform: rotate(11deg) !important;
+        z-index: 1000 !important;
     }
     
-    function sendPrompt() {
-        const prompt = promptInput.value.trim();
-        if (prompt) {
-            console.log('Prompt sent:', prompt);
-            // هنا يمكن إضافة منطق إرسال الـ prompt
-            promptInput.value = '';
-            
-            // تأثير بصري عند الإرسال
-            if (sendButton) {
-                sendButton.style.transform = 'scale(0.9)';
-                setTimeout(() => {
-                    sendButton.style.transform = 'scale(1)';
-                }, 150);
-            }
-        }
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -35px !important;
+        left: auto !important;
+        transform: rotate(-11deg) !important;
+    }
+}
+
+/* iPad Air 820x1180 specific */
+@media (max-width: 820px) and (min-width: 820px) and (max-height: 1180px) and (min-height: 1180px) {
+    .robot-chat-container {
+        left: -25px !important;
+        bottom: 25px !important;
+        transform: rotate(13deg) !important;
+        z-index: 1000 !important;
     }
     
-    
-    // إضافة أحداث للـ input
-    if (sendButton) {
-        sendButton.addEventListener('click', sendPrompt);
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -25px !important;
+        left: auto !important;
+        transform: rotate(-13deg) !important;
     }
     
-    if (closeButton) {
-        closeButton.addEventListener('click', closePromptInput);
+    /* Chat bubble positioning for iPad Air 820x1180 */
+    .chat-bubble {
+        left: 125px !important;
+        top: -180px !important;
+        font-size: 16px !important;
+        padding: 12px 16px !important;
+        min-width: 200px !important;
+        max-width: 250px !important;
     }
     
-    if (promptInput) {
-        promptInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendPrompt();
-            }
-        });
-        
-        // منع إغلاق الـ input عند النقر عليه
-        promptInput.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
+    html:not([dir="rtl"]) .chat-bubble {
+        right: 125px !important;
+        left: auto !important;
+        top: -180px !important;
+    }
+}
+
+/* iPad Pro (1024x1366) */
+@media (max-width: 1024px) and (min-width: 1024px) and (max-height: 1366px) and (min-height: 1366px) {
+    .robot-chat-container {
+        left: -45px !important;
+        bottom: 45px !important;
+        transform: rotate(9deg) !important;
+        z-index: 1000 !important;
     }
     
-    
-    // إضافة أحداث النقر للروبوت والشات بابل
-    robot.addEventListener('click', handleRobotClick);
-    robot.addEventListener('touchend', handleRobotClick);
-    
-    // منع إغلاق الـ input عند النقر على الـ input-wrapper
-    const inputWrapper = document.querySelector('.input-wrapper');
-    if (inputWrapper) {
-        inputWrapper.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -45px !important;
+        left: auto !important;
+        transform: rotate(-9deg) !important;
     }
-    chatBubble.addEventListener('click', handleRobotClick);
-    chatBubble.addEventListener('touchend', handleRobotClick);
+}
+
+/* iPad Pro 12.9" (912x1368) */
+@media (max-width: 912px) and (min-width: 912px) and (max-height: 1368px) and (min-height: 1368px) {
+    .robot-chat-container {
+        left: -50px !important;
+        bottom: 50px !important;
+        transform: rotate(8deg) !important;
+        z-index: 1000 !important;
+    }
     
-    // Update robot messages when language changes
-    document.addEventListener('languageChanged', function() {
-        // Update the current visible message
-        textLines.forEach((line, index) => {
-            if (line.style.opacity !== '0' && line.style.opacity !== '') {
-                line.innerHTML = getLineText(line);
-            }
-        });
-    });
-});
-</script>
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -50px !important;
+        left: auto !important;
+        transform: rotate(-8deg) !important;
+    }
+}
+
+/* Galaxy Tab (540x720) */
+@media (max-width: 540px) and (min-width: 540px) and (max-height: 720px) and (min-height: 720px) {
+    .robot-chat-container {
+        left: -30px !important;
+        bottom: 30px !important;
+        transform: rotate(12deg) !important;
+        z-index: 1000 !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -30px !important;
+        left: auto !important;
+        transform: rotate(-12deg) !important;
+    }
+}
+
+/* Galaxy Tab S (853x1280) */
+@media (max-width: 853px) and (min-width: 853px) and (max-height: 1280px) and (min-height: 1280px) {
+    .robot-chat-container {
+        left: -40px !important;
+        bottom: 40px !important;
+        transform: rotate(10deg) !important;
+        z-index: 1000 !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -40px !important;
+        left: auto !important;
+        transform: rotate(-10deg) !important;
+    }
+}
+
+/* Surface Pro (1024x600) */
+@media (max-width: 1024px) and (min-width: 1024px) and (max-height: 600px) and (min-height: 600px) {
+    .robot-chat-container {
+        left: -35px !important;
+        bottom: 35px !important;
+        transform: rotate(11deg) !important;
+        z-index: 1000 !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -35px !important;
+        left: auto !important;
+        transform: rotate(-11deg) !important;
+    }
+}
+
+/* Laptop (1280x800) */
+@media (max-width: 1280px) and (min-width: 1280px) and (max-height: 800px) and (min-height: 800px) {
+    .robot-chat-container {
+        left: -60px !important;
+        bottom: 60px !important;
+        transform: rotate(7deg) !important;
+        z-index: 1000 !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -60px !important;
+        left: auto !important;
+        transform: rotate(-7deg) !important;
+    }
+}
+
+/* iPad Air specific (820px width) */
+@media (max-width: 820px) and (min-width: 820px) {
+    .robot-chat-container {
+        left: -30px !important;
+        bottom: 30px !important;
+        transform: rotate(12deg) !important;
+        z-index: 1000 !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -30px !important;
+        left: auto !important;
+        transform: rotate(-12deg) !important;
+    }
+    
+    /* Chat bubble positioning for iPad Air */
+    .chat-bubble {
+        left: 130px !important;
+        top: -185px !important;
+        font-size: 16px !important;
+        padding: 12px 16px !important;
+        min-width: 200px !important;
+        max-width: 250px !important;
+    }
+    
+    html:not([dir="rtl"]) .chat-bubble {
+        right: 130px !important;
+        left: auto !important;
+        top: -185px !important;
+    }
+}
+
+/* Medium tablets */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .robot-chat-container {
+        left: -40px !important;
+        bottom: 40px !important;
+        transform: rotate(10deg) !important;
+        scale: 1.2 !important;
+        z-index: 1000 !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -40px !important;
+        left: auto !important;
+        transform: rotate(-10deg) !important;
+        scale: 1.2 !important;
+    }
+    
+    /* Chat bubble positioning for medium tablets */
+    .chat-bubble {
+        left: 150px !important;
+        top: -200px !important;
+        font-size: 18px !important;
+        padding: 14px 18px !important;
+        min-width: 220px !important;
+        max-width: 280px !important;
+    }
+    
+    html:not([dir="rtl"]) .chat-bubble {
+        right: 150px !important;
+        left: auto !important;
+        top: -200px !important;
+    }
+}
+
+/* Responsive scaling for all other screens based on iPhone 12 Pro Max */
+@media (max-width: 412px) {
+    .robot-chat-container {
+        left: calc(-355px * var(--scale-factor, 1)) !important;
+        bottom: calc(30px * var(--scale-factor, 1)) !important;
+        transform: rotate(calc(15deg * var(--scale-factor, 1))) !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: calc(-30px * var(--scale-factor, 1)) !important;
+        left: auto !important;
+        transform: rotate(calc(-15deg * var(--scale-factor, 1))) !important;
+    }
+}
+
+/* Large screens (1025px+) */
+@media (min-width: 1025px) {
+    .robot-chat-container {
+        left: -60px !important;
+        bottom: 60px !important;
+        transform: rotate(8deg) !important;
+        scale: 1.3 !important;
+        z-index: 1000 !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container {
+        right: -60px !important;
+        left: auto !important;
+        transform: rotate(-8deg) !important;
+        scale: 1.3 !important;
+    }
+    
+    /* Chat bubble positioning for large screens */
+    .chat-bubble {
+        left: 180px !important;
+        top: -220px !important;
+        font-size: 20px !important;
+        padding: 16px 20px !important;
+        min-width: 250px !important;
+        max-width: 320px !important;
+    }
+    
+    html:not([dir="rtl"]) .chat-bubble {
+        right: 180px !important;
+        left: auto !important;
+        top: -220px !important;
+    }
+}
+
+/* Chat bubble responsive sizing using vw/vh */
+.chat-bubble {
+    position: absolute !important;
+    font-size: clamp(12px, 2.5vw, 18px) !important;
+    padding: clamp(8px, 1.5vw, 12px) clamp(10px, 2vw, 16px) !important;
+    min-width: clamp(150px, 30vw, 250px) !important;
+    max-width: clamp(200px, 40vw, 300px) !important;
+    border-radius: clamp(8px, 1.5vw, 12px) !important;
+}
+
+/* Chat bubble positioning using vw/vh */
+.chat-bubble {
+    left: clamp(80px, 15vw, 150px) !important;
+    top: clamp(-120px, -15vh, -180px) !important;
+}
+
+html:not([dir="rtl"]) .chat-bubble {
+    /* right: clamp(80px, 15vw, 150px) !important; */
+    left: auto !important;
+    top: clamp(-120px, -15vh, -180px) !important;
+}
+
+/* إخفاء chat-bubble لما يكون الروبوت مفتوح */
+.robot-chat-container.fly-to-center .chat-bubble {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Additional chat bubble positioning */
+.chat-bubble {
+    left: clamp(75px, 15vw, 150px) !important;
+    top: clamp(1px, -15vh, -180px) !important;
+}
+
+html:not([dir="rtl"]) .chat-bubble {
+    /* right: clamp(60px, 20vw, 150px) !important; */
+    left: auto !important;
+    top: clamp(3px, -15vh, -180px) !important;
+}
+
+@media (max-width: 428px) and (min-width: 413px) {
+    .robot-chat-container {
+        left: -384px !important;
+        bottom: 30px !important;
+        transform: rotate(15deg) !important;
+    }
+}
+
+@media (max-width: 428px) and (min-width: 413px) {
+    .robot-chat-container.fly-to-center .robot::after {
+        width: 300px !important;
+        height: 150px !important;
+        bottom: -111px !important;
+        left: 58% !important;
+        filter: drop-shadow(0 0 30px rgba(117, 239, 248, 0.8)) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .robot-chat-container.fly-to-center .prompt-input-container {
+        opacity: 1 !important;
+        visibility: visible !important;
+        bottom: -240px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .robot-chat-container.fly-to-center {
+        left: 50% !important;
+        top: 29% !important;
+        bottom: auto !important;
+        right: auto !important;
+        transform: translate(-50%, -50%) !important;
+        rotate: 0deg !important;
+        z-index: 9999 !important;
+        transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    }
+    
+    html:not([dir="rtl"]) .robot-chat-container.fly-to-center {
+        left: 50% !important;
+        top: 29% !important;
+        bottom: auto !important;
+        right: auto !important;
+        transform: translate(-50%, -50%) !important;
+        rotate: 0deg !important;
+        z-index: 9999 !important;
+        transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    }
+}
+
+@media (max-width: 428px) and (min-width: 413px) {
+    .robot-chat-container.fly-to-center .robot::after {
+        width: 250px !important;
+        height: 150px !important;
+        bottom: -111px !important;
+        left: 58% !important;
+        filter: drop-shadow(0 0 30px rgba(117, 239, 248, 0.8)) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .robot-chat-container.fly-to-center .prompt-input-container {
+        opacity: 1 !important;
+        visibility: visible !important;
+        bottom: -222px !important;
+    }
+}
+
+@media (max-width: 412px) and (min-width: 360px) {
+    html:not([dir="rtl"]) .robot-chat-container.fly-to-center .robot::after {
+        left: 50% !important;
+        width: 200px !important;
+        height: 135px !important;
+        bottom: -90px !important;
+    }
+    
+    .robot-chat-container.fly-to-center .robot::after {
+        left: 50% !important;
+        width: 200px !important;
+        height: 135px !important;
+        bottom: -90px !important;
+    }
+}
+
+@media (max-width: 430px) and (min-width: 430px) and (max-height: 932px) and (min-height: 932px) {
+    .robot-chat-container {
+        left: -395px !important;
+        bottom: 28px !important;
+        transform: rotate(14deg) !important;
+        z-index: 1000 !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .robot-chat-container.fly-to-center .robot::after {
+        content: '' !important;
+        position: absolute !important;
+        bottom: -103px !important;
+        left: 53% !important;
+        transform: translateX(-50%) !important;
+        width: 231px !important;
+        height: 146px !important;
+        background-image: url(/images/Polygon%202.png) !important;
+        background-size: contain !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        filter: drop-shadow(0 0 30px rgba(117, 239, 248, 0.8)) !important;
+        animation: lightGlow 2s ease-in-out infinite alternate !important;
+        z-index: -1 !important;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 768px) and (max-height: 1024px) and (min-height: 1024px) {
+    .robot-chat-container {
+        left: -706px !important;
+        bottom: 35px !important;
+        transform: rotate(11deg) !important;
+        z-index: 1000 !important;
+    }
+}
+
+@media (max-width: 820px) and (min-width: 820px) and (max-height: 1180px) and (min-height: 1180px) {
+    .robot-chat-container {
+        left: -706px !important;
+        bottom: 35px !important;
+        transform: rotate(11deg) !important;
+        z-index: 1000 !important;
+    }
+}
+</style>
