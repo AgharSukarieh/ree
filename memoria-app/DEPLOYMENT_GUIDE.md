@@ -188,6 +188,22 @@ php artisan view:cache
 2. شغل `php artisan storage:link`
 3. تحقق من `FILESYSTEM_DISK` في متغيرات البيئة
 
+### المشكلة: خطأ 403 Forbidden
+**الحل:** 
+1. **تحقق من Root Directory**: تأكد من أن Root Directory مضبوط على `memoria-app` في Settings → General
+2. **تحقق من الصلاحيات**: تأكد من أن مجلدات `storage` و `bootstrap/cache` لها صلاحيات الكتابة (775)
+3. **تحقق من APP_KEY**: تأكد من وجود `APP_KEY` في متغيرات البيئة
+4. **تحقق من APP_URL**: تأكد من أن `APP_URL` مطابق لرابط التطبيق على Laravel Cloud
+5. **تحقق من السجلات**: اذهب إلى Logs في Laravel Cloud لرؤية الخطأ التفصيلي
+6. **شغل الأوامر التالية في Terminal**:
+   ```bash
+   cd memoria-app
+   chmod -R 775 storage bootstrap/cache
+   php artisan storage:link
+   php artisan config:clear
+   php artisan cache:clear
+   ```
+
 ## 📚 روابط مفيدة
 
 - [Laravel Cloud Documentation](https://docs.cloud.laravel.com)
