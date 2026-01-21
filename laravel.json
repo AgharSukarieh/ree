@@ -1,22 +1,22 @@
 {
     "build": {
         "commands": [
-            "cd memoria-app && npm ci",
-            "cd memoria-app && npm run build"
+            "npm ci",
+            "npm run build"
         ]
     },
     "deploy": {
         "commands": [
-            "cd memoria-app && chmod -R 775 storage bootstrap/cache",
-            "cd memoria-app && php artisan migrate --force",
-            "cd memoria-app && php artisan storage:link || true",
-            "cd memoria-app && php artisan config:clear",
-            "cd memoria-app && php artisan route:clear",
-            "cd memoria-app && php artisan view:clear",
-            "cd memoria-app && php artisan cache:clear",
-            "cd memoria-app && php artisan config:cache",
-            "cd memoria-app && php artisan route:cache",
-            "cd memoria-app && php artisan view:cache"
+            "chmod -R 775 storage bootstrap/cache",
+            "php artisan migrate --force",
+            "php artisan storage:link || true",
+            "php artisan config:clear",
+            "php artisan route:clear",
+            "php artisan view:clear",
+            "php artisan cache:clear",
+            "php artisan config:cache",
+            "php artisan route:cache",
+            "php artisan view:cache"
         ]
     },
     "environments": {
@@ -25,4 +25,3 @@
         }
     }
 }
-
