@@ -1,0 +1,23 @@
+{
+    "build": {
+        "commands": [
+            "cd memoria-app && npm ci",
+            "cd memoria-app && npm run build"
+        ]
+    },
+    "deploy": {
+        "commands": [
+            "cd memoria-app && php artisan migrate --force",
+            "cd memoria-app && php artisan config:cache",
+            "cd memoria-app && php artisan route:cache",
+            "cd memoria-app && php artisan view:cache"
+        ]
+    },
+    "environments": {
+        "production": {
+            "php": "8.2",
+            "root": "memoria-app"
+        }
+    }
+}
+
