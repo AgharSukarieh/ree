@@ -4,6 +4,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\RegisterController;
 
+// Test route to verify Laravel is working
+Route::get('/test-laravel', function() {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Laravel is working correctly!',
+        'app_name' => config('app.name'),
+        'app_env' => config('app.env'),
+        'app_url' => config('app.url'),
+    ]);
+});
+
 Route::get('/', [WebController::class, 'index'])->name('home');
 Route::get('/dashboard', [WebController::class, 'dashboard'])->name('dashboard');
 Route::get('/profile/{qr_id}', [WebController::class, 'profile'])->name('profile');
