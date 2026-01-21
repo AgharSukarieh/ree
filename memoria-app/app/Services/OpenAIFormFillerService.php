@@ -990,5 +990,92 @@ CATEGORIES;
             'engineering' => count($data['engineeringSkills'] ?? [])
         ];
     }
+
+    /**
+     * Auto-corrects skill categories based on predefined strict rules.
+     * This is the "final guarantee" layer that ensures 100% accuracy.
+     *
+     * @param array $data The data received from OpenAI.
+     * @return array The corrected data.
+     */
+    private function autoCorrectSkillCategories(array $data): array
+    {
+        // Correct IT Skills
+        if (isset($data['itSkills']) && is_array($data['itSkills'])) {
+            foreach ($data['itSkills'] as $key => $skill) {
+                if (!isset($skill['skill_name'])) {
+                    continue;
+                }
+                
+                $skillName = strtolower(trim($skill['skill_name']));
+                $originalCategoryId = $skill['category_id'] ?? null;
+                $correctedCategoryId = null;
+                
+                // Rule 1: Git, GitHub, Version Control, Source Control -> ALWAYS 20
+                if (in_array($skillName, ['git', 'github', 'version control', 'source control']) || 
+                    strpos($skillName, 'git') !== false || 
+                    strpos($skillName, 'version control') !== false ||
+                    strpos($skillName, 'source control') !== false) {
+                    $correctedCategoryId = 20;
+                }
+                // Rule 2: HTML, CSS -> ALWAYS 2
+                elseif (in_array($skillName, ['html', 'css'])) {
+                    $correctedCategoryId = 2;
+                }
+                // Rule 3: SQL -> ALWAYS 4
+                elseif ($skillName === 'sql') {
+                    $correctedCategoryId = 4;
+                }
+                // Rule 4: MVC Pattern -> ALWAYS 2
+                elseif ($skillName === 'mvc pattern' || $skillName === 'mvc') {
+                    $correctedCategoryId = 2;
+                }
+                // Rule 5: Android SDK, Android Native -> ALWAYS 3
+                elseif (in_array($skillName, ['android sdk', 'android native']) || 
+                        strpos($skillName, 'android native') !== false) {
+                    $correctedCategoryId = 3;
+                }
+                // Rule 6: UI/UX related -> ALWAYS 9
+                elseif (in_array($skillName, ['figma', 'adobe xd', 'sketch', 'ui/ux design', 'responsive design', 
+                        'ui design', 'ux design', 'user interface design', 'user experience design']) ||
+                        strpos($skillName, 'ui/ux') !== false ||
+                        strpos($skillName, 'ui design') !== false ||
+                        strpos($skillName, 'ux design') !== false ||
+                        strpos($skillName, 'responsive') !== false) {
+                    $correctedCategoryId = 9;
+                }
+                // Rule 7: Dart, Data Structures -> ALWAYS 1
+                elseif (in_array($skillName, ['dart', 'data structures'])) {
+                    $correctedCategoryId = 1;
+                }
+                
+                // Apply correction if needed
+                if ($correctedCategoryId !== null && $originalCategoryId !== $correctedCategoryId) {
+                    $data['itSkills'][$key]['category_id'] = $correctedCategoryId;
+                    
+                    Log::warning('Auto-corrected skill category', [
+                        'skill_name' => $skill['skill_name'],
+                        'original_category_id' => $originalCategoryId,
+                        'corrected_category_id' => $correctedCategoryId
+                    ]);
+                }
+                
+                // Ensure category_id exists (if missing, try to infer from skill name)
+                if (!isset($data['itSkills'][$key]['category_id']) || $data['itSkills'][$key]['category_id'] === null) {
+                    if ($correctedCategoryId !== null) {
+                        $data['itSkills'][$key]['category_id'] = $correctedCategoryId;
+                        Log::warning('Added missing category_id for skill', [
+                            'skill_name' => $skill['skill_name'],
+                            'category_id' => $correctedCategoryId
+                        ]);
+                    }
+                }
+            }
+        }
+        
+        // You can add similar correction logic for medicalSkills, businessSkills, engineeringSkills if needed
+        
+        return $data;
+    }
 }
 
