@@ -175,10 +175,21 @@ class RegisterController extends Controller
             if ($request->has('skill_name') && $request->major === 'IT') {
                 foreach ($request->skill_name as $index => $skill_name) {
                     if (!empty($skill_name)) {
+                        // Ensure category_id is valid (default to 1 if not provided or invalid)
+                        $category_id = !empty($request->category_id[$index]) 
+                            ? (int)$request->category_id[$index] 
+                            : 1;
+                        
+                        // Validate category exists
+                        $categoryExists = \DB::table('skill_categories')->where('id', $category_id)->exists();
+                        if (!$categoryExists) {
+                            $category_id = 1; // Default to first category if invalid
+                        }
+                        
                         Skill::create([
                             'qr_id' => $qr_id,
                             'skill_name' => $skill_name,
-                            'category_id' => $request->category_id[$index] ?? 1
+                            'category_id' => $category_id
                         ]);
                     }
                 }
@@ -234,10 +245,21 @@ class RegisterController extends Controller
             if ($request->has('medical_skill_name') && $request->major === 'Medicine') {
                 foreach ($request->medical_skill_name as $index => $medical_skill_name) {
                     if (!empty($medical_skill_name)) {
+                        // Ensure category_id is valid (default to 1 if not provided or invalid)
+                        $category_id = !empty($request->medical_category_id[$index]) 
+                            ? (int)$request->medical_category_id[$index] 
+                            : 1;
+                        
+                        // Validate category exists
+                        $categoryExists = \DB::table('medical_skill_categories')->where('id', $category_id)->exists();
+                        if (!$categoryExists) {
+                            $category_id = 1; // Default to first category if invalid
+                        }
+                        
                         MedicalSkill::create([
                             'qr_id' => $qr_id,
                             'skill_name' => $medical_skill_name,
-                            'category_id' => $request->medical_category_id[$index] ?? 1
+                            'category_id' => $category_id
                         ]);
                     }
                 }
