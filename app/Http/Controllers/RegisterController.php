@@ -242,25 +242,45 @@ class RegisterController extends Controller
             }
 
             // Handle Medical Skills
-            if ($request->has('medical_skill_name') && $request->major === 'Medicine') {
+            if ($request->has('medical_skill_name')) {
                 foreach ($request->medical_skill_name as $index => $medical_skill_name) {
-                    if (!empty($medical_skill_name)) {
+                    // Skip if skill name is empty or null
+                    if (empty($medical_skill_name) || trim($medical_skill_name) === '') {
+                        continue;
+                    }
+                    
+                    try {
                         // Ensure category_id is valid (default to 1 if not provided or invalid)
                         $category_id = !empty($request->medical_category_id[$index]) 
                             ? (int)$request->medical_category_id[$index] 
                             : 1;
                         
-                        // Validate category exists
-                        $categoryExists = \DB::table('medical_skill_categories')->where('id', $category_id)->exists();
-                        if (!$categoryExists) {
-                            $category_id = 1; // Default to first category if invalid
+                        // Validate category exists - if table doesn't exist or category doesn't exist, use 1
+                        try {
+                            $categoryExists = DB::table('medical_skill_categories')->where('id', $category_id)->exists();
+                            if (!$categoryExists) {
+                                // Get first available category or use 1
+                                $firstCategory = DB::table('medical_skill_categories')->first();
+                                $category_id = $firstCategory ? $firstCategory->id : 1;
+                            }
+                        } catch (\Exception $e) {
+                            // If table doesn't exist, use default
+                            $category_id = 1;
                         }
                         
                         MedicalSkill::create([
                             'qr_id' => $qr_id,
-                            'skill_name' => $medical_skill_name,
+                            'skill_name' => trim($medical_skill_name),
                             'category_id' => $category_id
                         ]);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to create medical skill', [
+                            'qr_id' => $qr_id,
+                            'skill_name' => $medical_skill_name,
+                            'category_id' => $category_id ?? 'unknown',
+                            'error' => $e->getMessage()
+                        ]);
+                        // Continue with next skill instead of failing entire registration
                     }
                 }
             }
