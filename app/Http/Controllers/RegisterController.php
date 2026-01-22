@@ -164,7 +164,7 @@ class RegisterController extends Controller
                             'location' => $request->location[$index] ?? '',
                             'start_date' => $request->start_date[$index] ?? '',
                             'end_date' => $request->end_date[$index] ?? null,
-                            'description' => $request->description[$index] ?? '',
+                            'description' => !empty($request->description[$index]) ? $request->description[$index] : '',
                             'is_internship' => isset($request->is_internship[$index]) ? 1 : 0
                         ]);
                     }
@@ -221,7 +221,7 @@ class RegisterController extends Controller
                         Project::create([
                             'qr_id' => $qr_id,
                             'project_title' => $project_title,
-                            'description' => !empty($request->description_project[$index]) ? $request->description_project[$index] : null,
+                            'description' => !empty($request->description_project[$index]) ? $request->description_project[$index] : '',
                             'technologies_used' => !empty($request->technologies_used[$index]) ? $request->technologies_used[$index] : null,
                             'link' => !empty($request->link[$index]) ? $request->link[$index] : null,
                             'project_image' => $project_image
@@ -251,8 +251,8 @@ class RegisterController extends Controller
                             'qr_id' => $qr_id,
                             'title' => $research_title,
                             'publication_year' => $request->publication_year[$index] ?? date('Y'),
-                            'description' => $request->research_description[$index] ?? '',
-                            'link' => $request->research_link[$index] ?? null
+                            'description' => !empty($request->research_description[$index]) ? $request->research_description[$index] : '',
+                            'link' => !empty($request->research_link[$index]) ? $request->research_link[$index] : null
                         ]);
                     }
                 }
@@ -431,11 +431,25 @@ class RegisterController extends Controller
         } catch (\Exception $e) {
             \Log::error('CV Registration Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
-                'request_data' => $request->except(['profile_image'])
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'request_data' => $request->except(['profile_image', 'project_image'])
             ]);
+            
+            // Return detailed error in development, generic in production
+            $errorMessage = config('app.debug') 
+                ? 'حدث خطأ: ' . $e->getMessage() . ' في الملف: ' . basename($e->getFile()) . ' السطر: ' . $e->getLine()
+                : 'حدث خطأ أثناء إنشاء الملف الشخصي. يرجى المحاولة مرة أخرى.';
+            
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء إنشاء الملف الشخصي. يرجى المحاولة مرة أخرى.'
+                'message' => $errorMessage,
+                'error' => config('app.debug') ? [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ] : null
             ], 500);
         }
     }
