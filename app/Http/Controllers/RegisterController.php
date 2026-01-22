@@ -11,6 +11,12 @@ use App\Models\SoftSkill;
 use App\Models\Skill;
 use App\Models\Project;
 use App\Models\MedicalSkill;
+use App\Models\Research;
+use App\Models\Certification;
+use App\Models\Membership;
+use App\Models\AnalyticalSkill;
+use App\Models\CoreCompetency;
+use App\Models\Interest;
 use App\Services\CloudinaryService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -232,6 +238,106 @@ class RegisterController extends Controller
                             'qr_id' => $qr_id,
                             'skill_name' => $medical_skill_name,
                             'category_id' => $request->medical_category_id[$index] ?? 1
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Medical Research
+            if ($request->has('research_title') && $request->major === 'Medicine') {
+                foreach ($request->research_title as $index => $research_title) {
+                    if (!empty($research_title)) {
+                        Research::create([
+                            'qr_id' => $qr_id,
+                            'title' => $research_title,
+                            'publication_year' => $request->publication_year[$index] ?? date('Y'),
+                            'description' => $request->research_description[$index] ?? '',
+                            'link' => $request->research_link[$index] ?? null
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Certifications
+            if ($request->has('certifications_name')) {
+                foreach ($request->certifications_name as $index => $cert_name) {
+                    if (!empty($cert_name)) {
+                        Certification::create([
+                            'qr_id' => $qr_id,
+                            'certifications_name' => $cert_name,
+                            'issuing_org' => $request->issuing_org[$index] ?? '',
+                            'issue_date' => $request->issue_date[$index] ?? null,
+                            'expiration_date' => $request->expiration_date[$index] ?? null,
+                            'link' => $request->link_driver[$index] ?? null
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Memberships
+            if ($request->has('organization_name')) {
+                foreach ($request->organization_name as $index => $org_name) {
+                    if (!empty($org_name)) {
+                        Membership::create([
+                            'qr_id' => $qr_id,
+                            'organization_name' => $org_name,
+                            'membership_type' => $request->membership_type[$index] ?? '',
+                            'start_date' => $request->start_date_membership[$index] ?? null,
+                            'end_date' => $request->end_date_membership[$index] ?? null,
+                            'membership_status' => $request->membership_status[$index] ?? 'Active'
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Activities
+            if ($request->has('activity_title')) {
+                foreach ($request->activity_title as $index => $activity_title) {
+                    if (!empty($activity_title)) {
+                        Activity::create([
+                            'qr_id' => $qr_id,
+                            'activity_title' => $activity_title,
+                            'organization' => $request->organization[$index] ?? '',
+                            'activity_date' => $request->activity_date[$index] ?? date('Y-m-d'),
+                            'description' => $request->description_activity[$index] ?? '',
+                            'activity_link' => $request->activity_link[$index] ?? null
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Analytical Skills
+            if ($request->has('analytical_skill_name') && $request->major === 'IT') {
+                foreach ($request->analytical_skill_name as $analytical_skill_name) {
+                    if (!empty($analytical_skill_name)) {
+                        AnalyticalSkill::create([
+                            'qr_id' => $qr_id,
+                            'skill_name' => $analytical_skill_name
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Core Competencies
+            if ($request->has('competency_name')) {
+                foreach ($request->competency_name as $index => $competency_name) {
+                    if (!empty($competency_name)) {
+                        CoreCompetency::create([
+                            'qr_id' => $qr_id,
+                            'competency_name' => $competency_name,
+                            'description' => $request->competency_description[$index] ?? ''
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Interests
+            if ($request->has('interest_name')) {
+                foreach ($request->interest_name as $interest_name) {
+                    if (!empty($interest_name)) {
+                        Interest::create([
+                            'qr_id' => $qr_id,
+                            'interest_name' => $interest_name
                         ]);
                     }
                 }
