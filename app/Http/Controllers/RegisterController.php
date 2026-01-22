@@ -20,6 +20,7 @@ use App\Models\Interest;
 use App\Services\CloudinaryService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Route;
 
@@ -181,7 +182,7 @@ class RegisterController extends Controller
                             : 1;
                         
                         // Validate category exists
-                        $categoryExists = \DB::table('skill_categories')->where('id', $category_id)->exists();
+                        $categoryExists = DB::table('skill_categories')->where('id', $category_id)->exists();
                         if (!$categoryExists) {
                             $category_id = 1; // Default to first category if invalid
                         }
