@@ -19,7 +19,7 @@ class DownloadController extends Controller
     {
         $user = User::with([
             'projects',
-            'skills',
+            'skills.category',
             'softSkills',
             'certifications',
             'languages'
@@ -111,23 +111,16 @@ class DownloadController extends Controller
         // Technical Skills
         if ($user->skills->count() > 0) {
             $html .= '<div class="section"><h2>Technical Skills</h2>';
-            $skillRow = $user->skills->first();
-            if ($skillRow) {
-                $skills = [
-                    'front_end_technologies' => $skillRow->front_end_technologies ?? '',
-                    'api_integration' => $skillRow->api_integration ?? '',
-                    'tools_platforms' => $skillRow->tools_platforms ?? '',
-                    'operating_systems' => $skillRow->operating_systems ?? '',
-                    'development_methodologies' => $skillRow->development_methodologies ?? '',
-                    'testing_debugging' => $skillRow->testing_debugging ?? '',
-                    'state_management' => $skillRow->state_management ?? '',
-                    'other_skills' => $skillRow->other_skills ?? '',
-                ];
-
-                foreach ($skills as $category => $skillsString) {
-                    if (!empty($skillsString)) {
-                        $categoryName = str_replace('_', ' ', ucwords($category, '_'));
-                        $html .= "<p>• {$categoryName}: " . htmlspecialchars($skillsString) . '</p>';
+            foreach ($user->skills->groupBy('category.category_name') as $categoryName => $skills) {
+                if ($categoryName) {
+                    $html .= "<p><strong>{$categoryName}:</strong> ";
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= implode(', ', array_map('htmlspecialchars', $skillNames));
+                    $html .= '</p>';
+                } else {
+                    // If no category, just list skills
+                    foreach ($skills as $skill) {
+                        $html .= '<p>• ' . htmlspecialchars($skill->skill_name) . '</p>';
                     }
                 }
             }
@@ -173,7 +166,7 @@ class DownloadController extends Controller
     {
         $user = User::with([
             'projects',
-            'skills',
+            'skills.category',
             'softSkills',
             'certifications',
             'languages'
@@ -314,31 +307,19 @@ class DownloadController extends Controller
             $section->addText('TECHNICAL SKILLS', 'sectionTitle');
             $section->addText(str_repeat('━', 105), ['bold' => true, 'size' => 8, 'color' => '000000']);
 
-            $skillRow = $user->skills->first();
-            if ($skillRow) {
-                $skills = [
-                    'front_end_technologies' => $skillRow->front_end_technologies ?? '',
-                    'api_integration' => $skillRow->api_integration ?? '',
-                    'tools_platforms' => $skillRow->tools_platforms ?? '',
-                    'operating_systems' => $skillRow->operating_systems ?? '',
-                    'development_methodologies' => $skillRow->development_methodologies ?? '',
-                    'testing_debugging' => $skillRow->testing_debugging ?? '',
-                    'state_management' => $skillRow->state_management ?? '',
-                    'other_skills' => $skillRow->other_skills ?? '',
-                ];
-
-                foreach ($skills as $category => $skillsString) {
-                    if (!empty($skillsString)) {
-                        $categoryName = str_replace('_', ' ', ucwords($category, '_'));
-                        $section->addText("🗂️ " . htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
-                        $skillsArray = array_map('trim', explode(',', $skillsString));
-                        foreach ($skillsArray as $skill) {
-                            if (!empty($skill)) {
-                                $section->addListItem(htmlspecialchars($skill, ENT_QUOTES, 'UTF-8'), 0, null, $listBullet);
-                            }
-                        }
-                        $section->addTextBreak(1);
+            foreach ($user->skills->groupBy('category.category_name') as $categoryName => $skills) {
+                if ($categoryName) {
+                    $section->addText("🗂️ " . htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                    foreach ($skills as $skill) {
+                        $section->addListItem(htmlspecialchars($skill->skill_name, ENT_QUOTES, 'UTF-8'), 0, null, $listBullet);
                     }
+                    $section->addTextBreak(1);
+                } else {
+                    // If no category, just list skills
+                    foreach ($skills as $skill) {
+                        $section->addListItem(htmlspecialchars($skill->skill_name, ENT_QUOTES, 'UTF-8'), 0, null, $listBullet);
+                    }
+                    $section->addTextBreak(1);
                 }
             }
         }
