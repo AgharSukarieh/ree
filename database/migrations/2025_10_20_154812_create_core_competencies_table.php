@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        
+        if (Schema::hasTable('core_competencies')) {
+            return;
+        }
+        
         Schema::create('core_competencies', function (Blueprint $table) {
             $table->id();
             $table->string('qr_id', 255);
