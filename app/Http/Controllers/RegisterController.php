@@ -265,10 +265,10 @@ class RegisterController extends Controller
                         Certification::create([
                             'qr_id' => $qr_id,
                             'certifications_name' => $cert_name,
-                            'issuing_org' => $request->issuing_org[$index] ?? '',
-                            'issue_date' => $request->issue_date[$index] ?? null,
-                            'expiration_date' => $request->expiration_date[$index] ?? null,
-                            'link' => $request->link_driver[$index] ?? null
+                            'issuing_org' => !empty($request->issuing_org[$index]) ? $request->issuing_org[$index] : '',
+                            'issue_date' => !empty($request->issue_date[$index]) ? $request->issue_date[$index] : date('Y-m-d'),
+                            'expiration_date' => !empty($request->expiration_date[$index]) ? $request->expiration_date[$index] : date('Y-m-d', strtotime('+1 year')),
+                            'link_driver' => !empty($request->link_driver[$index]) ? $request->link_driver[$index] : ''
                         ]);
                     }
                 }
