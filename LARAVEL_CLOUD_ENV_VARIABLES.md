@@ -1,17 +1,17 @@
-# 🔐 متغيرات البيئة المطلوبة لـ Laravel Cloud
+# 🔐 متغيرات البيئة المطلوبة لـ Laravel Cloud - مشروع Memoria
 
 ## 📋 قائمة المتغيرات الكاملة
 
 انسخ هذه المتغيرات وأضفها في **Laravel Cloud → Settings → Environment Variables**:
 
 ```env
-APP_NAME="miemo"
+APP_NAME="Memoria"
 
 APP_ENV=production
 
 APP_DEBUG=false
 
-APP_URL="https://miemo-master-mjjg1m.laravel.cloud"
+APP_URL="https://memoria-master-ihn1qf.laravel.cloud"
 
 LOG_CHANNEL=laravel-cloud-socket
 
@@ -27,7 +27,7 @@ DB_DATABASE=main
 
 DB_USERNAME=say3nmqlscsxcuyi
 
-DB_PASSWORD=FbDJTghQY5FDZuk6pfNh
+DB_PASSWORD=FbDJTghQY5FcZuk6pfNh
 
 SESSION_DRIVER=cookie
 
@@ -37,6 +37,8 @@ SCHEDULE_CACHE_DRIVER=database
 
 VITE_APP_NAME="${APP_NAME}"
 ```
+
+**ملاحظة:** قاعدة البيانات هذه مشتركة مع مشروع آخر (miemo) وتعمل بشكل صحيح.
 
 ## 📝 متغيرات إضافية قد تحتاجها
 
@@ -105,5 +107,5 @@ APP_KEY=base64:5aXe7dbDTcAAiUqbc+lLTz4IiHamCAt+SoAHjqbZfR8=
 ## 🔗 روابط مفيدة
 
 - Laravel Cloud Dashboard: https://cloud.laravel.com
-- تطبيقك: https://miemo-master-mjjg1m.laravel.cloud
+- تطبيق Memoria: https://memoria-master-ihn1qf.laravel.cloud
 
