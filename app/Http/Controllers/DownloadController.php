@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\SimpleType\Jc;
@@ -17,22 +18,30 @@ class DownloadController extends Controller
      */
     public function generatePdf($qr_id)
     {
-        $user = User::with([
-            'projects',
-            'skills.category',
-            'softSkills',
-            'certifications',
-            'languages'
-        ])->find($qr_id);
+        try {
+            $user = User::with([
+                'projects',
+                'skills.category',
+                'softSkills',
+                'certifications',
+                'languages'
+            ])->find($qr_id);
 
-        if (!$user) {
-            abort(404, 'User not found');
+            if (!$user) {
+                abort(404, 'User not found');
+            }
+        } catch (\Exception $e) {
+            abort(500, 'Error loading user data: ' . $e->getMessage());
         }
 
         // Fetch education data (if education table exists)
-        $education = \DB::table('education')
-            ->where('qr_id', $qr_id)
-            ->get();
+        try {
+            $education = DB::table('education')
+                ->where('qr_id', $qr_id)
+                ->get();
+        } catch (\Exception $e) {
+            $education = collect([]);
+        }
 
         // Prepare HTML content
         $html = '<style>
@@ -153,10 +162,18 @@ class DownloadController extends Controller
         }
 
         // Generate PDF and output
-        $mpdf = new Mpdf();
-        $mpdf->WriteHTML($html);
-        $mpdf->Output('CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf', 'D');
-        exit;
+        try {
+            $mpdf = new Mpdf([
+                'mode' => 'utf-8',
+                'format' => 'A4',
+                'orientation' => 'P'
+            ]);
+            $mpdf->WriteHTML($html);
+            $mpdf->Output('CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf', 'D');
+            exit;
+        } catch (\Exception $e) {
+            abort(500, 'Error generating PDF: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -164,22 +181,30 @@ class DownloadController extends Controller
      */
     public function generateWord($qr_id)
     {
-        $user = User::with([
-            'projects',
-            'skills.category',
-            'softSkills',
-            'certifications',
-            'languages'
-        ])->find($qr_id);
+        try {
+            $user = User::with([
+                'projects',
+                'skills.category',
+                'softSkills',
+                'certifications',
+                'languages'
+            ])->find($qr_id);
 
-        if (!$user) {
-            abort(404, 'User not found');
+            if (!$user) {
+                abort(404, 'User not found');
+            }
+        } catch (\Exception $e) {
+            abort(500, 'Error loading user data: ' . $e->getMessage());
         }
 
         // Fetch education data
-        $education = \DB::table('education')
-            ->where('qr_id', $qr_id)
-            ->get();
+        try {
+            $education = DB::table('education')
+                ->where('qr_id', $qr_id)
+                ->get();
+        } catch (\Exception $e) {
+            $education = collect([]);
+        }
 
         // Build the Word document
         $phpWord = new PhpWord();
@@ -354,19 +379,27 @@ class DownloadController extends Controller
         }
 
         // Save to a temp file first
-        $tempFile = sys_get_temp_dir() . '/CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.docx';
-        IOFactory::createWriter($phpWord, 'Word2007')->save($tempFile);
+        try {
+            $tempFile = sys_get_temp_dir() . '/CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '_' . time() . '.docx';
+            IOFactory::createWriter($phpWord, 'Word2007')->save($tempFile);
 
-        // Send correct headers to force download
-        header('Content-Description: File Transfer');
-        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        header('Content-Disposition: attachment; filename="' . basename($tempFile) . '"');
-        header('Content-Length: ' . filesize($tempFile));
-        readfile($tempFile);
+            if (!file_exists($tempFile)) {
+                abort(500, 'Error creating Word file');
+            }
 
-        // Clean up and exit
-        @unlink($tempFile);
-        exit;
+            // Send correct headers to force download
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            header('Content-Disposition: attachment; filename="CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.docx"');
+            header('Content-Length: ' . filesize($tempFile));
+            readfile($tempFile);
+
+            // Clean up and exit
+            @unlink($tempFile);
+            exit;
+        } catch (\Exception $e) {
+            abort(500, 'Error generating Word file: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -374,10 +407,14 @@ class DownloadController extends Controller
      */
     public function generateWishes($qr_id)
     {
-        $user = User::with('wishes')->find($qr_id);
+        try {
+            $user = User::with('wishes')->find($qr_id);
 
-        if (!$user) {
-            abort(404, 'User not found');
+            if (!$user) {
+                abort(404, 'User not found');
+            }
+        } catch (\Exception $e) {
+            abort(500, 'Error loading user data: ' . $e->getMessage());
         }
 
         $wishes = $user->wishes()->orderBy('created_at', 'DESC')->get();
@@ -460,14 +497,18 @@ class DownloadController extends Controller
         }
 
         // Output file
-        $filename = "دفتر_التهاني_والأمنيات_{$qr_id}.docx";
-        header("Content-Description: File Transfer");
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        try {
+            $filename = "دفتر_التهاني_والأمنيات_{$qr_id}.docx";
+            header("Content-Description: File Transfer");
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
-        $writer = IOFactory::createWriter($phpWord, 'Word2007');
-        $writer->save("php://output");
-        exit;
+            $writer = IOFactory::createWriter($phpWord, 'Word2007');
+            $writer->save("php://output");
+            exit;
+        } catch (\Exception $e) {
+            abort(500, 'Error generating Wishes file: ' . $e->getMessage());
+        }
     }
 }
 
