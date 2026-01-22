@@ -19,6 +19,11 @@ Route::get('/', [WebController::class, 'index'])->name('home');
 Route::get('/dashboard', [WebController::class, 'dashboard'])->name('dashboard');
 Route::get('/profile/{qr_id}', [WebController::class, 'profile'])->name('profile');
 
+// Download routes
+Route::get('/download/pdf/{qr_id}', [\App\Http\Controllers\DownloadController::class, 'generatePdf'])->name('download.pdf');
+Route::get('/download/word/{qr_id}', [\App\Http\Controllers\DownloadController::class, 'generateWord'])->name('download.word');
+Route::get('/download/wishes/{qr_id}', [\App\Http\Controllers\DownloadController::class, 'generateWishes'])->name('download.wishes');
+
 // Registration routes
 Route::get('/register', [RegisterController::class, 'index'])->name('register');
 Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
