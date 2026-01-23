@@ -230,12 +230,39 @@ class RegisterController extends Controller
                             }
                         }
 
+                        // Safely get description, handling null, empty string, or missing index
+                        $description = null;
+                        if (isset($request->description_project[$index])) {
+                            $descValue = $request->description_project[$index];
+                            if (!empty($descValue) && trim($descValue) !== '') {
+                                $description = $descValue;
+                            }
+                        }
+                        
+                        // Safely get technologies_used
+                        $technologies = null;
+                        if (isset($request->technologies_used[$index])) {
+                            $techValue = $request->technologies_used[$index];
+                            if (!empty($techValue) && trim($techValue) !== '') {
+                                $technologies = $techValue;
+                            }
+                        }
+                        
+                        // Safely get link
+                        $link = null;
+                        if (isset($request->link[$index])) {
+                            $linkValue = $request->link[$index];
+                            if (!empty($linkValue) && trim($linkValue) !== '') {
+                                $link = $linkValue;
+                            }
+                        }
+                        
                         Project::create([
                             'qr_id' => $qr_id,
                             'project_title' => $project_title,
-                            'description' => !empty($request->description_project[$index]) ? $request->description_project[$index] : null,
-                            'technologies_used' => !empty($request->technologies_used[$index]) ? $request->technologies_used[$index] : null,
-                            'link' => !empty($request->link[$index]) ? $request->link[$index] : null,
+                            'description' => $description,
+                            'technologies_used' => $technologies,
+                            'link' => $link,
                             'project_image' => $project_image
                         ]);
                     }
@@ -479,20 +506,21 @@ class RegisterController extends Controller
                 'request_data' => $request->except(['profile_image', 'project_image'])
             ]);
             
-            // Return detailed error in development, generic in production
-            $errorMessage = config('app.debug') 
-                ? 'حدث خطأ: ' . $e->getMessage() . ' في الملف: ' . basename($e->getFile()) . ' السطر: ' . $e->getLine()
-                : 'حدث خطأ أثناء إنشاء الملف الشخصي. يرجى المحاولة مرة أخرى.';
+            // Always return detailed error message
+            $errorMessage = 'حدث خطأ: ' . $e->getMessage();
+            if (config('app.debug')) {
+                $errorMessage .= ' | الملف: ' . basename($e->getFile()) . ' | السطر: ' . $e->getLine();
+            }
             
             return response()->json([
                 'success' => false,
                 'message' => $errorMessage,
-                'error' => config('app.debug') ? [
+                'error' => [
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString()
-                ] : null
+                    'trace' => config('app.debug') ? $e->getTraceAsString() : null
+                ]
             ], 500);
         }
     }

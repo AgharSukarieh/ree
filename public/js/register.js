@@ -1310,6 +1310,18 @@ function submitForm() {
         loadingSpinner.style.display = 'inline-block';
     }
     
+    // Clean up empty fields before creating FormData
+    // Remove empty/null values from array inputs to prevent issues
+    const arrayInputs = form.querySelectorAll('input[type="text"], input[type="url"], input[type="date"], textarea, select');
+    arrayInputs.forEach(input => {
+        if (input.name && input.name.includes('[]')) {
+            // For array fields, clear empty values
+            if (input.value === null || input.value === 'null' || (typeof input.value === 'string' && input.value.trim() === '')) {
+                input.value = '';
+            }
+        }
+    });
+    
     const formData = new FormData(form);
     
     console.log('📤 Sending form data to:', form.action);
@@ -1363,7 +1375,21 @@ function submitForm() {
                 }
             } else {
                 console.error('❌ Error in response:', data.message);
-                showNotification('error', data.message || (currentLang === 'ar' ? 'حدث خطأ أثناء إنشاء الملف الشخصي' : 'An error occurred while creating the profile'));
+                console.error('❌ Error details:', data.error);
+                
+                // Show detailed error message
+                let errorMessage = data.message || (currentLang === 'ar' ? 'حدث خطأ أثناء إنشاء الملف الشخصي' : 'An error occurred while creating the profile');
+                
+                // Add error details if available
+                if (data.error) {
+                    console.error('Error file:', data.error.file);
+                    console.error('Error line:', data.error.line);
+                    if (data.error.trace) {
+                        console.error('Error trace:', data.error.trace);
+                    }
+                }
+                
+                showNotification('error', errorMessage);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
                 if (loadingSpinner) {
