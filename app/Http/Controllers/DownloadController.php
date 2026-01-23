@@ -287,16 +287,16 @@ class DownloadController extends Controller
             $skillsByCategory = $user->skills->groupBy('category.category_name');
             
             foreach ($skillsByCategory as $categoryName => $skills) {
+                // Display category name as heading (even if null, show skills)
                 if ($categoryName) {
-                    // Display category name as heading
-                    $html .= '<div class="skill-category" style="margin-top: 8px; margin-bottom: 4px;">';
-                    $html .= '<strong>' . htmlspecialchars($categoryName) . ':</strong>';
+                    $html .= '<div class="skill-category" style="margin-top: 8px; margin-bottom: 4px; font-weight: bold; font-size: 11pt;">';
+                    $html .= htmlspecialchars($categoryName) . ':';
                     $html .= '</div>';
                 }
                 
                 // Display skills for this category
                 $skillNames = $skills->pluck('skill_name')->toArray();
-                $html .= '<div class="skills-inline" style="margin-bottom: 8px; padding-left: 15px;">';
+                $html .= '<div class="skills-inline" style="margin-bottom: 8px; padding-left: 15px; font-size: 10pt;">';
                 $html .= implode(', ', array_map('htmlspecialchars', $skillNames));
                 $html .= '</div>';
             }
@@ -874,16 +874,19 @@ class DownloadController extends Controller
         if ($user->skills->count() > 0) {
             $skillsByCategory = $user->skills->groupBy('category.category_name');
             foreach ($skillsByCategory as $categoryName => $skills) {
+                // Display category name as heading (bold, size 11)
                 if ($categoryName) {
-                    // Display category name as heading
                     $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . ':', ['bold' => true, 'size' => 11]);
                 }
                 
-                // Display skills for this category
+                // Display skills for this category (size 10, on new line)
                 $skillNames = $skills->pluck('skill_name')->toArray();
                 $section->addText(implode(', ', array_map(function($s) {
                     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
                 }, $skillNames)), ['size' => 10]);
+                
+                // Add break after each category
+                $section->addTextBreak(1);
             }
         } else {
             // Extract skills from job_title and projects if no skills in database
