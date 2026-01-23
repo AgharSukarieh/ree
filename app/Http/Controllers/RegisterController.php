@@ -233,7 +233,7 @@ class RegisterController extends Controller
                         Project::create([
                             'qr_id' => $qr_id,
                             'project_title' => $project_title,
-                            'description' => !empty($request->description_project[$index]) ? $request->description_project[$index] : '',
+                            'description' => !empty($request->description_project[$index]) ? $request->description_project[$index] : null,
                             'technologies_used' => !empty($request->technologies_used[$index]) ? $request->technologies_used[$index] : null,
                             'link' => !empty($request->link[$index]) ? $request->link[$index] : null,
                             'project_image' => $project_image
