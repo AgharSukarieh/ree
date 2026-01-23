@@ -51,109 +51,141 @@ class DownloadController extends Controller
             $education = collect([]);
         }
 
-        // Prepare HTML content with ATS-friendly styling
+        // Prepare HTML content with ATS-friendly styling (similar to Ahmed Al Darabee CV)
         $html = '<style>
-            body { font-family: "Arial", "Helvetica", sans-serif; font-size: 11pt; line-height: 1.4; color: #000; }
-            h1 { font-size: 20pt; font-weight: bold; color: #000; text-align: center; margin: 10px 0 5px 0; }
-            h2 { font-size: 14pt; font-weight: bold; color: #000; border-bottom: 2px solid #000; padding-bottom: 3px; margin-top: 15px; margin-bottom: 8px; }
-            h3 { font-size: 12pt; font-weight: bold; color: #000; margin-top: 10px; margin-bottom: 5px; }
-            h4 { font-size: 11pt; font-weight: normal; color: #333; text-align: center; margin: 0 0 15px 0; }
-            .center { text-align: center; }
-            .contact-info { text-align: center; margin: 10px 0 20px 0; line-height: 1.8; }
-            .contact-info span { margin: 0 8px; display: inline-block; }
+            body { font-family: "Arial", "Helvetica", sans-serif; font-size: 10pt; line-height: 1.5; color: #000; margin: 0; padding: 0; }
+            h1 { font-size: 18pt; font-weight: bold; color: #000; text-align: center; margin: 0 0 5px 0; letter-spacing: 0.5px; }
+            h2 { font-size: 12pt; font-weight: bold; color: #000; margin-top: 15px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 2px; }
+            h3 { font-size: 11pt; font-weight: bold; color: #000; margin-top: 8px; margin-bottom: 3px; }
+            h4 { font-size: 10pt; font-weight: normal; color: #000; text-align: center; margin: 0 0 8px 0; }
+            .header { text-align: center; margin-bottom: 15px; }
+            .contact-line { text-align: center; font-size: 9pt; margin: 5px 0; line-height: 1.6; }
+            .contact-line span { margin: 0 5px; }
             .section { margin-top: 12px; margin-bottom: 12px; }
             .section-content { margin-left: 0; }
             ul { padding-left: 20px; margin: 5px 0; }
-            li { margin: 3px 0; }
-            .section p { margin: 5px 0; line-height: 1.5; }
-            .experience-item, .project-item, .education-item { margin-bottom: 12px; }
-            .date-range { color: #666; font-style: italic; }
-            .skills-list { margin: 5px 0; }
-            .skill-category { font-weight: bold; margin-top: 8px; }
-            .icon-link { text-decoration: none; color: #000; display: inline-block; margin: 0 5px; }
-            .icon-link:hover { text-decoration: none; }
+            li { margin: 2px 0; line-height: 1.4; }
+            .section p { margin: 4px 0; line-height: 1.4; }
+            .experience-item, .project-item, .education-item, .cert-item { margin-bottom: 10px; }
+            .job-title { font-weight: bold; font-size: 10pt; }
+            .company-name { font-weight: bold; }
+            .date-range { font-size: 9pt; color: #333; margin: 2px 0; }
+            .skills-list { margin: 3px 0; line-height: 1.4; }
+            .skill-category { font-weight: bold; margin-top: 6px; margin-bottom: 2px; }
+            .bullet-point { margin: 2px 0; padding-left: 5px; }
+            .project-link { color: #000; text-decoration: none; font-size: 9pt; }
             a { color: #000; text-decoration: none; }
             a:visited { color: #000; }
-            .two-column { display: table; width: 100%; }
-            .column { display: table-cell; width: 50%; padding: 0 10px; vertical-align: top; }
+            .divider { border-top: 1px solid #ccc; margin: 8px 0; }
             @media print {
-                body { font-size: 10pt; }
+                body { font-size: 9pt; }
                 .section { page-break-inside: avoid; }
             }
         </style>';
 
-        // Header - Name and Job Title
-        $html .= '<div class="center">';
-        $html .= '<h1>' . htmlspecialchars(strtoupper($user->name)) . '</h1>';
+        // Header - Name and Job Title (similar to Ahmed CV)
+        $html .= '<div class="header">';
+        $html .= '<h1>' . htmlspecialchars($user->name) . '</h1>';
         if ($user->job_title) {
             $html .= '<h4>' . htmlspecialchars($user->job_title) . '</h4>';
         }
         $html .= '</div>';
 
-        // Contact Information with icons (no blue links)
-        $html .= '<div class="contact-info">';
-        
+        // Contact Information (single line format like Ahmed CV)
+        $contactParts = [];
         if ($user->city) {
-            $html .= '<span>📍 ' . htmlspecialchars($user->city) . '</span>';
+            $contactParts[] = htmlspecialchars($user->city);
         }
-        
         if ($user->phone) {
-            $html .= '<span>📞 ' . htmlspecialchars($user->phone) . '</span>';
+            $contactParts[] = htmlspecialchars($user->phone);
         }
-        
         if ($user->email) {
-            $html .= '<span>✉️ ' . htmlspecialchars($user->email) . '</span>';
+            $contactParts[] = htmlspecialchars($user->email);
         }
-        
-        if ($user->linkedin_profile) {
-            $html .= '<span class="icon-link">💼 LinkedIn: ' . htmlspecialchars($user->linkedin_profile) . '</span>';
-        }
-        
-        if ($user->github_profile) {
-            $html .= '<span class="icon-link">💻 GitHub: ' . htmlspecialchars($user->github_profile) . '</span>';
-        }
-        
         if ($user->profile_website) {
-            $html .= '<span class="icon-link">🌐 ' . htmlspecialchars($user->profile_website) . '</span>';
+            $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
+            $contactParts[] = htmlspecialchars($linkText);
         }
         
-        $html .= '</div>';
+        if (!empty($contactParts)) {
+            $html .= '<div class="contact-line">' . implode(' / ', $contactParts) . '</div>';
+        }
+        
+        // Social Links (separate line)
+        $socialParts = [];
+        if ($user->linkedin_profile) {
+            $linkText = str_replace(['http://', 'https://', 'www.linkedin.com/in/'], '', $user->linkedin_profile);
+            $socialParts[] = 'LinkedIn: ' . htmlspecialchars($linkText);
+        }
+        if ($user->github_profile) {
+            $linkText = str_replace(['http://', 'https://', 'www.github.com/'], '', $user->github_profile);
+            $socialParts[] = 'GitHub: ' . htmlspecialchars($linkText);
+        }
+        
+        if (!empty($socialParts)) {
+            $html .= '<div class="contact-line">' . implode(' / ', $socialParts);
+            $html .= ' / Last CV Updates: ' . date('M Y') . '</div>';
+        } else {
+            $html .= '<div class="contact-line">Last CV Updates: ' . date('M Y') . '</div>';
+        }
 
         // Professional Summary
         if ($user->profile_summary) {
-            $html .= '<div class="section"><h2>PROFESSIONAL SUMMARY</h2>';
+            $html .= '<div class="section"><h2>Summary</h2>';
             $html .= '<div class="section-content"><p>' . nl2br(htmlspecialchars($user->profile_summary)) . '</p></div></div>';
         }
 
-        // Work Experience
+        // Work Experience (formatted like Ahmed CV)
         if ($user->experiences->count() > 0) {
-            $html .= '<div class="section"><h2>PROFESSIONAL EXPERIENCE</h2>';
+            $html .= '<div class="section"><h2>Work Experience</h2>';
             foreach ($user->experiences as $exp) {
                 $html .= '<div class="experience-item">';
-                $html .= '<h3>' . htmlspecialchars($exp->title) . '</h3>';
-                $html .= '<p><strong>' . htmlspecialchars($exp->company ?? '') . '</strong>';
-                if ($exp->location) {
-                    $html .= ' | ' . htmlspecialchars($exp->location);
+                
+                // Company name and job title on same line
+                $companyLine = '';
+                if ($exp->company) {
+                    $companyLine = '<span class="company-name">' . htmlspecialchars($exp->company) . '</span>';
                 }
-                $html .= '</p>';
+                if ($exp->location) {
+                    $companyLine .= ($companyLine ? ': ' : '') . htmlspecialchars($exp->location);
+                }
+                if ($companyLine) {
+                    $html .= '<div class="job-title">' . htmlspecialchars($exp->title) . '</div>';
+                    $html .= '<div>' . $companyLine . '</div>';
+                } else {
+                    $html .= '<div class="job-title">' . htmlspecialchars($exp->title) . '</div>';
+                }
+                
+                // Date range
                 $startDate = $exp->start_date ? date('M Y', strtotime($exp->start_date)) : '';
                 $endDate = $exp->end_date ? date('M Y', strtotime($exp->end_date)) : 'Present';
-                $html .= '<p class="date-range">' . $startDate . ' - ' . $endDate;
+                $html .= '<div class="date-range">' . $startDate . ' – ' . $endDate;
                 if ($exp->is_internship) {
-                    $html .= ' | Internship';
+                    $html .= ' (Internship)';
                 }
-                $html .= '</p>';
+                $html .= '</div>';
+                
+                // Description as bullet points
                 if ($exp->description) {
-                    $html .= '<p>' . nl2br(htmlspecialchars($exp->description)) . '</p>';
+                    $descriptionLines = explode("\n", $exp->description);
+                    foreach ($descriptionLines as $line) {
+                        $line = trim($line);
+                        if ($line) {
+                            // Remove existing bullets if any
+                            $line = preg_replace('/^[-•*]\s*/', '', $line);
+                            $html .= '<div class="bullet-point">- ' . htmlspecialchars($line) . '</div>';
+                        }
+                    }
                 }
+                
                 $html .= '</div>';
             }
             $html .= '</div>';
         }
 
-        // Education
+        // Education (formatted like Ahmed CV)
         if ($education->count() > 0) {
-            $html .= '<div class="section"><h2>EDUCATION</h2>';
+            $html .= '<div class="section"><h2>Education and Qualifications</h2>';
             foreach ($education as $edu) {
                 $html .= '<div class="education-item">';
                 $degree = $edu->degree_name ?? $edu->degree ?? '';
@@ -163,58 +195,89 @@ class DownloadController extends Controller
                 $endYear = ($edu->end_year ?? 0) == 0 ? 'Present' : ($edu->end_year ?? '');
                 
                 if ($degree) {
-                    $html .= '<h3>' . htmlspecialchars($degree);
+                    $degreeText = htmlspecialchars($degree);
                     if ($field) {
-                        $html .= ' in ' . htmlspecialchars($field);
+                        $degreeText .= ' in ' . htmlspecialchars($field);
                     }
-                    $html .= '</h3>';
+                    $html .= '<div class="job-title">' . $degreeText . '</div>';
                 }
                 if ($university) {
-                    $html .= '<p><strong>' . htmlspecialchars($university) . '</strong></p>';
+                    $html .= '<div>' . htmlspecialchars($university);
+                    if ($startYear || $endYear) {
+                        $html .= ' - ' . htmlspecialchars($university);
+                    }
+                    $html .= '</div>';
                 }
                 if ($startYear || $endYear) {
-                    $html .= '<p class="date-range">' . $startYear . ' - ' . $endYear . '</p>';
+                    $html .= '<div class="date-range">' . $startYear . ' – ' . $endYear . '</div>';
                 }
                 $html .= '</div>';
             }
             $html .= '</div>';
         }
 
-        // Projects
+        // Projects (formatted like Ahmed CV with [Source Code])
         if ($user->projects->count() > 0) {
-            $html .= '<div class="section"><h2>PROJECTS</h2>';
+            $html .= '<div class="section"><h2>Projects</h2>';
             foreach ($user->projects as $proj) {
                 $html .= '<div class="project-item">';
-                $html .= '<h3>' . htmlspecialchars($proj->project_title) . '</h3>';
-                if ($proj->description) {
-                    $html .= '<p>' . nl2br(htmlspecialchars($proj->description)) . '</p>';
-                }
-                if ($proj->technologies_used) {
-                    $html .= '<p><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</p>';
-                }
+                
+                // Project title with [Source Code] link
+                $projectTitle = htmlspecialchars($proj->project_title);
                 if ($proj->link) {
                     $linkText = str_replace(['http://', 'https://'], '', $proj->link);
-                    $html .= '<p>🔗 ' . htmlspecialchars($linkText) . '</p>';
+                    $projectTitle = '[Source Code] ' . $projectTitle;
                 }
+                $html .= '<div class="job-title">' . $projectTitle . '</div>';
+                
+                // Description as bullet points
+                if ($proj->description) {
+                    $descriptionLines = explode("\n", $proj->description);
+                    foreach ($descriptionLines as $line) {
+                        $line = trim($line);
+                        if ($line) {
+                            $line = preg_replace('/^[-•*]\s*/', '', $line);
+                            $html .= '<div class="bullet-point">- ' . htmlspecialchars($line) . '</div>';
+                        }
+                    }
+                }
+                
+                // Technologies used
+                if ($proj->technologies_used) {
+                    $html .= '<div class="bullet-point" style="margin-top: 5px;"><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</div>';
+                }
+                
+                // Link
+                if ($proj->link) {
+                    $linkText = str_replace(['http://', 'https://'], '', $proj->link);
+                    $html .= '<div class="project-link">' . htmlspecialchars($linkText) . '</div>';
+                }
+                
+                $html .= '<div class="divider"></div>';
                 $html .= '</div>';
             }
             $html .= '</div>';
         }
 
-        // Technical Skills (grouped by category for ATS)
+        // Technical Skills (formatted like Ahmed CV)
         if ($user->skills->count() > 0) {
-            $html .= '<div class="section"><h2>TECHNICAL SKILLS</h2>';
-            foreach ($user->skills->groupBy('category.category_name') as $categoryName => $skills) {
+            $html .= '<div class="section"><h2>Technical Skills</h2>';
+            
+            // Group skills by category
+            $skillsByCategory = $user->skills->groupBy('category.category_name');
+            $skillLines = [];
+            
+            foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName) {
-                    $html .= '<div class="skill-category">' . htmlspecialchars($categoryName) . ':</div>';
                     $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+                    $skillLines[] = '<strong>' . htmlspecialchars($categoryName) . ':</strong> ' . implode(', ', array_map('htmlspecialchars', $skillNames));
                 } else {
-                    // If no category, just list skills
                     $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+                    $skillLines[] = implode(', ', array_map('htmlspecialchars', $skillNames));
                 }
             }
+            
+            $html .= '<div class="skills-list">' . implode('<br/>', $skillLines) . '</div>';
             $html .= '</div>';
         }
 
@@ -234,11 +297,12 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
-        // Soft Skills
+        // Soft Skills (formatted like Ahmed CV)
         if ($user->softSkills->count() > 0) {
-            $html .= '<div class="section"><h2>SOFT SKILLS</h2>';
-            $skillNames = $user->softSkills->pluck('soft_name')->toArray();
-            $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+            $html .= '<div class="section"><h2>Soft and Behavioral Skills</h2>';
+            foreach ($user->softSkills as $soft) {
+                $html .= '<div class="bullet-point">- ' . htmlspecialchars($soft->soft_name) . '</div>';
+            }
             $html .= '</div>';
         }
 
@@ -263,26 +327,35 @@ class DownloadController extends Controller
             $html .= '</ul></div>';
         }
 
-        // Certifications
+        // Certifications (formatted like Ahmed CV)
         if ($user->certifications->count() > 0) {
-            $html .= '<div class="section"><h2>CERTIFICATIONS</h2><ul>';
+            $html .= '<div class="section"><h2>Certifications and Courses</h2>';
+            $html .= '<h3>See My Achievements</h3>';
             foreach ($user->certifications as $c) {
-                $issueDate = $c->issue_date ? date('M Y', strtotime($c->issue_date)) : '';
-                $expiryDate = $c->expiration_date ? ' - ' . date('M Y', strtotime($c->expiration_date)) : '';
-                $html .= '<li><strong>' . htmlspecialchars($c->certifications_name) . '</strong>';
+                $html .= '<div class="cert-item">';
+                $html .= '<div class="bullet-point">- ';
+                
+                $certText = htmlspecialchars($c->certifications_name);
                 if ($c->issuing_org) {
-                    $html .= ' – ' . htmlspecialchars($c->issuing_org);
+                    $certText .= ' at ' . htmlspecialchars($c->issuing_org);
                 }
+                
+                $issueDate = $c->issue_date ? date('M Y', strtotime($c->issue_date)) : '';
+                $expiryDate = $c->expiration_date ? date('M Y', strtotime($c->expiration_date)) : '';
+                
                 if ($issueDate) {
-                    $html .= ', ' . $issueDate . $expiryDate;
+                    $certText .= ' ' . $issueDate;
+                    if ($expiryDate && $expiryDate != $issueDate) {
+                        $certText .= ' – ' . $expiryDate;
+                    } else if (!$expiryDate) {
+                        $certText .= ' – Progress';
+                    }
                 }
-                if ($c->link_driver) {
-                    $linkText = str_replace(['http://', 'https://'], '', $c->link_driver);
-                    $html .= ' | 🔗 ' . htmlspecialchars($linkText);
-                }
-                $html .= '</li>';
+                
+                $html .= $certText . '</div>';
+                $html .= '</div>';
             }
-            $html .= '</ul></div>';
+            $html .= '</div>';
         }
 
         // Languages
