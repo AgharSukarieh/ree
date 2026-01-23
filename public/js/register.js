@@ -1412,30 +1412,40 @@ function fillFormFromOpenAI(openAIData) {
     console.log('🔄 Starting to fill form from OpenAI data...');
     
     try {
+        // Helper function to set value and trigger events
+        const setValueAndTrigger = (element, value) => {
+            if (element && value !== undefined && value !== null) {
+                element.value = value;
+                // Trigger input and change events for validation
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        };
+        
         // 1. Personal Information
         if (openAIData.name) {
             const nameInput = document.querySelector('input[name="name"]');
-            if (nameInput) nameInput.value = openAIData.name;
+            setValueAndTrigger(nameInput, openAIData.name);
         }
         
         if (openAIData.jop_title) {
             const jobTitleInput = document.querySelector('input[name="jop_title"]');
-            if (jobTitleInput) jobTitleInput.value = openAIData.jop_title;
+            setValueAndTrigger(jobTitleInput, openAIData.jop_title);
         }
         
         if (openAIData.phone) {
             const phoneInput = document.querySelector('input[name="phone"]');
-            if (phoneInput) phoneInput.value = openAIData.phone;
+            setValueAndTrigger(phoneInput, openAIData.phone);
         }
         
         if (openAIData.email) {
             const emailInput = document.querySelector('input[name="email"]');
-            if (emailInput) emailInput.value = openAIData.email;
+            setValueAndTrigger(emailInput, openAIData.email);
         }
         
         if (openAIData.city) {
             const cityInput = document.querySelector('input[name="city"]');
-            if (cityInput) cityInput.value = openAIData.city;
+            setValueAndTrigger(cityInput, openAIData.city);
         }
         
         if (openAIData.major) {
@@ -1450,17 +1460,17 @@ function fillFormFromOpenAI(openAIData) {
         
         if (openAIData.linkedin_profile) {
             const linkedinInput = document.querySelector('input[name="linkedin_profile"]');
-            if (linkedinInput) linkedinInput.value = openAIData.linkedin_profile;
+            setValueAndTrigger(linkedinInput, openAIData.linkedin_profile);
         }
         
         if (openAIData.github_profile) {
             const githubInput = document.querySelector('input[name="github_profile"]');
-            if (githubInput) githubInput.value = openAIData.github_profile;
+            setValueAndTrigger(githubInput, openAIData.github_profile);
         }
         
         if (openAIData.profile_summary) {
             const summaryTextarea = document.querySelector('textarea[name="profile_summary"]');
-            if (summaryTextarea) summaryTextarea.value = openAIData.profile_summary;
+            setValueAndTrigger(summaryTextarea, openAIData.profile_summary);
         }
         
         // 2. Languages
@@ -1477,8 +1487,11 @@ function fillFormFromOpenAI(openAIData) {
                 if (firstItem && openAIData.languages[0]) {
                     const langNameInput = firstItem.querySelector('input[name="language_name[]"]');
                     const proficiencySelect = firstItem.querySelector('select[name="proficiency_level[]"]');
-                    if (langNameInput) langNameInput.value = openAIData.languages[0].language_name || '';
-                    if (proficiencySelect) proficiencySelect.value = openAIData.languages[0].proficiency_level || 'Beginner';
+                    setValueAndTrigger(langNameInput, openAIData.languages[0].language_name || '');
+                    if (proficiencySelect) {
+                        proficiencySelect.value = openAIData.languages[0].proficiency_level || 'Beginner';
+                        proficiencySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
                 }
                 
                 // Add remaining languages
@@ -1487,8 +1500,11 @@ function fillFormFromOpenAI(openAIData) {
                     const newItem = languagesContainer.children[languagesContainer.children.length - 1];
                     const langNameInput = newItem.querySelector('input[name="language_name[]"]');
                     const proficiencySelect = newItem.querySelector('select[name="proficiency_level[]"]');
-                    if (langNameInput) langNameInput.value = openAIData.languages[i].language_name || '';
-                    if (proficiencySelect) proficiencySelect.value = openAIData.languages[i].proficiency_level || 'Beginner';
+                    setValueAndTrigger(langNameInput, openAIData.languages[i].language_name || '');
+                    if (proficiencySelect) {
+                        proficiencySelect.value = openAIData.languages[i].proficiency_level || 'Beginner';
+                        proficiencySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
                 }
             }
         }
@@ -1506,7 +1522,7 @@ function fillFormFromOpenAI(openAIData) {
                 const firstItem = softSkillsContainer.querySelector('.dynamic-item');
                 if (firstItem && openAIData.softSkills[0]) {
                     const skillInput = firstItem.querySelector('input[name="soft_name[]"]');
-                    if (skillInput) skillInput.value = openAIData.softSkills[0].soft_name || '';
+                    setValueAndTrigger(skillInput, openAIData.softSkills[0].soft_name || '');
                 }
                 
                 // Add remaining skills
@@ -1514,7 +1530,7 @@ function fillFormFromOpenAI(openAIData) {
                     addSoftSkill();
                     const newItem = softSkillsContainer.children[softSkillsContainer.children.length - 1];
                     const skillInput = newItem.querySelector('input[name="soft_name[]"]');
-                    if (skillInput) skillInput.value = openAIData.softSkills[i].soft_name || '';
+                    setValueAndTrigger(skillInput, openAIData.softSkills[i].soft_name || '');
                 }
             }
         }
@@ -1694,11 +1710,25 @@ function fillFormFromOpenAI(openAIData) {
             }
         }
         
-        // Scroll to top and show success message
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        showNotification('success', currentLang === 'ar' ? 'تم ملء الفورم بنجاح من بيانات AI!' : 'Form filled successfully from AI data!');
-        
-        console.log('✅ Form filled successfully!');
+        // Wait a bit to ensure all events are processed
+        setTimeout(() => {
+            // Scroll to top and show success message
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showNotification('success', currentLang === 'ar' ? 'تم ملء الفورم بنجاح من بيانات AI!' : 'Form filled successfully from AI data!');
+            
+            console.log('✅ Form filled successfully!');
+            
+            // Trigger form validation check
+            const form = document.getElementById('cvForm');
+            if (form) {
+                // Check if form is valid
+                if (form.checkValidity()) {
+                    console.log('✅ Form is valid and ready to submit');
+                } else {
+                    console.warn('⚠️ Form has validation errors, please review');
+                }
+            }
+        }, 300);
         
     } catch (error) {
         console.error('❌ Error filling form:', error);
@@ -1708,6 +1738,14 @@ function fillFormFromOpenAI(openAIData) {
 
 // Helper functions to fill individual items
 function fillExperienceItem(item, exp) {
+    const setValueAndTrigger = (element, value) => {
+        if (element && value !== undefined && value !== null) {
+            element.value = value;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+    
     const titleInput = item.querySelector('input[name="title[]"]');
     const companyInput = item.querySelector('input[name="company[]"]');
     const locationInput = item.querySelector('input[name="location[]"]');
@@ -1716,92 +1754,143 @@ function fillExperienceItem(item, exp) {
     const descriptionTextarea = item.querySelector('textarea[name="description[]"]');
     const internshipCheckbox = item.querySelector('input[name="is_internship[]"]');
     
-    if (titleInput) titleInput.value = exp.title || '';
-    if (companyInput) companyInput.value = exp.company || '';
-    if (locationInput) locationInput.value = exp.location || '';
-    if (startDateInput) startDateInput.value = exp.start_date || '';
-    if (endDateInput) endDateInput.value = exp.end_date || '';
-    if (descriptionTextarea) descriptionTextarea.value = exp.description || '';
-    if (internshipCheckbox) internshipCheckbox.checked = exp.is_internship || false;
+    setValueAndTrigger(titleInput, exp.title || '');
+    setValueAndTrigger(companyInput, exp.company || '');
+    setValueAndTrigger(locationInput, exp.location || '');
+    setValueAndTrigger(startDateInput, exp.start_date || '');
+    setValueAndTrigger(endDateInput, exp.end_date || '');
+    setValueAndTrigger(descriptionTextarea, exp.description || '');
+    if (internshipCheckbox) {
+        internshipCheckbox.checked = exp.is_internship || false;
+        internshipCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+    }
 }
 
 function fillEducationItem(item, edu) {
+    const setValueAndTrigger = (element, value) => {
+        if (element && value !== undefined && value !== null) {
+            element.value = value;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+    
     const degreeInput = item.querySelector('input[name="degree_name[]"]');
     const fieldInput = item.querySelector('input[name="field_of_study[]"]');
     const universityInput = item.querySelector('input[name="university_name[]"]');
     const startYearInput = item.querySelector('input[name="start_year[]"]');
     const endYearInput = item.querySelector('input[name="end_year[]"]');
     
-    if (degreeInput) degreeInput.value = edu.degree_name || '';
-    if (fieldInput) fieldInput.value = edu.field_of_study || '';
-    if (universityInput) universityInput.value = edu.university_name || '';
-    if (startYearInput) startYearInput.value = edu.start_year || '';
-    if (endYearInput) endYearInput.value = edu.end_year || '';
+    setValueAndTrigger(degreeInput, edu.degree_name || '');
+    setValueAndTrigger(fieldInput, edu.field_of_study || '');
+    setValueAndTrigger(universityInput, edu.university_name || '');
+    setValueAndTrigger(startYearInput, edu.start_year || '');
+    setValueAndTrigger(endYearInput, edu.end_year || '');
 }
 
 function fillCertificationItem(item, cert) {
+    const setValueAndTrigger = (element, value) => {
+        if (element && value !== undefined && value !== null) {
+            element.value = value;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+    
     const nameInput = item.querySelector('input[name="certifications_name[]"]');
     const orgInput = item.querySelector('input[name="issuing_org[]"]');
     const issueDateInput = item.querySelector('input[name="issue_date[]"]');
     const expiryDateInput = item.querySelector('input[name="expiration_date[]"]');
     const linkInput = item.querySelector('input[name="link_driver[]"]');
     
-    if (nameInput) nameInput.value = cert.certifications_name || '';
-    if (orgInput) orgInput.value = cert.issuing_org || '';
-    if (issueDateInput) issueDateInput.value = cert.issue_date || '';
-    if (expiryDateInput) expiryDateInput.value = cert.expiration_date || '';
-    if (linkInput) linkInput.value = cert.link_driver || '';
+    setValueAndTrigger(nameInput, cert.certifications_name || '');
+    setValueAndTrigger(orgInput, cert.issuing_org || '');
+    setValueAndTrigger(issueDateInput, cert.issue_date || '');
+    setValueAndTrigger(expiryDateInput, cert.expiration_date || '');
+    setValueAndTrigger(linkInput, cert.link_driver || '');
 }
 
 function fillActivityItem(item, activity) {
+    const setValueAndTrigger = (element, value) => {
+        if (element && value !== undefined && value !== null) {
+            element.value = value;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+    
     const titleInput = item.querySelector('input[name="activity_title[]"]');
     const orgInput = item.querySelector('input[name="organization[]"]');
     const dateInput = item.querySelector('input[name="activity_date[]"]');
     const descriptionTextarea = item.querySelector('textarea[name="description_activity[]"]');
     const linkInput = item.querySelector('input[name="activity_link[]"]');
     
-    if (titleInput) titleInput.value = activity.activity_title || '';
-    if (orgInput) orgInput.value = activity.organization || '';
-    if (dateInput) dateInput.value = activity.activity_date || '';
-    if (descriptionTextarea) descriptionTextarea.value = activity.description_activity || '';
-    if (linkInput) linkInput.value = activity.activity_link || '';
+    setValueAndTrigger(titleInput, activity.activity_title || '');
+    setValueAndTrigger(orgInput, activity.organization || '');
+    setValueAndTrigger(dateInput, activity.activity_date || '');
+    setValueAndTrigger(descriptionTextarea, activity.description_activity || '');
+    setValueAndTrigger(linkInput, activity.activity_link || '');
 }
 
 function fillITSkillItem(item, skill) {
+    const setValueAndTrigger = (element, value) => {
+        if (element && value !== undefined && value !== null) {
+            element.value = value;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+    
     const nameInput = item.querySelector('input[name="skill_name[]"]');
     const categorySelect = item.querySelector('select[name="category_id[]"]');
     
-    if (nameInput) nameInput.value = skill.skill_name || '';
+    setValueAndTrigger(nameInput, skill.skill_name || '');
     if (categorySelect && skill.category_id) {
         categorySelect.value = skill.category_id;
+        categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 
 function fillProjectItem(item, project) {
+    const setValueAndTrigger = (element, value) => {
+        if (element && value !== undefined && value !== null) {
+            element.value = value;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+    
     const titleInput = item.querySelector('input[name="project_title[]"]');
     const techInput = item.querySelector('input[name="technologies_used[]"]');
     const descriptionTextarea = item.querySelector('textarea[name="description_project[]"]');
     const linkInput = item.querySelector('input[name="link[]"]');
     
-    if (titleInput) titleInput.value = project.project_title || '';
-    if (techInput) techInput.value = project.technologies_used || '';
-    if (descriptionTextarea) descriptionTextarea.value = project.description_project || '';
-    if (linkInput) linkInput.value = project.link || '';
+    setValueAndTrigger(titleInput, project.project_title || '');
+    setValueAndTrigger(techInput, project.technologies_used || '');
+    setValueAndTrigger(descriptionTextarea, project.description_project || '');
+    setValueAndTrigger(linkInput, project.link || '');
 }
 
 function fillMedicalSkillItem(item, skill) {
+    const setValueAndTrigger = (element, value) => {
+        if (element && value !== undefined && value !== null) {
+            element.value = value;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    };
+    
     const nameInput = item.querySelector('input[name="medical_skill_name[]"]');
     const categorySelect = item.querySelector('select[name="medical_category_id[]"]');
     
     // استخدام medical_skill_name من الرد (ليس skill_name)
-    if (nameInput) {
-        nameInput.value = skill.medical_skill_name || skill.skill_name || '';
-    }
+    setValueAndTrigger(nameInput, skill.medical_skill_name || skill.skill_name || '');
     // استخدام medical_category_id من الرد (ليس category_id)
     if (categorySelect) {
         const categoryId = skill.medical_category_id || skill.category_id;
         if (categoryId) {
             categorySelect.value = categoryId;
+            categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
         }
     }
 }
