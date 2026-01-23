@@ -449,6 +449,41 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
+        // Activities & Volunteer Work
+        if ($user->activities->count() > 0) {
+            $html .= '<div class="section">';
+            $html .= '<h2>ACTIVITIES & VOLUNTEER WORK</h2>';
+            
+            foreach ($user->activities as $act) {
+                $html .= '<div class="item">';
+                $html .= '<div class="job-title">' . htmlspecialchars($act->activity_title) . '</div>';
+                
+                if ($act->organization) {
+                    $html .= '<div class="company">' . htmlspecialchars($act->organization) . '</div>';
+                }
+                
+                if ($act->activity_date) {
+                    $html .= '<div class="date">' . date('M Y', strtotime($act->activity_date)) . '</div>';
+                }
+                
+                if ($act->description_activity) {
+                    $bullets = $this->formatBulletPoints($act->description_activity);
+                    foreach ($bullets as $bullet) {
+                        $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
+                    }
+                }
+                
+                if ($act->activity_link) {
+                    $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
+                    $html .= '<div style="font-size: 10pt;">' . htmlspecialchars($linkText) . '</div>';
+                }
+                
+                $html .= '</div>';
+            }
+            
+            $html .= '</div>';
+        }
+
         // Soft Skills (only if substantial)
         if ($user->softSkills->count() >= 3) {
             $html .= '<div class="section">';
@@ -784,6 +819,39 @@ class DownloadController extends Controller
                     htmlspecialchars($lang->proficiency_level, ENT_QUOTES, 'UTF-8'),
                     0
                 );
+            }
+            
+            $section->addTextBreak(1);
+        }
+
+        // Activities & Volunteer Work
+        if ($user->activities->count() > 0) {
+            $section->addText('ACTIVITIES & VOLUNTEER WORK', ['bold' => true, 'size' => 12]);
+            
+            foreach ($user->activities as $act) {
+                $section->addText(htmlspecialchars($act->activity_title, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                
+                if ($act->organization) {
+                    $section->addText(htmlspecialchars($act->organization, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                }
+                
+                if ($act->activity_date) {
+                    $section->addText(date('M Y', strtotime($act->activity_date)), ['italic' => true, 'size' => 10]);
+                }
+                
+                if ($act->description_activity) {
+                    $bullets = $this->formatBulletPoints($act->description_activity);
+                    foreach ($bullets as $bullet) {
+                        $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                    }
+                }
+                
+                if ($act->activity_link) {
+                    $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
+                    $section->addText(htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'), ['size' => 10]);
+                }
+                
+                $section->addTextBreak(1);
             }
         }
 
