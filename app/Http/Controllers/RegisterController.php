@@ -176,15 +176,30 @@ class RegisterController extends Controller
             if ($request->has('skill_name') && $request->major === 'IT') {
                 foreach ($request->skill_name as $index => $skill_name) {
                     if (!empty($skill_name)) {
-                        // Ensure category_id is valid (default to 1 if not provided or invalid)
-                        $category_id = !empty($request->category_id[$index]) 
-                            ? (int)$request->category_id[$index] 
-                            : 1;
+                        // Get category_id from request or get first available category
+                        $category_id = null;
                         
-                        // Validate category exists
-                        $categoryExists = DB::table('skill_categories')->where('id', $category_id)->exists();
-                        if (!$categoryExists) {
-                            $category_id = 1; // Default to first category if invalid
+                        if (!empty($request->category_id[$index])) {
+                            $requestedCategoryId = (int)$request->category_id[$index];
+                            // Validate category exists
+                            if (DB::table('skill_categories')->where('id', $requestedCategoryId)->exists()) {
+                                $category_id = $requestedCategoryId;
+                            }
+                        }
+                        
+                        // If no valid category found, get first available category
+                        if (!$category_id) {
+                            $firstCategory = DB::table('skill_categories')->orderBy('id')->first();
+                            if ($firstCategory) {
+                                $category_id = $firstCategory->id;
+                            } else {
+                                // If no categories exist at all, skip this skill
+                                \Log::warning('No skill categories found in database, skipping skill', [
+                                    'skill_name' => $skill_name,
+                                    'qr_id' => $qr_id
+                                ]);
+                                continue;
+                            }
                         }
                         
                         Skill::create([
@@ -278,22 +293,43 @@ class RegisterController extends Controller
                     }
                     
                     try {
-                        // Ensure category_id is valid (default to 1 if not provided or invalid)
-                        $category_id = !empty($request->medical_category_id[$index]) 
-                            ? (int)$request->medical_category_id[$index] 
-                            : 1;
+                        // Get category_id from request or get first available category
+                        $category_id = null;
                         
-                        // Validate category exists - if table doesn't exist or category doesn't exist, use 1
-                        try {
-                            $categoryExists = DB::table('medical_skill_categories')->where('id', $category_id)->exists();
-                            if (!$categoryExists) {
-                                // Get first available category or use 1
-                                $firstCategory = DB::table('medical_skill_categories')->first();
-                                $category_id = $firstCategory ? $firstCategory->id : 1;
+                        if (!empty($request->medical_category_id[$index])) {
+                            $requestedCategoryId = (int)$request->medical_category_id[$index];
+                            // Validate category exists
+                            try {
+                                if (DB::table('medical_skill_categories')->where('id', $requestedCategoryId)->exists()) {
+                                    $category_id = $requestedCategoryId;
+                                }
+                            } catch (\Exception $e) {
+                                // Table might not exist, will get first category below
                             }
-                        } catch (\Exception $e) {
-                            // If table doesn't exist, use default
-                            $category_id = 1;
+                        }
+                        
+                        // If no valid category found, get first available category
+                        if (!$category_id) {
+                            try {
+                                $firstCategory = DB::table('medical_skill_categories')->orderBy('id')->first();
+                                if ($firstCategory) {
+                                    $category_id = $firstCategory->id;
+                                } else {
+                                    // If no categories exist at all, skip this skill
+                                    \Log::warning('No medical skill categories found in database, skipping skill', [
+                                        'skill_name' => $medical_skill_name,
+                                        'qr_id' => $qr_id
+                                    ]);
+                                    continue;
+                                }
+                            } catch (\Exception $e) {
+                                // Table doesn't exist, skip this skill
+                                \Log::warning('Medical skill categories table not found, skipping skill', [
+                                    'skill_name' => $medical_skill_name,
+                                    'qr_id' => $qr_id
+                                ]);
+                                continue;
+                            }
                         }
                         
                         MedicalSkill::create([
