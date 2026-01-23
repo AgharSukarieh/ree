@@ -124,12 +124,23 @@
                         <h5 class="mb-0"><i class="fas fa-code me-2"></i>Technical Skills</h5>
                     </div>
                     <div class="card-body">
-                        @foreach($user->skills->groupBy('category.category_name') as $categoryName => $skills)
+                        @php
+                            $skillsByCategory = $user->skills->groupBy(function($skill) {
+                                return $skill->category && !empty($skill->category->category_name) 
+                                    ? $skill->category->category_name 
+                                    : 'Other Skills';
+                            });
+                        @endphp
+                        @foreach($skillsByCategory as $categoryName => $skills)
                         <div class="mb-3">
-                            <h6 class="fw-bold text-primary">{{ $categoryName }}</h6>
-                            @foreach($skills as $skill)
-                                <span class="skill-tag">{{ $skill->skill_name }}</span>
-                            @endforeach
+                            <h6 class="fw-bold text-primary mb-2">
+                                <i class="fas fa-tag me-1"></i>{{ $categoryName }}
+                            </h6>
+                            <div>
+                                @foreach($skills as $skill)
+                                    <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                @endforeach
+                            </div>
                         </div>
                         @endforeach
                     </div>
@@ -143,12 +154,23 @@
                         <h5 class="mb-0"><i class="fas fa-user-md me-2"></i>Medical Skills</h5>
                     </div>
                     <div class="card-body">
-                        @foreach($user->medicalSkills->groupBy('category.category_name') as $categoryName => $skills)
+                        @php
+                            $medicalSkillsByCategory = $user->medicalSkills->groupBy(function($skill) {
+                                return $skill->category && !empty($skill->category->category_name) 
+                                    ? $skill->category->category_name 
+                                    : 'Other Skills';
+                            });
+                        @endphp
+                        @foreach($medicalSkillsByCategory as $categoryName => $skills)
                         <div class="mb-3">
-                            <h6 class="fw-bold text-success">{{ $categoryName }}</h6>
-                            @foreach($skills as $skill)
-                                <span class="skill-tag">{{ $skill->skill_name }}</span>
-                            @endforeach
+                            <h6 class="fw-bold text-success mb-2">
+                                <i class="fas fa-tag me-1"></i>{{ $categoryName }}
+                            </h6>
+                            <div>
+                                @foreach($skills as $skill)
+                                    <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                @endforeach
+                            </div>
                         </div>
                         @endforeach
                     </div>
