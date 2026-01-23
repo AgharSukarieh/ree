@@ -20,12 +20,20 @@ class DownloadController extends Controller
     {
         try {
             $user = User::with([
-                'projects',
-                'skills.category',
-                'softSkills',
+                'activities',
+                'analyticalSkills',
                 'certifications',
-                'languages'
-            ])->find($qr_id);
+                'coreCompetencies',
+                'experiences',
+                'interests',
+                'languages',
+                'medicalSkills.category',
+                'memberships',
+                'projects',
+                'research',
+                'skills.category',
+                'softSkills'
+            ])->where('status', 1)->find($qr_id);
 
             if (!$user) {
                 abort(404, 'User not found');
@@ -43,122 +51,321 @@ class DownloadController extends Controller
             $education = collect([]);
         }
 
-        // Prepare HTML content
+        // Prepare HTML content with ATS-friendly styling
         $html = '<style>
-            body { font-family: Arial; font-size: 12pt; }
-            h1, h2 { color: #000; border-bottom: 1px solid #000; padding-bottom: 4px; }
+            body { font-family: "Arial", "Helvetica", sans-serif; font-size: 11pt; line-height: 1.4; color: #000; }
+            h1 { font-size: 20pt; font-weight: bold; color: #000; text-align: center; margin: 10px 0 5px 0; }
+            h2 { font-size: 14pt; font-weight: bold; color: #000; border-bottom: 2px solid #000; padding-bottom: 3px; margin-top: 15px; margin-bottom: 8px; }
+            h3 { font-size: 12pt; font-weight: bold; color: #000; margin-top: 10px; margin-bottom: 5px; }
+            h4 { font-size: 11pt; font-weight: normal; color: #333; text-align: center; margin: 0 0 15px 0; }
             .center { text-align: center; }
-            .contact span { margin-right: 10px; display: inline-block; vertical-align: middle; }
-            .section { margin-top: 9px; }
-            hr { border: 1px solid #000; }
-            ul { padding-left: 20px; }
-            .section p { margin: 4px 0; line-height: 1.4; }
+            .contact-info { text-align: center; margin: 10px 0 20px 0; line-height: 1.8; }
+            .contact-info span { margin: 0 8px; display: inline-block; }
+            .section { margin-top: 12px; margin-bottom: 12px; }
+            .section-content { margin-left: 0; }
+            ul { padding-left: 20px; margin: 5px 0; }
+            li { margin: 3px 0; }
+            .section p { margin: 5px 0; line-height: 1.5; }
+            .experience-item, .project-item, .education-item { margin-bottom: 12px; }
+            .date-range { color: #666; font-style: italic; }
+            .skills-list { margin: 5px 0; }
+            .skill-category { font-weight: bold; margin-top: 8px; }
+            .icon-link { text-decoration: none; color: #000; display: inline-block; margin: 0 5px; }
+            .icon-link:hover { text-decoration: none; }
+            a { color: #000; text-decoration: none; }
+            a:visited { color: #000; }
+            .two-column { display: table; width: 100%; }
+            .column { display: table-cell; width: 50%; padding: 0 10px; vertical-align: top; }
+            @media print {
+                body { font-size: 10pt; }
+                .section { page-break-inside: avoid; }
+            }
         </style>';
 
-        $html .= '<div class="center"><h1>' . strtoupper(htmlspecialchars($user->name)) . '</h1>';
-        $html .= '<h4>' . htmlspecialchars($user->job_title ?? '') . '</h4>';  
+        // Header - Name and Job Title
+        $html .= '<div class="center">';
+        $html .= '<h1>' . htmlspecialchars(strtoupper($user->name)) . '</h1>';
+        if ($user->job_title) {
+            $html .= '<h4>' . htmlspecialchars($user->job_title) . '</h4>';
+        }
         $html .= '</div>';
 
-        $html .= '<div class="contact center" style="line-height:1.8;">';
-
+        // Contact Information with icons (no blue links)
+        $html .= '<div class="contact-info">';
+        
         if ($user->city) {
-            $html .= "<span>📍 {$user->city}</span>";
+            $html .= '<span>📍 ' . htmlspecialchars($user->city) . '</span>';
         }
-
+        
         if ($user->phone) {
-            $html .= "<span>📞 {$user->phone}</span>";
+            $html .= '<span>📞 ' . htmlspecialchars($user->phone) . '</span>';
         }
-
-        if ($user->linkedin_profile) {
-            $html .= "<span>💼 <a href='{$user->linkedin_profile}' target='_blank'>LinkedIn</a></span>";
-        }
-
-        if ($user->github_profile) {
-            $html .= "<span>💻 <a href='{$user->github_profile}' target='_blank'>GitHub</a></span>";
-        }
-
+        
         if ($user->email) {
-            $html .= "<span>✉️ <a href='mailto:{$user->email}'>{$user->email}</a></span>";
+            $html .= '<span>✉️ ' . htmlspecialchars($user->email) . '</span>';
         }
-
+        
+        if ($user->linkedin_profile) {
+            $html .= '<span class="icon-link">💼 LinkedIn: ' . htmlspecialchars($user->linkedin_profile) . '</span>';
+        }
+        
+        if ($user->github_profile) {
+            $html .= '<span class="icon-link">💻 GitHub: ' . htmlspecialchars($user->github_profile) . '</span>';
+        }
+        
         if ($user->profile_website) {
-            $html .= "<span>🌐 <a href='{$user->profile_website}' target='_blank'>Profile</a></span><br/>";
+            $html .= '<span class="icon-link">🌐 ' . htmlspecialchars($user->profile_website) . '</span>';
         }
-
+        
         $html .= '</div>';
 
+        // Professional Summary
         if ($user->profile_summary) {
-            $html .= '<div class="section"><h2>Professional Summary</h2>';
-            $html .= '<p>' . nl2br(htmlspecialchars($user->profile_summary)) . '</p></div>';
+            $html .= '<div class="section"><h2>PROFESSIONAL SUMMARY</h2>';
+            $html .= '<div class="section-content"><p>' . nl2br(htmlspecialchars($user->profile_summary)) . '</p></div></div>';
         }
 
-        if ($education->count() > 0) {
-            $html .= '<div class="section"><h2>Education</h2><ul>';
-            foreach ($education as $edu) {
-                $endYear = $edu->end_year == 0 ? 'Present' : $edu->end_year;
-                $html .= "<li><strong>{$edu->degree}</strong> – {$edu->university} ({$edu->start_year} - {$endYear})</li>";
-            }
-            $html .= '</ul></div>';
-        }
-
-        if ($user->projects->count() > 0) {
-            $html .= '<div class="section"><h2>Projects</h2>';
-            foreach ($user->projects as $proj) {
-                $html .= "<p><strong>{$proj->project_title}</strong><br/>";
-                $html .= nl2br(htmlspecialchars($proj->description ?? '')) . '';
-                if ($proj->technologies_used) {
-                    $html .= "Technologies Used: <em>{$proj->technologies_used}</em><br/>";
-                }
-                if ($proj->link) {
-                    $html .= "<a href='https://{$proj->link}' target='_blank'>{$proj->link}</a>";
+        // Work Experience
+        if ($user->experiences->count() > 0) {
+            $html .= '<div class="section"><h2>PROFESSIONAL EXPERIENCE</h2>';
+            foreach ($user->experiences as $exp) {
+                $html .= '<div class="experience-item">';
+                $html .= '<h3>' . htmlspecialchars($exp->title) . '</h3>';
+                $html .= '<p><strong>' . htmlspecialchars($exp->company ?? '') . '</strong>';
+                if ($exp->location) {
+                    $html .= ' | ' . htmlspecialchars($exp->location);
                 }
                 $html .= '</p>';
+                $startDate = $exp->start_date ? date('M Y', strtotime($exp->start_date)) : '';
+                $endDate = $exp->end_date ? date('M Y', strtotime($exp->end_date)) : 'Present';
+                $html .= '<p class="date-range">' . $startDate . ' - ' . $endDate;
+                if ($exp->is_internship) {
+                    $html .= ' | Internship';
+                }
+                $html .= '</p>';
+                if ($exp->description) {
+                    $html .= '<p>' . nl2br(htmlspecialchars($exp->description)) . '</p>';
+                }
+                $html .= '</div>';
             }
             $html .= '</div>';
         }
 
-        // Technical Skills
+        // Education
+        if ($education->count() > 0) {
+            $html .= '<div class="section"><h2>EDUCATION</h2>';
+            foreach ($education as $edu) {
+                $html .= '<div class="education-item">';
+                $degree = $edu->degree_name ?? $edu->degree ?? '';
+                $field = $edu->field_of_study ?? '';
+                $university = $edu->university_name ?? $edu->university ?? '';
+                $startYear = $edu->start_year ?? '';
+                $endYear = ($edu->end_year ?? 0) == 0 ? 'Present' : ($edu->end_year ?? '');
+                
+                if ($degree) {
+                    $html .= '<h3>' . htmlspecialchars($degree);
+                    if ($field) {
+                        $html .= ' in ' . htmlspecialchars($field);
+                    }
+                    $html .= '</h3>';
+                }
+                if ($university) {
+                    $html .= '<p><strong>' . htmlspecialchars($university) . '</strong></p>';
+                }
+                if ($startYear || $endYear) {
+                    $html .= '<p class="date-range">' . $startYear . ' - ' . $endYear . '</p>';
+                }
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+        }
+
+        // Projects
+        if ($user->projects->count() > 0) {
+            $html .= '<div class="section"><h2>PROJECTS</h2>';
+            foreach ($user->projects as $proj) {
+                $html .= '<div class="project-item">';
+                $html .= '<h3>' . htmlspecialchars($proj->project_title) . '</h3>';
+                if ($proj->description) {
+                    $html .= '<p>' . nl2br(htmlspecialchars($proj->description)) . '</p>';
+                }
+                if ($proj->technologies_used) {
+                    $html .= '<p><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</p>';
+                }
+                if ($proj->link) {
+                    $linkText = str_replace(['http://', 'https://'], '', $proj->link);
+                    $html .= '<p>🔗 ' . htmlspecialchars($linkText) . '</p>';
+                }
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+        }
+
+        // Technical Skills (grouped by category for ATS)
         if ($user->skills->count() > 0) {
-            $html .= '<div class="section"><h2>Technical Skills</h2>';
+            $html .= '<div class="section"><h2>TECHNICAL SKILLS</h2>';
             foreach ($user->skills->groupBy('category.category_name') as $categoryName => $skills) {
                 if ($categoryName) {
-                    $html .= "<p><strong>{$categoryName}:</strong> ";
+                    $html .= '<div class="skill-category">' . htmlspecialchars($categoryName) . ':</div>';
                     $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= implode(', ', array_map('htmlspecialchars', $skillNames));
-                    $html .= '</p>';
+                    $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
                 } else {
                     // If no category, just list skills
-                    foreach ($skills as $skill) {
-                        $html .= '<p>• ' . htmlspecialchars($skill->skill_name) . '</p>';
-                    }
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
                 }
             }
             $html .= '</div>';
         }
 
+        // Medical Skills (if applicable)
+        if ($user->medicalSkills->count() > 0) {
+            $html .= '<div class="section"><h2>MEDICAL SKILLS</h2>';
+            foreach ($user->medicalSkills->groupBy('category.category_name') as $categoryName => $skills) {
+                if ($categoryName) {
+                    $html .= '<div class="skill-category">' . htmlspecialchars($categoryName) . ':</div>';
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+                }
+            }
+            $html .= '</div>';
+        }
+
+        // Soft Skills
         if ($user->softSkills->count() > 0) {
-            $html .= '<div class="section"><h2>Soft Skills</h2><ul>';
-            foreach ($user->softSkills as $soft) {
-                $html .= '<li>' . htmlspecialchars($soft->soft_name) . '</li>';
+            $html .= '<div class="section"><h2>SOFT SKILLS</h2>';
+            $skillNames = $user->softSkills->pluck('soft_name')->toArray();
+            $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+            $html .= '</div>';
+        }
+
+        // Analytical Skills
+        if ($user->analyticalSkills->count() > 0) {
+            $html .= '<div class="section"><h2>ANALYTICAL SKILLS</h2>';
+            $skillNames = $user->analyticalSkills->pluck('skill_name')->toArray();
+            $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+            $html .= '</div>';
+        }
+
+        // Core Competencies
+        if ($user->coreCompetencies->count() > 0) {
+            $html .= '<div class="section"><h2>CORE COMPETENCIES</h2><ul>';
+            foreach ($user->coreCompetencies as $comp) {
+                $html .= '<li><strong>' . htmlspecialchars($comp->competency_name) . '</strong>';
+                if ($comp->description) {
+                    $html .= ': ' . htmlspecialchars($comp->description);
+                }
+                $html .= '</li>';
             }
             $html .= '</ul></div>';
         }
 
+        // Certifications
         if ($user->certifications->count() > 0) {
-            $html .= '<div class="section"><h2>Certifications</h2><ul>';
+            $html .= '<div class="section"><h2>CERTIFICATIONS</h2><ul>';
             foreach ($user->certifications as $c) {
                 $issueDate = $c->issue_date ? date('M Y', strtotime($c->issue_date)) : '';
-                $html .= "<li>{$c->certifications_name} – {$c->issuing_org}, {$issueDate}</li>";
+                $expiryDate = $c->expiration_date ? ' - ' . date('M Y', strtotime($c->expiration_date)) : '';
+                $html .= '<li><strong>' . htmlspecialchars($c->certifications_name) . '</strong>';
+                if ($c->issuing_org) {
+                    $html .= ' – ' . htmlspecialchars($c->issuing_org);
+                }
+                if ($issueDate) {
+                    $html .= ', ' . $issueDate . $expiryDate;
+                }
+                if ($c->link_driver) {
+                    $linkText = str_replace(['http://', 'https://'], '', $c->link_driver);
+                    $html .= ' | 🔗 ' . htmlspecialchars($linkText);
+                }
+                $html .= '</li>';
             }
             $html .= '</ul></div>';
         }
 
+        // Languages
         if ($user->languages->count() > 0) {
-            $html .= '<div class="section"><h2>Languages</h2><ul>';
+            $html .= '<div class="section"><h2>LANGUAGES</h2><ul>';
             foreach ($user->languages as $l) {
-                $html .= "<li>{$l->language_name} – {$l->proficiency_level}</li>";
+                $html .= '<li><strong>' . htmlspecialchars($l->language_name) . '</strong> – ' . htmlspecialchars($l->proficiency_level) . '</li>';
             }
             $html .= '</ul></div>';
+        }
+
+        // Professional Memberships
+        if ($user->memberships->count() > 0) {
+            $html .= '<div class="section"><h2>PROFESSIONAL MEMBERSHIPS</h2><ul>';
+            foreach ($user->memberships as $m) {
+                $html .= '<li><strong>' . htmlspecialchars($m->organization_name) . '</strong>';
+                if ($m->membership_type) {
+                    $html .= ' – ' . htmlspecialchars($m->membership_type);
+                }
+                if ($m->start_date_membership || $m->end_date_membership) {
+                    $startDate = $m->start_date_membership ? date('M Y', strtotime($m->start_date_membership)) : '';
+                    $endDate = $m->end_date_membership ? date('M Y', strtotime($m->end_date_membership)) : 'Present';
+                    $html .= ' (' . $startDate . ' - ' . $endDate . ')';
+                }
+                if ($m->membership_status) {
+                    $html .= ' | ' . htmlspecialchars($m->membership_status);
+                }
+                $html .= '</li>';
+            }
+            $html .= '</ul></div>';
+        }
+
+        // Activities
+        if ($user->activities->count() > 0) {
+            $html .= '<div class="section"><h2>ACTIVITIES & VOLUNTEER WORK</h2>';
+            foreach ($user->activities as $act) {
+                $html .= '<div class="experience-item">';
+                $html .= '<h3>' . htmlspecialchars($act->activity_title) . '</h3>';
+                if ($act->organization) {
+                    $html .= '<p><strong>' . htmlspecialchars($act->organization) . '</strong></p>';
+                }
+                if ($act->activity_date) {
+                    $html .= '<p class="date-range">' . date('M Y', strtotime($act->activity_date)) . '</p>';
+                }
+                if ($act->description_activity) {
+                    $html .= '<p>' . nl2br(htmlspecialchars($act->description_activity)) . '</p>';
+                }
+                if ($act->activity_link) {
+                    $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
+                    $html .= '<p>🔗 ' . htmlspecialchars($linkText) . '</p>';
+                }
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+        }
+
+        // Research (for Medical major)
+        if ($user->research->count() > 0) {
+            $html .= '<div class="section"><h2>RESEARCH & PUBLICATIONS</h2>';
+            foreach ($user->research as $r) {
+                $html .= '<div class="experience-item">';
+                $html .= '<h3>' . htmlspecialchars($r->title) . '</h3>';
+                if ($r->publication_year) {
+                    $html .= '<p class="date-range">' . htmlspecialchars($r->publication_year) . '</p>';
+                }
+                if ($r->description) {
+                    $html .= '<p>' . nl2br(htmlspecialchars($r->description)) . '</p>';
+                }
+                if ($r->link) {
+                    $linkText = str_replace(['http://', 'https://'], '', $r->link);
+                    $html .= '<p>🔗 ' . htmlspecialchars($linkText) . '</p>';
+                }
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+        }
+
+        // Interests
+        if ($user->interests->count() > 0) {
+            $html .= '<div class="section"><h2>INTERESTS</h2>';
+            $interestNames = $user->interests->pluck('interest_name')->toArray();
+            $html .= '<div class="skills-list">' . implode(', ', array_map('htmlspecialchars', $interestNames)) . '</div>';
+            $html .= '</div>';
         }
 
         // Generate PDF and output
