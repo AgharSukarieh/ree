@@ -208,8 +208,8 @@ class DownloadController extends Controller
             p { margin: 4px 0; line-height: 1.5; }
             ul { margin: 5px 0; padding-left: 20px; }
             li { margin: 2px 0; line-height: 1.4; }
-            a { color: #0000EE; text-decoration: underline; }
-            a:visited { color: #551A8B; }
+            a { color: #666666; text-decoration: underline; }
+            a:visited { color: #666666; }
         </style>';
 
         // Header
@@ -225,15 +225,20 @@ class DownloadController extends Controller
         if ($user->city) $contact[] = htmlspecialchars($user->city);
         if ($user->phone) $contact[] = htmlspecialchars($user->phone);
         if ($user->email) {
-            $contact[] = '<a href="mailto:' . htmlspecialchars($user->email) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($user->email) . '</a>';
+            $contact[] = '<a href="mailto:' . htmlspecialchars($user->email) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($user->email) . '</a>';
         }
+        
+        // Profile page link
+        $profileUrl = url('/profile/' . $user->qr_id);
+        $contact[] = '<a href="' . htmlspecialchars($profileUrl) . '" style="color: #666666; text-decoration: underline;">View Profile</a>';
+        
         if ($user->profile_website) {
             $link = $user->profile_website;
             if (!preg_match('/^https?:\/\//', $link)) {
                 $link = 'https://' . $link;
             }
             $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
-            $contact[] = '<a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
+            $contact[] = '<a href="' . htmlspecialchars($link) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
         }
         
         if (!empty($contact)) {
@@ -248,7 +253,7 @@ class DownloadController extends Controller
                 $link = 'https://' . $link;
             }
             $linkText = str_replace(['http://', 'https://', 'www.linkedin.com/in/'], '', $user->linkedin_profile);
-            $social[] = 'LinkedIn: <a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
+            $social[] = 'LinkedIn: <a href="' . htmlspecialchars($link) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
         }
         if ($user->github_profile) {
             $link = $user->github_profile;
@@ -256,7 +261,7 @@ class DownloadController extends Controller
                 $link = 'https://' . $link;
             }
             $linkText = str_replace(['http://', 'https://', 'www.github.com/'], '', $user->github_profile);
-            $social[] = 'GitHub: <a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
+            $social[] = 'GitHub: <a href="' . htmlspecialchars($link) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
         }
         
         if (!empty($social)) {
@@ -390,7 +395,7 @@ class DownloadController extends Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $proj->link);
-                    $html .= '<div style="font-size: 10pt;"><a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 10pt;"><a href="' . htmlspecialchars($link) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -529,7 +534,7 @@ class DownloadController extends Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
-                    $html .= '<div style="font-size: 10pt;"><a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 10pt;"><a href="' . htmlspecialchars($link) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
