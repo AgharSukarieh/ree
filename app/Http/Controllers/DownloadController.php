@@ -243,7 +243,7 @@ class DownloadController extends Controller
         
         $html .= '</div>';
 
-        // Professional Summary
+        // 1. Professional Summary (First thing HR reads)
         if ($summary) {
             $html .= '<div class="section">';
             $html .= '<h2>PROFESSIONAL SUMMARY</h2>';
@@ -251,48 +251,7 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
-        // Work Experience (sorted by date, most recent first)
-        if ($user->experiences->count() > 0) {
-            $html .= '<div class="section">';
-            $html .= '<h2>PROFESSIONAL EXPERIENCE</h2>';
-            
-            $experiences = $user->experiences->sortByDesc(function($exp) {
-                return $exp->start_date ? strtotime($exp->start_date) : 0;
-            });
-            
-            foreach ($experiences as $exp) {
-                $html .= '<div class="item">';
-                $html .= '<div class="job-title">' . htmlspecialchars($exp->title) . '</div>';
-                
-                $companyLine = [];
-                if ($exp->company) $companyLine[] = htmlspecialchars($exp->company);
-                if ($exp->location) $companyLine[] = htmlspecialchars($exp->location);
-                
-                if (!empty($companyLine)) {
-                    $html .= '<div class="company">' . implode(' - ', $companyLine) . '</div>';
-                }
-                
-                $startDate = $exp->start_date ? date('M Y', strtotime($exp->start_date)) : '';
-                $endDate = $exp->end_date ? date('M Y', strtotime($exp->end_date)) : 'Present';
-                $html .= '<div class="date">' . $startDate . ' - ' . $endDate;
-                if ($exp->is_internship) {
-                    $html .= ' (Internship)';
-                }
-                $html .= '</div>';
-                
-                if ($exp->description) {
-                    $bullets = $this->formatBulletPoints($exp->description);
-                    foreach ($bullets as $bullet) {
-                        $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
-                    }
-                }
-                
-                $html .= '</div>';
-            }
-            
-            $html .= '</div>';
-        }
-
+        // 2. Technical Skills (ATS filters from here - MUST be before Experience)
         // Technical Skills (grouped by category for ATS keyword scanning)
         if ($user->skills->count() > 0) {
             $html .= '<div class="section">';
@@ -339,6 +298,49 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
+        // 3. Work Experience (Most important section for HR)
+        if ($user->experiences->count() > 0) {
+            $html .= '<div class="section">';
+            $html .= '<h2>PROFESSIONAL EXPERIENCE</h2>';
+            
+            $experiences = $user->experiences->sortByDesc(function($exp) {
+                return $exp->start_date ? strtotime($exp->start_date) : 0;
+            });
+            
+            foreach ($experiences as $exp) {
+                $html .= '<div class="item">';
+                $html .= '<div class="job-title">' . htmlspecialchars($exp->title) . '</div>';
+                
+                $companyLine = [];
+                if ($exp->company) $companyLine[] = htmlspecialchars($exp->company);
+                if ($exp->location) $companyLine[] = htmlspecialchars($exp->location);
+                
+                if (!empty($companyLine)) {
+                    $html .= '<div class="company">' . implode(' - ', $companyLine) . '</div>';
+                }
+                
+                $startDate = $exp->start_date ? date('M Y', strtotime($exp->start_date)) : '';
+                $endDate = $exp->end_date ? date('M Y', strtotime($exp->end_date)) : 'Present';
+                $html .= '<div class="date">' . $startDate . ' - ' . $endDate;
+                if ($exp->is_internship) {
+                    $html .= ' (Internship)';
+                }
+                $html .= '</div>';
+                
+                if ($exp->description) {
+                    $bullets = $this->formatBulletPoints($exp->description);
+                    foreach ($bullets as $bullet) {
+                        $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
+                    }
+                }
+                
+                $html .= '</div>';
+            }
+            
+            $html .= '</div>';
+        }
+
+        // 4. Projects (Especially important for Tech/Fresh/Juniors)
         // Projects (if applicable and substantial)
         if ($user->projects->count() > 0) {
             $html .= '<div class="section">';
@@ -371,7 +373,7 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
-        // Education
+        // 5. Education
         if ($education->count() > 0) {
             $html .= '<div class="section">';
             $html .= '<h2>EDUCATION</h2>';
@@ -407,7 +409,7 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
-        // Certifications
+        // 6. Certifications (Supporting, not essential)
         if ($user->certifications->count() > 0) {
             $html .= '<div class="section">';
             $html .= '<h2>CERTIFICATIONS</h2>';
@@ -434,7 +436,29 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
-        // Languages
+        // 7. Analytical Skills (Only if strong, otherwise merge with Technical Skills)
+        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
+            $html .= '<div class="section">';
+            $html .= '<h2>ANALYTICAL SKILLS</h2>';
+            
+            $skillNames = $user->analyticalSkills->pluck('skill_name')->toArray();
+            $html .= '<div class="skills-inline">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+            
+            $html .= '</div>';
+        }
+
+        // 8. Soft Skills (Short, no filler)
+        if ($user->softSkills->count() >= 3) {
+            $html .= '<div class="section">';
+            $html .= '<h2>SOFT SKILLS</h2>';
+            
+            $skillNames = $user->softSkills->pluck('soft_name')->toArray();
+            $html .= '<div class="skills-inline">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+            
+            $html .= '</div>';
+        }
+
+        // 9. Languages
         if ($user->languages->count() > 0) {
             $html .= '<div class="section">';
             $html .= '<h2>LANGUAGES</h2>';
@@ -449,7 +473,7 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
-        // Activities & Volunteer Work
+        // 10. Activities & Memberships (Last, optional)
         if ($user->activities->count() > 0) {
             $html .= '<div class="section">';
             $html .= '<h2>ACTIVITIES & VOLUNTEER WORK</h2>';
@@ -484,24 +508,27 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
-        // Soft Skills (only if substantial)
-        if ($user->softSkills->count() >= 3) {
+        // Professional Memberships (if applicable)
+        if ($user->memberships->count() > 0) {
             $html .= '<div class="section">';
-            $html .= '<h2>SOFT SKILLS</h2>';
+            $html .= '<h2>PROFESSIONAL MEMBERSHIPS</h2>';
             
-            $skillNames = $user->softSkills->pluck('soft_name')->toArray();
-            $html .= '<div class="skills-inline">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
-            
-            $html .= '</div>';
-        }
-
-        // Additional sections only if they add value
-        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
-            $html .= '<div class="section">';
-            $html .= '<h2>ANALYTICAL SKILLS</h2>';
-            
-            $skillNames = $user->analyticalSkills->pluck('skill_name')->toArray();
-            $html .= '<div class="skills-inline">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+            foreach ($user->memberships as $m) {
+                $html .= '<div class="item">';
+                $html .= '<strong>' . htmlspecialchars($m->organization_name) . '</strong>';
+                if ($m->membership_type) {
+                    $html .= ' - ' . htmlspecialchars($m->membership_type);
+                }
+                if ($m->start_date_membership || $m->end_date_membership) {
+                    $startDate = $m->start_date_membership ? date('M Y', strtotime($m->start_date_membership)) : '';
+                    $endDate = $m->end_date_membership ? date('M Y', strtotime($m->end_date_membership)) : 'Present';
+                    $html .= ' (' . $startDate . ' - ' . $endDate . ')';
+                }
+                if ($m->membership_status) {
+                    $html .= ' | ' . htmlspecialchars($m->membership_status);
+                }
+                $html .= '</div>';
+            }
             
             $html .= '</div>';
         }
@@ -676,14 +703,33 @@ class DownloadController extends Controller
 
         $section->addTextBreak(1);
 
-        // Summary
+        // 1. Professional Summary
         if ($summary) {
             $section->addText('PROFESSIONAL SUMMARY', ['bold' => true, 'size' => 12]);
             $section->addText(htmlspecialchars($summary, ENT_QUOTES, 'UTF-8'));
             $section->addTextBreak(1);
         }
 
-        // Experience
+        // 2. Technical Skills (ATS filters from here - MUST be before Experience)
+        // Technical Skills
+        if ($user->skills->count() > 0) {
+            $section->addText('TECHNICAL SKILLS', ['bold' => true, 'size' => 12]);
+            
+            $skillsByCategory = $user->skills->groupBy('category.category_name');
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName) {
+                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                }
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                $section->addText(implode(', ', array_map(function($s) {
+                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                }, $skillNames)));
+            }
+            
+            $section->addTextBreak(1);
+        }
+
+        // 3. Work Experience (Most important section for HR)
         if ($user->experiences->count() > 0) {
             $section->addText('PROFESSIONAL EXPERIENCE', ['bold' => true, 'size' => 12]);
             
@@ -715,27 +761,11 @@ class DownloadController extends Controller
                 
                 $section->addTextBreak(1);
             }
-        }
-
-        // Skills
-        if ($user->skills->count() > 0) {
-            $section->addText('TECHNICAL SKILLS', ['bold' => true, 'size' => 12]);
-            
-            $skillsByCategory = $user->skills->groupBy('category.category_name');
-            foreach ($skillsByCategory as $categoryName => $skills) {
-                if ($categoryName) {
-                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
-                }
-                $skillNames = $skills->pluck('skill_name')->toArray();
-                $section->addText(implode(', ', array_map(function($s) {
-                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-                }, $skillNames)));
-            }
             
             $section->addTextBreak(1);
         }
 
-        // Projects
+        // 4. Projects (Especially important for Tech/Fresh/Juniors)
         if ($user->projects->count() > 0) {
             $section->addText('PROJECTS', ['bold' => true, 'size' => 12]);
             
@@ -755,9 +785,11 @@ class DownloadController extends Controller
                 
                 $section->addTextBreak(1);
             }
+            
+            $section->addTextBreak(1);
         }
 
-        // Education
+        // 5. Education
         if ($education->count() > 0) {
             $section->addText('EDUCATION', ['bold' => true, 'size' => 12]);
             
@@ -788,7 +820,7 @@ class DownloadController extends Controller
             }
         }
 
-        // Certifications
+        // 6. Certifications (Supporting, not essential)
         if ($user->certifications->count() > 0) {
             $section->addText('CERTIFICATIONS', ['bold' => true, 'size' => 12]);
             
@@ -809,7 +841,31 @@ class DownloadController extends Controller
             $section->addTextBreak(1);
         }
 
-        // Languages
+        // 7. Analytical Skills (Only if strong)
+        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
+            $section->addText('ANALYTICAL SKILLS', ['bold' => true, 'size' => 12]);
+            
+            $skillNames = $user->analyticalSkills->pluck('skill_name')->toArray();
+            $section->addText(implode(', ', array_map(function($s) {
+                return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+            }, $skillNames)));
+            
+            $section->addTextBreak(1);
+        }
+
+        // 8. Soft Skills (Short, no filler)
+        if ($user->softSkills->count() >= 3) {
+            $section->addText('SOFT SKILLS', ['bold' => true, 'size' => 12]);
+            
+            $skillNames = $user->softSkills->pluck('soft_name')->toArray();
+            $section->addText(implode(', ', array_map(function($s) {
+                return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+            }, $skillNames)));
+            
+            $section->addTextBreak(1);
+        }
+
+        // 9. Languages
         if ($user->languages->count() > 0) {
             $section->addText('LANGUAGES', ['bold' => true, 'size' => 12]);
             
@@ -824,7 +880,49 @@ class DownloadController extends Controller
             $section->addTextBreak(1);
         }
 
-        // Activities & Volunteer Work
+        // 10. Activities & Volunteer Work (Last, optional)
+        if ($user->activities->count() > 0) {
+            $section->addText('ACTIVITIES & VOLUNTEER WORK', ['bold' => true, 'size' => 12]);
+            
+            foreach ($user->activities as $act) {
+                $section->addText(htmlspecialchars($act->activity_title, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                
+                if ($act->organization) {
+                    $section->addText(htmlspecialchars($act->organization, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                }
+                
+                if ($act->activity_date) {
+                    $section->addText(date('M Y', strtotime($act->activity_date)), ['italic' => true, 'size' => 10]);
+                }
+                
+                if ($act->description_activity) {
+                    $bullets = $this->formatBulletPoints($act->description_activity);
+                    foreach ($bullets as $bullet) {
+                        $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                    }
+                }
+                
+                $section->addTextBreak(1);
+            }
+        }
+
+        // Professional Memberships (if applicable)
+        if ($user->memberships->count() > 0) {
+            $section->addText('PROFESSIONAL MEMBERSHIPS', ['bold' => true, 'size' => 12]);
+            
+            foreach ($user->memberships as $m) {
+                $membershipText = htmlspecialchars($m->organization_name, ENT_QUOTES, 'UTF-8');
+                if ($m->membership_type) {
+                    $membershipText .= ' - ' . htmlspecialchars($m->membership_type, ENT_QUOTES, 'UTF-8');
+                }
+                if ($m->start_date_membership || $m->end_date_membership) {
+                    $startDate = $m->start_date_membership ? date('M Y', strtotime($m->start_date_membership)) : '';
+                    $endDate = $m->end_date_membership ? date('M Y', strtotime($m->end_date_membership)) : 'Present';
+                    $membershipText .= ' (' . $startDate . ' - ' . $endDate . ')';
+                }
+                $section->addListItem($membershipText, 0);
+            }
+        }
         if ($user->activities->count() > 0) {
             $section->addText('ACTIVITIES & VOLUNTEER WORK', ['bold' => true, 'size' => 12]);
             
