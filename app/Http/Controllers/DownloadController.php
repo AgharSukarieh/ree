@@ -69,8 +69,14 @@ class DownloadController extends Controller
                 'margin_right' => 15,
                 'margin_top' => 15,
                 'margin_bottom' => 15,
-                'tempDir' => sys_get_temp_dir()
+                'tempDir' => sys_get_temp_dir(),
+                'allow_charset_conversion' => true
             ]);
+            
+            // Enable links in PDF
+            $mpdf->SetHTMLFooter('');
+            $mpdf->autoScriptToLang = true;
+            $mpdf->autoLangToFont = true;
             
             $mpdf->WriteHTML($html);
             $mpdf->Output('CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf', 'D');
@@ -202,6 +208,8 @@ class DownloadController extends Controller
             p { margin: 4px 0; line-height: 1.5; }
             ul { margin: 5px 0; padding-left: 20px; }
             li { margin: 2px 0; line-height: 1.4; }
+            a { color: #0000EE; text-decoration: underline; }
+            a:visited { color: #551A8B; }
         </style>';
 
         // Header
@@ -212,29 +220,43 @@ class DownloadController extends Controller
             $html .= '<div style="font-size: 11pt; margin-bottom: 5px;">' . htmlspecialchars($user->job_title) . '</div>';
         }
         
-        // Contact information (single line, no icons)
+        // Contact information (single line, with clickable links)
         $contact = [];
         if ($user->city) $contact[] = htmlspecialchars($user->city);
         if ($user->phone) $contact[] = htmlspecialchars($user->phone);
-        if ($user->email) $contact[] = htmlspecialchars($user->email);
+        if ($user->email) {
+            $contact[] = '<a href="mailto:' . htmlspecialchars($user->email) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($user->email) . '</a>';
+        }
         if ($user->profile_website) {
-            $link = str_replace(['http://', 'https://'], '', $user->profile_website);
-            $contact[] = htmlspecialchars($link);
+            $link = $user->profile_website;
+            if (!preg_match('/^https?:\/\//', $link)) {
+                $link = 'https://' . $link;
+            }
+            $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
+            $contact[] = '<a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
         }
         
         if (!empty($contact)) {
             $html .= '<div class="contact">' . implode(' | ', $contact) . '</div>';
         }
         
-        // Social profiles (text only)
+        // Social profiles (clickable links)
         $social = [];
         if ($user->linkedin_profile) {
-            $link = str_replace(['http://', 'https://', 'www.linkedin.com/in/'], '', $user->linkedin_profile);
-            $social[] = 'LinkedIn: ' . htmlspecialchars($link);
+            $link = $user->linkedin_profile;
+            if (!preg_match('/^https?:\/\//', $link)) {
+                $link = 'https://' . $link;
+            }
+            $linkText = str_replace(['http://', 'https://', 'www.linkedin.com/in/'], '', $user->linkedin_profile);
+            $social[] = 'LinkedIn: <a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
         }
         if ($user->github_profile) {
-            $link = str_replace(['http://', 'https://', 'www.github.com/'], '', $user->github_profile);
-            $social[] = 'GitHub: ' . htmlspecialchars($link);
+            $link = $user->github_profile;
+            if (!preg_match('/^https?:\/\//', $link)) {
+                $link = 'https://' . $link;
+            }
+            $linkText = str_replace(['http://', 'https://', 'www.github.com/'], '', $user->github_profile);
+            $social[] = 'GitHub: <a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
         }
         
         if (!empty($social)) {
@@ -363,8 +385,12 @@ class DownloadController extends Controller
                 }
                 
                 if ($proj->link) {
+                    $link = $proj->link;
+                    if (!preg_match('/^https?:\/\//', $link)) {
+                        $link = 'https://' . $link;
+                    }
                     $linkText = str_replace(['http://', 'https://'], '', $proj->link);
-                    $html .= '<div style="font-size: 10pt;">' . htmlspecialchars($linkText) . '</div>';
+                    $html .= '<div style="font-size: 10pt;"><a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -498,8 +524,12 @@ class DownloadController extends Controller
                 }
                 
                 if ($act->activity_link) {
+                    $link = $act->activity_link;
+                    if (!preg_match('/^https?:\/\//', $link)) {
+                        $link = 'https://' . $link;
+                    }
                     $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
-                    $html .= '<div style="font-size: 10pt;">' . htmlspecialchars($linkText) . '</div>';
+                    $html .= '<div style="font-size: 10pt;"><a href="' . htmlspecialchars($link) . '" style="color: #0000EE; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
