@@ -125,11 +125,23 @@
                     </div>
                     <div class="card-body">
                         @php
-                            $skillsByCategory = $user->skills->groupBy(function($skill) {
-                                return $skill->category && !empty($skill->category->category_name) 
-                                    ? $skill->category->category_name 
-                                    : 'Other Skills';
-                            });
+                            // Ensure category relationship is loaded
+                            $user->load('skills.category');
+                            
+                            // Group skills by category name using a more reliable method
+                            $skillsByCategory = [];
+                            foreach ($user->skills as $skill) {
+                                $categoryName = 'Other Skills';
+                                if ($skill->category && !empty($skill->category->category_name)) {
+                                    $categoryName = $skill->category->category_name;
+                                }
+                                
+                                if (!isset($skillsByCategory[$categoryName])) {
+                                    $skillsByCategory[$categoryName] = [];
+                                }
+                                $skillsByCategory[$categoryName][] = $skill;
+                            }
+                            ksort($skillsByCategory);
                         @endphp
                         @foreach($skillsByCategory as $categoryName => $skills)
                         <div class="mb-3">

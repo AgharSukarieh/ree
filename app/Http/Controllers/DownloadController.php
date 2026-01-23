@@ -288,14 +288,22 @@ class DownloadController extends Controller
             $user->load('skills.category');
             
             // Group skills by category name, handling null categories
-            $skillsByCategory = $user->skills->groupBy(function($skill) {
-                // Check if category exists and has a name
+            // Use a more reliable grouping method
+            $skillsByCategory = [];
+            foreach ($user->skills as $skill) {
+                $categoryName = 'Other Skills';
                 if ($skill->category && !empty($skill->category->category_name)) {
-                    return $skill->category->category_name;
+                    $categoryName = $skill->category->category_name;
                 }
-                // Return a default category name for skills without category
-                return 'Other Skills';
-            });
+                
+                if (!isset($skillsByCategory[$categoryName])) {
+                    $skillsByCategory[$categoryName] = [];
+                }
+                $skillsByCategory[$categoryName][] = $skill;
+            }
+            
+            // Sort categories alphabetically (optional)
+            ksort($skillsByCategory);
             
             foreach ($skillsByCategory as $categoryName => $skills) {
                 // Display category name as heading (bold, size 11pt)
@@ -304,7 +312,9 @@ class DownloadController extends Controller
                 $html .= '</div>';
                 
                 // Display skills for this category (size 10pt, with padding)
-                $skillNames = $skills->pluck('skill_name')->toArray();
+                $skillNames = array_map(function($skill) {
+                    return $skill->skill_name;
+                }, $skills);
                 $html .= '<div class="skills-inline" style="margin-bottom: 8px; padding-left: 15px; font-size: 10pt;">';
                 $html .= implode(', ', array_map('htmlspecialchars', $skillNames));
                 $html .= '</div>';
@@ -885,21 +895,31 @@ class DownloadController extends Controller
             $user->load('skills.category');
             
             // Group skills by category name, handling null categories
-            $skillsByCategory = $user->skills->groupBy(function($skill) {
-                // Check if category exists and has a name
+            // Use a more reliable grouping method
+            $skillsByCategory = [];
+            foreach ($user->skills as $skill) {
+                $categoryName = 'Other Skills';
                 if ($skill->category && !empty($skill->category->category_name)) {
-                    return $skill->category->category_name;
+                    $categoryName = $skill->category->category_name;
                 }
-                // Return a default category name for skills without category
-                return 'Other Skills';
-            });
+                
+                if (!isset($skillsByCategory[$categoryName])) {
+                    $skillsByCategory[$categoryName] = [];
+                }
+                $skillsByCategory[$categoryName][] = $skill;
+            }
+            
+            // Sort categories alphabetically (optional)
+            ksort($skillsByCategory);
             
             foreach ($skillsByCategory as $categoryName => $skills) {
                 // Display category name as heading (bold, size 11)
                 $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . ':', ['bold' => true, 'size' => 11]);
                 
                 // Display skills for this category (size 10, on new line)
-                $skillNames = $skills->pluck('skill_name')->toArray();
+                $skillNames = array_map(function($skill) {
+                    return $skill->skill_name;
+                }, $skills);
                 $section->addText(implode(', ', array_map(function($s) {
                     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
                 }, $skillNames)), ['size' => 10]);
