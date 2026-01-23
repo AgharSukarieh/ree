@@ -882,9 +882,19 @@ class DownloadController extends Controller
         $section->addText('TECHNICAL SKILLS', ['bold' => true, 'size' => 12]);
         
         if ($user->skills->count() > 0) {
-            $skillsByCategory = $user->skills->groupBy('category.category_name');
+            // Ensure category relationship is loaded
+            $user->load('skills.category');
+            
+            // Group skills by category name, handling null categories
+            $skillsByCategory = $user->skills->groupBy(function($skill) {
+                if ($skill->category && $skill->category->category_name) {
+                    return $skill->category->category_name;
+                }
+                return null; // Skills without category
+            });
+            
             foreach ($skillsByCategory as $categoryName => $skills) {
-                // Display category name as heading (bold, size 11)
+                // Display category name as heading (bold, size 11) - only if category exists
                 if ($categoryName) {
                     $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . ':', ['bold' => true, 'size' => 11]);
                 }
