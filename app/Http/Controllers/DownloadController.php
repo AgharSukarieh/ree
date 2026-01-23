@@ -284,19 +284,29 @@ class DownloadController extends Controller
         $html .= '<h2>TECHNICAL SKILLS</h2>';
         
         if ($user->skills->count() > 0) {
-            $skillsByCategory = $user->skills->groupBy('category.category_name');
+            // Ensure category relationship is loaded
+            $user->load('skills.category');
+            
+            // Group skills by category name, handling null categories
+            $skillsByCategory = $user->skills->groupBy(function($skill) {
+                if ($skill->category && $skill->category->category_name) {
+                    return $skill->category->category_name;
+                }
+                return null; // Skills without category
+            });
             
             foreach ($skillsByCategory as $categoryName => $skills) {
-                // Display category name as heading (even if null, show skills)
+                // Display category name as heading (bold, size 11pt) - only if category exists
                 if ($categoryName) {
                     $html .= '<div class="skill-category" style="margin-top: 8px; margin-bottom: 4px; font-weight: bold; font-size: 11pt;">';
                     $html .= htmlspecialchars($categoryName) . ':';
                     $html .= '</div>';
                 }
                 
-                // Display skills for this category
+                // Display skills for this category (size 10pt, with padding if has category)
                 $skillNames = $skills->pluck('skill_name')->toArray();
-                $html .= '<div class="skills-inline" style="margin-bottom: 8px; padding-left: 15px; font-size: 10pt;">';
+                $padding = $categoryName ? 'padding-left: 15px;' : '';
+                $html .= '<div class="skills-inline" style="margin-bottom: 8px; ' . $padding . ' font-size: 10pt;">';
                 $html .= implode(', ', array_map('htmlspecialchars', $skillNames));
                 $html .= '</div>';
             }
