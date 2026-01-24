@@ -17,6 +17,20 @@ Ahmed bin Khalid Al-Otaibi is a Senior Software Engineer with over ten years of 
 
 ## Education (المؤهلات الأكاديمية)
 
+| المؤهل | المؤسسة التعليمية | التخصص | السنة | الدرجة |
+|--------|-------------------|--------|-------|--------|
+| Bachelor's Degree | King Saud University | Computer Science | 2012 | Bachelor |
+| High School Diploma | Secondary School | Scientific Track | 2008 | High School |
+
+### تفاصيل إضافية:
+
+**Bachelor's Degree in Computer Science**
+- **المؤسسة:** King Saud University
+- **التخصص:** Computer Science
+- **سنة التخرج:** 2012
+- **الدرجة:** Bachelor of Science
+- **التركيز:** Software Engineering, Database Systems, Web Development
+
 ---
 
 ## Experience (الخبرة العملية)

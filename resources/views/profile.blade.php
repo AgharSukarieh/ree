@@ -117,6 +117,44 @@
                 </div>
                 @endif
 
+                <!-- Education Section -->
+                @if($user->education->count() > 0)
+                <div class="card section-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Education</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach($user->education as $edu)
+                        <div class="mb-4">
+                            <h6 class="fw-bold">{{ $edu->degree_name }}</h6>
+                            @if($edu->field_of_study)
+                                <p class="text-muted mb-1">{{ $edu->field_of_study }}</p>
+                            @endif
+                            @if($edu->university_name)
+                                <p class="text-muted mb-1">{{ $edu->university_name }}</p>
+                            @endif
+                            @if($edu->start_year || $edu->end_year)
+                                <p class="text-muted mb-2">
+                                    @if($edu->start_year)
+                                        {{ \Carbon\Carbon::parse($edu->start_year)->format('Y') }}
+                                    @endif
+                                    @if($edu->start_year && $edu->end_year) - @endif
+                                    @if($edu->end_year)
+                                        {{ \Carbon\Carbon::parse($edu->end_year)->format('Y') }}
+                                    @elseif($edu->start_year)
+                                        - Present
+                                    @endif
+                                </p>
+                            @endif
+                        </div>
+                        @if(!$loop->last)
+                            <hr>
+                        @endif
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
                 <!-- Skills Section -->
                 @php
                     // Only show IT skills if user's major is IT or related

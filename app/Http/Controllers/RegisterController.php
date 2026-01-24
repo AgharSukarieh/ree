@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Activity;
+use App\Models\Education;
 use App\Models\Experience;
 use App\Models\Language;
 use App\Models\SoftSkill;
@@ -169,6 +170,22 @@ class RegisterController extends Controller
                             'end_date' => $request->end_date[$index] ?? null,
                             'description' => !empty($request->description[$index]) ? $request->description[$index] : '',
                             'is_internship' => isset($request->is_internship[$index]) ? 1 : 0
+                        ]);
+                    }
+                }
+            }
+
+            // Handle Education
+            if ($request->has('degree_name')) {
+                foreach ($request->degree_name as $index => $degree_name) {
+                    if (!empty($degree_name)) {
+                        Education::create([
+                            'qr_id' => $qr_id,
+                            'degree_name' => $degree_name,
+                            'field_of_study' => $request->field_of_study[$index] ?? '',
+                            'university_name' => $request->university_name[$index] ?? '',
+                            'start_year' => !empty($request->start_year[$index]) ? $request->start_year[$index] : null,
+                            'end_year' => !empty($request->end_year[$index]) ? $request->end_year[$index] : null,
                         ]);
                     }
                 }

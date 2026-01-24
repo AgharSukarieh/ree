@@ -59,6 +59,11 @@ class User extends Model
         return $this->hasMany(Experience::class, 'qr_id', 'qr_id');
     }
 
+    public function education()
+    {
+        return $this->hasMany(Education::class, 'qr_id', 'qr_id');
+    }
+
     public function interests()
     {
         return $this->hasMany(Interest::class, 'qr_id', 'qr_id');

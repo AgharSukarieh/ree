@@ -20,6 +20,7 @@ class WebController extends Controller
             'businessSkills.category',
             'certifications',
             'coreCompetencies',
+            'education',
             'engineeringSkills.category',
             'experiences',
             'interests',
