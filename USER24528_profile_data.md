@@ -15,6 +15,10 @@ Ahmed bin Khalid Al-Otaibi is a Senior Software Engineer with over ten years of 
 
 ---
 
+## Education (المؤهلات الأكاديمية)
+
+---
+
 ## Experience (الخبرة العملية)
 
 ### Senior Software Engineer
