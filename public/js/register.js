@@ -6,8 +6,11 @@ let selectedMajor = '';
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Load skill categories from database first
-    loadSkillCategories().then(() => {
-        console.log('✅ Skill categories loaded, initializing form...');
+    Promise.all([
+        loadSkillCategories(),
+        loadMedicalSkillCategories()
+    ]).then(() => {
+        console.log('✅ All skill categories loaded, initializing form...');
     });
     
     initializeThemeToggle();
@@ -603,16 +606,19 @@ function removeSkill(button) {
     }
 }
 
-// Global variable to store skill categories
+// Global variables to store skill categories
 let skillCategories = [];
+let medicalSkillCategories = [];
 
-// Load skill categories from API
+// Load IT skill categories from API
 async function loadSkillCategories() {
     try {
         const response = await fetch('/api/skill-categories');
         if (response.ok) {
             skillCategories = await response.json();
-            console.log('✅ Skill categories loaded:', skillCategories.length);
+            console.log('✅ IT Skill categories loaded:', skillCategories.length);
+            // Update existing skill dropdowns on the page
+            updateExistingSkillDropdowns();
         } else {
             console.error('❌ Failed to load skill categories');
             // Fallback to default categories
@@ -628,7 +634,19 @@ async function loadSkillCategories() {
                 {id: 9, category_name: 'UI/UX Design'},
                 {id: 10, category_name: 'Project Management'},
                 {id: 11, category_name: 'Quality Assurance'},
-                {id: 12, category_name: 'Other'}
+                {id: 12, category_name: 'System Administration'},
+                {id: 13, category_name: 'Network Administration'},
+                {id: 14, category_name: 'Game Development'},
+                {id: 15, category_name: 'Blockchain & Cryptocurrency'},
+                {id: 16, category_name: 'IoT Development'},
+                {id: 17, category_name: 'AR/VR Development'},
+                {id: 18, category_name: 'Microservices Architecture'},
+                {id: 19, category_name: 'API Development'},
+                {id: 20, category_name: 'Version Control'},
+                {id: 21, category_name: 'Testing Frameworks'},
+                {id: 22, category_name: 'Performance Optimization'},
+                {id: 23, category_name: 'Code Review'},
+                {id: 24, category_name: 'Documentation'}
             ];
         }
     } catch (error) {
@@ -646,9 +664,112 @@ async function loadSkillCategories() {
             {id: 9, category_name: 'UI/UX Design'},
             {id: 10, category_name: 'Project Management'},
             {id: 11, category_name: 'Quality Assurance'},
-            {id: 12, category_name: 'Other'}
+            {id: 12, category_name: 'System Administration'},
+            {id: 13, category_name: 'Network Administration'},
+            {id: 14, category_name: 'Game Development'},
+            {id: 15, category_name: 'Blockchain & Cryptocurrency'},
+            {id: 16, category_name: 'IoT Development'},
+            {id: 17, category_name: 'AR/VR Development'},
+            {id: 18, category_name: 'Microservices Architecture'},
+            {id: 19, category_name: 'API Development'},
+            {id: 20, category_name: 'Version Control'},
+            {id: 21, category_name: 'Testing Frameworks'},
+            {id: 22, category_name: 'Performance Optimization'},
+            {id: 23, category_name: 'Code Review'},
+            {id: 24, category_name: 'Documentation'}
         ];
     }
+}
+
+// Load Medical skill categories from API
+async function loadMedicalSkillCategories() {
+    try {
+        const response = await fetch('/api/medical-skill-categories');
+        if (response.ok) {
+            medicalSkillCategories = await response.json();
+            console.log('✅ Medical Skill categories loaded:', medicalSkillCategories.length);
+            // Update existing medical skill dropdowns on the page
+            updateExistingMedicalSkillDropdowns();
+        } else {
+            console.error('❌ Failed to load medical skill categories');
+            // Fallback to default categories
+            medicalSkillCategories = [
+                {id: 1, category_name: 'Clinical Skills'},
+                {id: 2, category_name: 'Diagnostic Skills'},
+                {id: 3, category_name: 'Surgical Skills'},
+                {id: 4, category_name: 'Emergency Medicine'},
+                {id: 5, category_name: 'Pediatric Care'},
+                {id: 6, category_name: 'Geriatric Care'},
+                {id: 7, category_name: 'Mental Health'},
+                {id: 8, category_name: 'Radiology'},
+                {id: 9, category_name: 'Pathology'},
+                {id: 10, category_name: 'Pharmacology'},
+                {id: 11, category_name: 'Cardiology'},
+                {id: 12, category_name: 'Neurology'},
+                {id: 13, category_name: 'Oncology'},
+                {id: 14, category_name: 'Dermatology'},
+                {id: 15, category_name: 'Orthopedics'},
+                {id: 16, category_name: 'Ophthalmology'}
+            ];
+        }
+    } catch (error) {
+        console.error('❌ Error loading medical skill categories:', error);
+        // Fallback to default categories
+        medicalSkillCategories = [
+            {id: 1, category_name: 'Clinical Skills'},
+            {id: 2, category_name: 'Diagnostic Skills'},
+            {id: 3, category_name: 'Surgical Skills'},
+            {id: 4, category_name: 'Emergency Medicine'},
+            {id: 5, category_name: 'Pediatric Care'},
+            {id: 6, category_name: 'Geriatric Care'},
+            {id: 7, category_name: 'Mental Health'},
+            {id: 8, category_name: 'Radiology'},
+            {id: 9, category_name: 'Pathology'},
+            {id: 10, category_name: 'Pharmacology'},
+            {id: 11, category_name: 'Cardiology'},
+            {id: 12, category_name: 'Neurology'},
+            {id: 13, category_name: 'Oncology'},
+            {id: 14, category_name: 'Dermatology'},
+            {id: 15, category_name: 'Orthopedics'},
+            {id: 16, category_name: 'Ophthalmology'}
+        ];
+    }
+}
+
+// Update existing IT skill dropdowns on the page
+function updateExistingSkillDropdowns() {
+    const existingDropdowns = document.querySelectorAll('select[name="category_id[]"]');
+    existingDropdowns.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '';
+        skillCategories.forEach((category, index) => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.category_name;
+            if (category.id == currentValue || (index === 0 && !currentValue)) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    });
+}
+
+// Update existing Medical skill dropdowns on the page
+function updateExistingMedicalSkillDropdowns() {
+    const existingDropdowns = document.querySelectorAll('select[name="medical_category_id[]"]');
+    existingDropdowns.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '';
+        medicalSkillCategories.forEach((category, index) => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.category_name;
+            if (category.id == currentValue || (index === 0 && !currentValue)) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    });
 }
 
 function createSkillItem() {
@@ -842,6 +963,36 @@ function removeMedicalSkill(button) {
 function createMedicalSkillItem() {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
+    
+    // Build options from loaded medical categories
+    let optionsHtml = '';
+    if (medicalSkillCategories.length > 0) {
+        medicalSkillCategories.forEach((category, index) => {
+            const selected = index === 0 ? 'selected' : '';
+            optionsHtml += `<option value="${category.id}" ${selected}>${category.category_name}</option>`;
+        });
+    } else {
+        // Fallback if categories not loaded yet
+        optionsHtml = `
+            <option value="1" selected>Clinical Skills</option>
+            <option value="2">Diagnostic Skills</option>
+            <option value="3">Surgical Skills</option>
+            <option value="4">Emergency Medicine</option>
+            <option value="5">Pediatric Care</option>
+            <option value="6">Geriatric Care</option>
+            <option value="7">Mental Health</option>
+            <option value="8">Radiology</option>
+            <option value="9">Pathology</option>
+            <option value="10">Pharmacology</option>
+            <option value="11">Cardiology</option>
+            <option value="12">Neurology</option>
+            <option value="13">Oncology</option>
+            <option value="14">Dermatology</option>
+            <option value="15">Orthopedics</option>
+            <option value="16">Ophthalmology</option>
+        `;
+    }
+    
     div.innerHTML = `
         <div class="form-grid">
             <div class="form-group">
@@ -855,18 +1006,7 @@ function createMedicalSkillItem() {
                     <span data-ar="فئة المهارة الطبية" data-en="Medical Skill Category">فئة المهارة الطبية</span>
                 </label>
                 <select name="medical_category_id[]">
-                    <option value="1" data-ar="جراحة" data-en="Surgery">Surgery</option>
-                    <option value="2" data-ar="طب داخلي" data-en="Internal Medicine">Internal Medicine</option>
-                    <option value="3" data-ar="أطفال" data-en="Pediatrics">Pediatrics</option>
-                    <option value="4" data-ar="نساء وتوليد" data-en="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
-                    <option value="5" data-ar="أعصاب" data-en="Neurology">Neurology</option>
-                    <option value="6" data-ar="قلب" data-en="Cardiology">Cardiology</option>
-                    <option value="7" data-ar="عظام" data-en="Orthopedics">Orthopedics</option>
-                    <option value="8" data-ar="عيون" data-en="Ophthalmology">Ophthalmology</option>
-                    <option value="9" data-ar="أنف وأذن وحنجرة" data-en="ENT">ENT</option>
-                    <option value="10" data-ar="جلدية" data-en="Dermatology">Dermatology</option>
-                    <option value="11" data-ar="نفسية" data-en="Psychiatry">Psychiatry</option>
-                    <option value="12" data-ar="أخرى" data-en="Other">Other</option>
+                    ${optionsHtml}
                 </select>
             </div>
         </div>
