@@ -74,6 +74,11 @@ class User extends Model
         return $this->hasMany(MedicalSkill::class, 'qr_id', 'qr_id');
     }
 
+    public function businessSkills()
+    {
+        return $this->hasMany(BusinessSkill::class, 'qr_id', 'qr_id');
+    }
+
     public function memberships()
     {
         return $this->hasMany(Membership::class, 'qr_id', 'qr_id');

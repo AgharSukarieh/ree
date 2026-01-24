@@ -1,0 +1,32 @@
+=== أمر Tinker لإضافة فئات Business Skills ===
+
+انسخ والصق هذا الأمر في Tinker على السيرفر:
+
+php artisan tinker --execute="
+echo '📝 إضافة فئات Business Skills...' . PHP_EOL;
+\$businessCategories = [
+    ['id' => 1, 'category_name' => 'Legal Research'],
+    ['id' => 2, 'category_name' => 'Case Analysis'],
+    ['id' => 3, 'category_name' => 'Accounting Software'],
+    ['id' => 4, 'category_name' => 'Financial Reporting'],
+    ['id' => 5, 'category_name' => 'Business Strategy'],
+    ['id' => 6, 'category_name' => 'Market Analysis'],
+    ['id' => 7, 'category_name' => 'Human Resource Management'],
+    ['id' => 8, 'category_name' => 'Teaching Skills'],
+    ['id' => 9, 'category_name' => 'Educational Planning'],
+    ['id' => 10, 'category_name' => 'Negotiation & Conflict Resolution'],
+    ['id' => 11, 'category_name' => 'Leadership & Management'],
+    ['id' => 12, 'category_name' => 'Project Coordination'],
+    ['id' => 13, 'category_name' => 'Public Speaking'],
+    ['id' => 14, 'category_name' => 'Time Management'],
+    ['id' => 15, 'category_name' => 'Critical Thinking']
+];
+foreach(\$businessCategories as \$cat) {
+    DB::table('business_skill_categories')->updateOrInsert(
+        ['id' => \$cat['id']],
+        ['category_name' => \$cat['category_name'], 'created_at' => now(), 'updated_at' => now()]
+    );
+}
+echo '✅ تم إضافة/تحديث ' . count(\$businessCategories) . ' فئة Business' . PHP_EOL;
+"
+

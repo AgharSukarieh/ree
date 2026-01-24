@@ -44,6 +44,11 @@ Route::get('/api/medical-skill-categories', function () {
     return response()->json($categories);
 })->name('api.medical-skill-categories');
 
+Route::get('/api/business-skill-categories', function () {
+    $categories = \DB::table('business_skill_categories')->orderBy('id')->get(['id', 'category_name']);
+    return response()->json($categories);
+})->name('api.business-skill-categories');
+
 // Test registration page
 Route::get('/register-test', function () {
     return view('register_test');
