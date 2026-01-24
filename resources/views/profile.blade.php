@@ -119,6 +119,9 @@
 
                 <!-- Skills Section -->
                 @php
+                    // Only show IT skills if user's major is IT or related
+                    $isITMajor = in_array(strtoupper($user->major ?? ''), ['IT', 'COMPUTER SCIENCE', 'CS', 'COMPUTER', 'تكنولوجيا', 'حاسوب', 'IT/CS', 'COMPUTER ENGINEERING', 'SOFTWARE ENGINEERING', 'SE']);
+                    
                     // Force reload skills with categories to ensure they're loaded
                     // Refresh the user model to get latest data from database
                     $user->refresh();
@@ -132,7 +135,7 @@
                     $skillsCount = $user->skills->count();
                 @endphp
                 
-                @if($skillsCount > 0)
+                @if($isITMajor && $skillsCount > 0)
                 <div class="card section-card">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fas fa-code me-2"></i>Technical Skills</h5>
@@ -187,20 +190,115 @@
                 @endif
 
                 <!-- Medical Skills Section -->
-                @if($user->medicalSkills->count() > 0)
+                @php
+                    // Only show medical skills if user's major is Medical or related
+                    $isMedicalMajor = in_array(strtoupper($user->major ?? ''), ['MEDICAL', 'MEDICINE', 'طب', 'طبي', 'MED']);
+                @endphp
+                @if($isMedicalMajor && $user->medicalSkills->count() > 0)
                 <div class="card section-card">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fas fa-user-md me-2"></i>Medical Skills</h5>
                     </div>
                     <div class="card-body">
-                        @foreach($user->medicalSkills->groupBy('category.category_name') as $categoryName => $skills)
-                        <div class="mb-3">
-                            <h6 class="fw-bold text-success">{{ $categoryName }}</h6>
-                            @foreach($skills as $skill)
-                                <span class="skill-tag">{{ $skill->skill_name }}</span>
+                        @php
+                            // Group skills by category name
+                            $medicalSkillsByCategory = [];
+                            foreach ($user->medicalSkills as $skill) {
+                                $categoryName = 'Other Skills';
+                                
+                                if ($skill->relationLoaded('category') && $skill->category && !empty($skill->category->category_name)) {
+                                    $categoryName = $skill->category->category_name;
+                                } elseif ($skill->category_id) {
+                                    $skill->load('category');
+                                    if ($skill->category && !empty($skill->category->category_name)) {
+                                        $categoryName = $skill->category->category_name;
+                                    }
+                                }
+                                
+                                if (!isset($medicalSkillsByCategory[$categoryName])) {
+                                    $medicalSkillsByCategory[$categoryName] = [];
+                                }
+                                $medicalSkillsByCategory[$categoryName][] = $skill;
+                            }
+                            ksort($medicalSkillsByCategory);
+                        @endphp
+                        @if(count($medicalSkillsByCategory) > 0)
+                            @foreach($medicalSkillsByCategory as $categoryName => $skills)
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-tag me-1"></i>{{ $categoryName }}
+                                </h6>
+                                <div>
+                                    @foreach($skills as $skill)
+                                        <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
                             @endforeach
-                        </div>
-                        @endforeach
+                        @else
+                            <div class="mb-3">
+                                @foreach($user->medicalSkills as $skill)
+                                    <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
+                <!-- Business Skills Section -->
+                @php
+                    // Only show business skills if user's major is Business or related
+                    $isBusinessMajor = in_array(strtoupper($user->major ?? ''), ['BUSINESS', 'BUSINESS ADMINISTRATION', 'إدارة أعمال', 'إدارة', 'BUSINESS MANAGEMENT', 'MBA', 'COMMERCE', 'تجارة', 'ACCOUNTING', 'محاسبة', 'FINANCE', 'مالية', 'MARKETING', 'تسويق', 'HR', 'HUMAN RESOURCES', 'موارد بشرية', 'LAW', 'قانون', 'EDUCATION', 'تعليم']);
+                @endphp
+                @if($isBusinessMajor && $user->businessSkills->count() > 0)
+                <div class="card section-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Business Skills</h5>
+                    </div>
+                    <div class="card-body">
+                        @php
+                            // Group skills by category name
+                            $businessSkillsByCategory = [];
+                            foreach ($user->businessSkills as $skill) {
+                                $categoryName = 'Other Skills';
+                                
+                                if ($skill->relationLoaded('category') && $skill->category && !empty($skill->category->category_name)) {
+                                    $categoryName = $skill->category->category_name;
+                                } elseif ($skill->category_id) {
+                                    $skill->load('category');
+                                    if ($skill->category && !empty($skill->category->category_name)) {
+                                        $categoryName = $skill->category->category_name;
+                                    }
+                                }
+                                
+                                if (!isset($businessSkillsByCategory[$categoryName])) {
+                                    $businessSkillsByCategory[$categoryName] = [];
+                                }
+                                $businessSkillsByCategory[$categoryName][] = $skill;
+                            }
+                            ksort($businessSkillsByCategory);
+                        @endphp
+                        @if(count($businessSkillsByCategory) > 0)
+                            @foreach($businessSkillsByCategory as $categoryName => $skills)
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-info mb-2">
+                                    <i class="fas fa-tag me-1"></i>{{ $categoryName }}
+                                </h6>
+                                <div>
+                                    @foreach($skills as $skill)
+                                        <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="mb-3">
+                                @foreach($user->businessSkills as $skill)
+                                    <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
                 @endif

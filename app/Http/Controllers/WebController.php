@@ -17,6 +17,7 @@ class WebController extends Controller
         $user = User::with([
             'activities',
             'analyticalSkills',
+            'businessSkills.category',
             'certifications',
             'coreCompetencies',
             'experiences',
@@ -44,6 +45,17 @@ class WebController extends Controller
         foreach ($user->skills as $skill) {
             if (!$skill->relationLoaded('category') && $skill->category_id) {
                 $skill->load('category');
+            }
+        }
+
+        // Ensure business skills categories are loaded
+        if (!$user->relationLoaded('businessSkills')) {
+            $user->load('businessSkills.category');
+        } else {
+            foreach ($user->businessSkills as $businessSkill) {
+                if (!$businessSkill->relationLoaded('category') && $businessSkill->category_id) {
+                    $businessSkill->load('category');
+                }
             }
         }
 
