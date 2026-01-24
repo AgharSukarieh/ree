@@ -120,8 +120,15 @@
                 <!-- Skills Section -->
                 @php
                     // Force reload skills with categories to ensure they're loaded
-                    // Use fresh() to ensure we get the latest data from database
+                    // Refresh the user model to get latest data from database
+                    $user->refresh();
                     $user->loadMissing('skills.category');
+                    
+                    // Double check: if skills are still not loaded, try direct query
+                    if (!$user->relationLoaded('skills') || $user->skills->isEmpty()) {
+                        $user->setRelation('skills', \App\Models\Skill::where('qr_id', $user->qr_id)->with('category')->get());
+                    }
+                    
                     $skillsCount = $user->skills->count();
                 @endphp
                 

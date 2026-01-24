@@ -35,6 +35,18 @@ class WebController extends Controller
             abort(404, 'Profile not found or inactive');
         }
 
+        // Ensure skills are loaded even if eager loading failed
+        if (!$user->relationLoaded('skills')) {
+            $user->load('skills.category');
+        }
+        
+        // Double check: ensure categories are loaded for each skill
+        foreach ($user->skills as $skill) {
+            if (!$skill->relationLoaded('category') && $skill->category_id) {
+                $skill->load('category');
+            }
+        }
+
         return view('profile', compact('user'));
     }
 
