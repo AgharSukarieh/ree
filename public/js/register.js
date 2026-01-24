@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load skill categories from database first
     Promise.all([
         loadSkillCategories(),
-        loadMedicalSkillCategories()
+        loadMedicalSkillCategories(),
+        loadBusinessSkillCategories()
     ]).then(() => {
         console.log('✅ All skill categories loaded, initializing form...');
     });
@@ -609,6 +610,7 @@ function removeSkill(button) {
 // Global variables to store skill categories
 let skillCategories = [];
 let medicalSkillCategories = [];
+let businessSkillCategories = [];
 
 // Load IT skill categories from API
 async function loadSkillCategories() {
@@ -761,6 +763,77 @@ function updateExistingMedicalSkillDropdowns() {
         const currentValue = select.value;
         select.innerHTML = '';
         medicalSkillCategories.forEach((category, index) => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.category_name;
+            if (category.id == currentValue || (index === 0 && !currentValue)) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    });
+}
+
+// Load Business skill categories from API
+async function loadBusinessSkillCategories() {
+    try {
+        const response = await fetch('/api/business-skill-categories');
+        if (response.ok) {
+            businessSkillCategories = await response.json();
+            console.log('✅ Business Skill categories loaded:', businessSkillCategories.length);
+            // Update existing business skill dropdowns on the page
+            updateExistingBusinessSkillDropdowns();
+        } else {
+            console.error('❌ Failed to load business skill categories');
+            // Fallback to default categories
+            businessSkillCategories = [
+                {id: 1, category_name: 'Legal Research'},
+                {id: 2, category_name: 'Case Analysis'},
+                {id: 3, category_name: 'Accounting Software'},
+                {id: 4, category_name: 'Financial Reporting'},
+                {id: 5, category_name: 'Business Strategy'},
+                {id: 6, category_name: 'Market Analysis'},
+                {id: 7, category_name: 'Human Resource Management'},
+                {id: 8, category_name: 'Teaching Skills'},
+                {id: 9, category_name: 'Educational Planning'},
+                {id: 10, category_name: 'Negotiation & Conflict Resolution'},
+                {id: 11, category_name: 'Leadership & Management'},
+                {id: 12, category_name: 'Project Coordination'},
+                {id: 13, category_name: 'Public Speaking'},
+                {id: 14, category_name: 'Time Management'},
+                {id: 15, category_name: 'Critical Thinking'}
+            ];
+        }
+    } catch (error) {
+        console.error('❌ Error loading business skill categories:', error);
+        // Fallback to default categories
+        businessSkillCategories = [
+            {id: 1, category_name: 'Legal Research'},
+            {id: 2, category_name: 'Case Analysis'},
+            {id: 3, category_name: 'Accounting Software'},
+            {id: 4, category_name: 'Financial Reporting'},
+            {id: 5, category_name: 'Business Strategy'},
+            {id: 6, category_name: 'Market Analysis'},
+            {id: 7, category_name: 'Human Resource Management'},
+            {id: 8, category_name: 'Teaching Skills'},
+            {id: 9, category_name: 'Educational Planning'},
+            {id: 10, category_name: 'Negotiation & Conflict Resolution'},
+            {id: 11, category_name: 'Leadership & Management'},
+            {id: 12, category_name: 'Project Coordination'},
+            {id: 13, category_name: 'Public Speaking'},
+            {id: 14, category_name: 'Time Management'},
+            {id: 15, category_name: 'Critical Thinking'}
+        ];
+    }
+}
+
+// Update existing Business skill dropdowns on the page
+function updateExistingBusinessSkillDropdowns() {
+    const existingDropdowns = document.querySelectorAll('select[name="business_category_id[]"]');
+    existingDropdowns.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '';
+        businessSkillCategories.forEach((category, index) => {
             const option = document.createElement('option');
             option.value = category.id;
             option.textContent = category.category_name;
@@ -1089,6 +1162,35 @@ function removeBusinessSkill(button) {
 function createBusinessSkillItem() {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
+    
+    // Build options from loaded business categories
+    let optionsHtml = '';
+    if (businessSkillCategories.length > 0) {
+        businessSkillCategories.forEach((category, index) => {
+            const selected = index === 0 ? 'selected' : '';
+            optionsHtml += `<option value="${category.id}" ${selected}>${category.category_name}</option>`;
+        });
+    } else {
+        // Fallback if categories not loaded yet
+        optionsHtml = `
+            <option value="1" selected>Legal Research</option>
+            <option value="2">Case Analysis</option>
+            <option value="3">Accounting Software</option>
+            <option value="4">Financial Reporting</option>
+            <option value="5">Business Strategy</option>
+            <option value="6">Market Analysis</option>
+            <option value="7">Human Resource Management</option>
+            <option value="8">Teaching Skills</option>
+            <option value="9">Educational Planning</option>
+            <option value="10">Negotiation & Conflict Resolution</option>
+            <option value="11">Leadership & Management</option>
+            <option value="12">Project Coordination</option>
+            <option value="13">Public Speaking</option>
+            <option value="14">Time Management</option>
+            <option value="15">Critical Thinking</option>
+        `;
+    }
+    
     div.innerHTML = `
         <div class="form-grid">
             <div class="form-group">
@@ -1102,22 +1204,7 @@ function createBusinessSkillItem() {
                     <span data-ar="فئة المهارة" data-en="Skill Category">فئة المهارة</span>
                 </label>
                 <select name="business_category_id[]">
-                    <option value="25" data-ar="بحث قانوني" data-en="Legal Research">Legal Research</option>
-                    <option value="26" data-ar="تحليل حالة" data-en="Case Analysis">Case Analysis</option>
-                    <option value="27" data-ar="برامج محاسبة" data-en="Accounting Software">Accounting Software</option>
-                    <option value="28" data-ar="تقارير مالية" data-en="Financial Reporting">Financial Reporting</option>
-                    <option value="29" data-ar="استراتيجية عمل" data-en="Business Strategy">Business Strategy</option>
-                    <option value="30" data-ar="تحليل سوق" data-en="Market Analysis">Market Analysis</option>
-                    <option value="31" data-ar="إدارة موارد بشرية" data-en="Human Resource Management">Human Resource Management</option>
-                    <option value="32" data-ar="مهارات تدريس" data-en="Teaching Skills">Teaching Skills</option>
-                    <option value="33" data-ar="تخطيط تعليمي" data-en="Educational Planning">Educational Planning</option>
-                    <option value="34" data-ar="تفاوض وحل نزاعات" data-en="Negotiation & Conflict Resolution">Negotiation & Conflict Resolution</option>
-                    <option value="35" data-ar="قيادة وإدارة" data-en="Leadership & Management">Leadership & Management</option>
-                    <option value="36" data-ar="تنسيق مشاريع" data-en="Project Coordination">Project Coordination</option>
-                    <option value="37" data-ar="تحدث عام" data-en="Public Speaking">Public Speaking</option>
-                    <option value="38" data-ar="إدارة وقت" data-en="Time Management">Time Management</option>
-                    <option value="39" data-ar="تفكير نقدي" data-en="Critical Thinking">Critical Thinking</option>
-                    <option value="24" data-ar="أخرى" data-en="Other">Other</option>
+                    ${optionsHtml}
                 </select>
             </div>
         </div>
