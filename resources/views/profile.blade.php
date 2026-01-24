@@ -128,7 +128,7 @@
                             // Ensure category relationship is loaded
                             $user->load('skills.category');
                             
-                            // Group skills by category name using a more reliable method
+                            // Group skills by category name
                             $skillsByCategory = [];
                             foreach ($user->skills as $skill) {
                                 $categoryName = 'Other Skills';
@@ -166,23 +166,12 @@
                         <h5 class="mb-0"><i class="fas fa-user-md me-2"></i>Medical Skills</h5>
                     </div>
                     <div class="card-body">
-                        @php
-                            $medicalSkillsByCategory = $user->medicalSkills->groupBy(function($skill) {
-                                return $skill->category && !empty($skill->category->category_name) 
-                                    ? $skill->category->category_name 
-                                    : 'Other Skills';
-                            });
-                        @endphp
-                        @foreach($medicalSkillsByCategory as $categoryName => $skills)
+                        @foreach($user->medicalSkills->groupBy('category.category_name') as $categoryName => $skills)
                         <div class="mb-3">
-                            <h6 class="fw-bold text-success mb-2">
-                                <i class="fas fa-tag me-1"></i>{{ $categoryName }}
-                            </h6>
-                            <div>
-                                @foreach($skills as $skill)
-                                    <span class="skill-tag">{{ $skill->skill_name }}</span>
-                                @endforeach
-                            </div>
+                            <h6 class="fw-bold text-success">{{ $categoryName }}</h6>
+                            @foreach($skills as $skill)
+                                <span class="skill-tag">{{ $skill->skill_name }}</span>
+                            @endforeach
                         </div>
                         @endforeach
                     </div>

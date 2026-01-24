@@ -280,56 +280,27 @@ class DownloadController extends Controller
 
         // 2. Technical Skills (ATS filters from here - MUST be before Experience)
         // Technical Skills (grouped by category for ATS keyword scanning)
-        $html .= '<div class="section">';
-        $html .= '<h2>TECHNICAL SKILLS</h2>';
-        
         if ($user->skills->count() > 0) {
-            // Ensure category relationship is loaded
-            $user->load('skills.category');
+            $html .= '<div class="section">';
+            $html .= '<h2>TECHNICAL SKILLS</h2>';
             
-            // Group skills by category name, handling null categories
-            // Use a more reliable grouping method
-            $skillsByCategory = [];
-            foreach ($user->skills as $skill) {
-                $categoryName = 'Other Skills';
-                if ($skill->category && !empty($skill->category->category_name)) {
-                    $categoryName = $skill->category->category_name;
-                }
-                
-                if (!isset($skillsByCategory[$categoryName])) {
-                    $skillsByCategory[$categoryName] = [];
-                }
-                $skillsByCategory[$categoryName][] = $skill;
-            }
-            
-            // Sort categories alphabetically (optional)
-            ksort($skillsByCategory);
+            $skillsByCategory = $user->skills->groupBy('category.category_name');
+            $skillLines = [];
             
             foreach ($skillsByCategory as $categoryName => $skills) {
-                // Display category name as heading (bold, size 11pt)
-                $html .= '<div class="skill-category" style="margin-top: 8px; margin-bottom: 4px; font-weight: bold; font-size: 11pt;">';
-                $html .= htmlspecialchars($categoryName) . ':';
-                $html .= '</div>';
-                
-                // Display skills for this category (size 10pt, with padding)
-                $skillNames = array_map(function($skill) {
-                    return $skill->skill_name;
-                }, $skills);
-                $html .= '<div class="skills-inline" style="margin-bottom: 8px; padding-left: 15px; font-size: 10pt;">';
-                $html .= implode(', ', array_map('htmlspecialchars', $skillNames));
-                $html .= '</div>';
+                if ($categoryName) {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $skillLines[] = '<strong>' . htmlspecialchars($categoryName) . ':</strong> ' . 
+                                   implode(', ', array_map('htmlspecialchars', $skillNames));
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $skillLines[] = implode(', ', array_map('htmlspecialchars', $skillNames));
+                }
             }
-        } else {
-            // Extract skills from job_title and projects if no skills in database
-            $extractedSkills = $this->extractSkillsFromContent($user);
-            if (!empty($extractedSkills)) {
-                $html .= '<div class="skills-inline">' . htmlspecialchars(implode(', ', $extractedSkills)) . '</div>';
-            } else {
-                $html .= '<div class="skills-inline">Add your programming and technical skills here</div>';
-            }
+            
+            $html .= '<div class="skills-inline">' . implode('<br>', $skillLines) . '</div>';
+            $html .= '</div>';
         }
-        
-        $html .= '</div>';
 
         // Medical Skills (if applicable)
         if ($user->medicalSkills->count() > 0) {
@@ -678,56 +649,6 @@ class DownloadController extends Controller
     }
 
     /**
-     * Extract skills from job title and projects
-     */
-    private function extractSkillsFromContent($user)
-    {
-        $skills = [];
-        
-        // Extract from job_title (e.g., "Front-End Web Engineer | React| Node.js")
-        if ($user->job_title) {
-            $parts = preg_split('/[|,]/', $user->job_title);
-            foreach ($parts as $part) {
-                $part = trim($part);
-                // Common tech keywords
-                $techKeywords = [
-                    'React', 'Vue', 'Angular', 'Node.js', 'Next.js', 'TypeScript', 'JavaScript',
-                    'Python', 'Java', 'PHP', 'Laravel', 'Django', 'Express', 'MongoDB', 'MySQL',
-                    'PostgreSQL', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'Git',
-                    'HTML', 'CSS', 'SASS', 'Tailwind', 'Bootstrap', 'jQuery', 'GraphQL', 'REST',
-                    'Vue.js', 'React.js', 'Node', 'Express.js', 'MongoDB', 'PostgreSQL', 'MySQL',
-                    'Firebase', 'Supabase', 'Prisma', 'Sequelize', 'TypeORM', 'Jest', 'Cypress',
-                    'Webpack', 'Vite', 'NPM', 'Yarn', 'Docker', 'Kubernetes', 'CI/CD', 'GitHub',
-                    'GitLab', 'Bitbucket', 'Jira', 'Confluence', 'Figma', 'Adobe XD', 'Sketch'
-                ];
-                
-                foreach ($techKeywords as $keyword) {
-                    if (stripos($part, $keyword) !== false) {
-                        if (!in_array($keyword, $skills)) {
-                            $skills[] = $keyword;
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Extract from projects technologies_used
-        foreach ($user->projects as $project) {
-            if ($project->technologies_used) {
-                $techs = preg_split('/[,|;]/', $project->technologies_used);
-                foreach ($techs as $tech) {
-                    $tech = trim($tech);
-                    if (!empty($tech) && !in_array($tech, $skills)) {
-                        $skills[] = $tech;
-                    }
-                }
-            }
-        }
-        
-        return array_unique($skills);
-    }
-
-    /**
      * Generate and download Word CV (ATS-optimized)
      */
     public function generateWord($qr_id)
@@ -797,87 +718,25 @@ class DownloadController extends Controller
             );
         }
 
-        // Contact information (with clickable links)
-        $contactRun = $section->addTextRun(['alignment' => Jc::CENTER]);
-        
-        if ($user->city) {
-            $contactRun->addText(htmlspecialchars($user->city) . ' | ', ['size' => 10]);
-        }
-        if ($user->phone) {
-            $contactRun->addText(htmlspecialchars($user->phone) . ' | ', ['size' => 10]);
-        }
-        if ($user->email) {
-            $contactRun->addLink(
-                'mailto:' . htmlspecialchars($user->email, ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($user->email, ENT_QUOTES, 'UTF-8'),
-                ['size' => 10, 'color' => '666666', 'underline' => 'single']
-            );
-            $contactRun->addText(' | ', ['size' => 10]);
-        }
-        
-        // Profile page link
-        $profileUrl = url('/profile/' . $user->qr_id);
-        $contactRun->addLink(
-            htmlspecialchars($profileUrl, ENT_QUOTES, 'UTF-8'),
-            'View Profile',
-            ['size' => 10, 'color' => '666666', 'underline' => 'single']
-        );
-        
+        // Contact
+        $contact = [];
+        if ($user->city) $contact[] = htmlspecialchars($user->city);
+        if ($user->phone) $contact[] = htmlspecialchars($user->phone);
+        if ($user->email) $contact[] = htmlspecialchars($user->email);
         if ($user->profile_website) {
-            $link = $user->profile_website;
-            if (!preg_match('/^https?:\/\//', $link)) {
-                $link = 'https://' . $link;
-            }
-            $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
-            $contactRun->addText(' | ', ['size' => 10]);
-            $contactRun->addLink(
-                htmlspecialchars($link, ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'),
-                ['size' => 10, 'color' => '666666', 'underline' => 'single']
+            $link = str_replace(['http://', 'https://'], '', $user->profile_website);
+            $contact[] = htmlspecialchars($link);
+        }
+
+        if (!empty($contact)) {
+            $section->addText(
+                implode(' | ', $contact),
+                ['size' => 10],
+                ['alignment' => Jc::CENTER]
             );
         }
 
         $section->addTextBreak(1);
-        
-        // Social profiles (clickable links)
-        if ($user->linkedin_profile || $user->github_profile) {
-            $socialRun = $section->addTextRun(['alignment' => Jc::CENTER]);
-            $socialParts = [];
-            
-            if ($user->linkedin_profile) {
-                $link = $user->linkedin_profile;
-                if (!preg_match('/^https?:\/\//', $link)) {
-                    $link = 'https://' . $link;
-                }
-                $linkText = str_replace(['http://', 'https://', 'www.linkedin.com/in/'], '', $user->linkedin_profile);
-                $socialRun->addText('LinkedIn: ', ['size' => 10]);
-                $socialRun->addLink(
-                    htmlspecialchars($link, ENT_QUOTES, 'UTF-8'),
-                    htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'),
-                    ['size' => 10, 'color' => '666666', 'underline' => 'single']
-                );
-            }
-            
-            if ($user->linkedin_profile && $user->github_profile) {
-                $socialRun->addText(' | ', ['size' => 10]);
-            }
-            
-            if ($user->github_profile) {
-                $link = $user->github_profile;
-                if (!preg_match('/^https?:\/\//', $link)) {
-                    $link = 'https://' . $link;
-                }
-                $linkText = str_replace(['http://', 'https://', 'www.github.com/'], '', $user->github_profile);
-                $socialRun->addText('GitHub: ', ['size' => 10]);
-                $socialRun->addLink(
-                    htmlspecialchars($link, ENT_QUOTES, 'UTF-8'),
-                    htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'),
-                    ['size' => 10, 'color' => '666666', 'underline' => 'single']
-                );
-            }
-            
-            $section->addTextBreak(1);
-        }
 
         // 1. Professional Summary
         if ($summary) {
@@ -888,64 +747,10 @@ class DownloadController extends Controller
 
         // 2. Technical Skills (ATS filters from here - MUST be before Experience)
         // Technical Skills
-        $section->addText('TECHNICAL SKILLS', ['bold' => true, 'size' => 12]);
-        
         if ($user->skills->count() > 0) {
-            // Ensure category relationship is loaded
-            $user->load('skills.category');
+            $section->addText('TECHNICAL SKILLS', ['bold' => true, 'size' => 12]);
             
-            // Group skills by category name, handling null categories
-            // Use a more reliable grouping method
-            $skillsByCategory = [];
-            foreach ($user->skills as $skill) {
-                $categoryName = 'Other Skills';
-                if ($skill->category && !empty($skill->category->category_name)) {
-                    $categoryName = $skill->category->category_name;
-                }
-                
-                if (!isset($skillsByCategory[$categoryName])) {
-                    $skillsByCategory[$categoryName] = [];
-                }
-                $skillsByCategory[$categoryName][] = $skill;
-            }
-            
-            // Sort categories alphabetically (optional)
-            ksort($skillsByCategory);
-            
-            foreach ($skillsByCategory as $categoryName => $skills) {
-                // Display category name as heading (bold, size 11)
-                $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . ':', ['bold' => true, 'size' => 11]);
-                
-                // Display skills for this category (size 10, on new line)
-                $skillNames = array_map(function($skill) {
-                    return $skill->skill_name;
-                }, $skills);
-                $section->addText(implode(', ', array_map(function($s) {
-                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-                }, $skillNames)), ['size' => 10]);
-                
-                // Add break after each category
-                $section->addTextBreak(1);
-            }
-        } else {
-            // Extract skills from job_title and projects if no skills in database
-            $extractedSkills = $this->extractSkillsFromContent($user);
-            if (!empty($extractedSkills)) {
-                $section->addText(implode(', ', array_map(function($s) {
-                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-                }, $extractedSkills)));
-            } else {
-                $section->addText('Add your programming and technical skills here');
-            }
-        }
-        
-        $section->addTextBreak(1);
-
-        // Medical Skills (if applicable)
-        if ($user->medicalSkills->count() > 0) {
-            $section->addText('MEDICAL SKILLS', ['bold' => true, 'size' => 12]);
-            
-            $skillsByCategory = $user->medicalSkills->groupBy('category.category_name');
+            $skillsByCategory = $user->skills->groupBy('category.category_name');
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName) {
                     $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
@@ -1011,20 +816,6 @@ class DownloadController extends Controller
                 
                 if ($proj->technologies_used) {
                     $section->addText('Technologies: ' . htmlspecialchars($proj->technologies_used, ENT_QUOTES, 'UTF-8'), ['size' => 10]);
-                }
-                
-                if ($proj->link) {
-                    $link = $proj->link;
-                    if (!preg_match('/^https?:\/\//', $link)) {
-                        $link = 'https://' . $link;
-                    }
-                    $linkText = str_replace(['http://', 'https://'], '', $proj->link);
-                    $linkRun = $section->addTextRun();
-                    $linkRun->addLink(
-                        htmlspecialchars($link, ENT_QUOTES, 'UTF-8'),
-                        htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'),
-                        ['size' => 10, 'color' => '666666', 'underline' => 'single']
-                    );
                 }
                 
                 $section->addTextBreak(1);
@@ -1146,24 +937,8 @@ class DownloadController extends Controller
                     }
                 }
                 
-                if ($act->activity_link) {
-                    $link = $act->activity_link;
-                    if (!preg_match('/^https?:\/\//', $link)) {
-                        $link = 'https://' . $link;
-                    }
-                    $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
-                    $linkRun = $section->addTextRun();
-                    $linkRun->addLink(
-                        htmlspecialchars($link, ENT_QUOTES, 'UTF-8'),
-                        htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'),
-                        ['size' => 10, 'color' => '666666', 'underline' => 'single']
-                    );
-                }
-                
                 $section->addTextBreak(1);
             }
-            
-            $section->addTextBreak(1);
         }
 
         // Professional Memberships (if applicable)
@@ -1205,39 +980,12 @@ class DownloadController extends Controller
                 }
                 
                 if ($act->activity_link) {
-                    $link = $act->activity_link;
-                    if (!preg_match('/^https?:\/\//', $link)) {
-                        $link = 'https://' . $link;
-                    }
                     $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
-                    $linkRun = $section->addTextRun();
-                    $linkRun->addLink(
-                        htmlspecialchars($link, ENT_QUOTES, 'UTF-8'),
-                        htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'),
-                        ['size' => 10, 'color' => '666666', 'underline' => 'single']
-                    );
+                    $section->addText(htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'), ['size' => 10]);
                 }
                 
                 $section->addTextBreak(1);
             }
-        }
-
-        // Research (Medical major only)
-        if ($user->research->count() > 0 && $user->major === 'Medicine') {
-            $section->addText('RESEARCH & PUBLICATIONS', ['bold' => true, 'size' => 12]);
-            
-            foreach ($user->research as $research) {
-                $section->addText(htmlspecialchars($research->title, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
-                if ($research->publication_year) {
-                    $section->addText(htmlspecialchars($research->publication_year, ENT_QUOTES, 'UTF-8'), ['italic' => true, 'size' => 10]);
-                }
-                if ($research->description) {
-                    $section->addText(htmlspecialchars($research->description, ENT_QUOTES, 'UTF-8'));
-                }
-                $section->addTextBreak(1);
-            }
-            
-            $section->addTextBreak(1);
         }
 
         // Save and output

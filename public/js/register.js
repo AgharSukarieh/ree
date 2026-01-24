@@ -614,7 +614,7 @@ function createSkillItem() {
                     <span data-ar="فئة المهارة" data-en="Skill Category">فئة المهارة</span>
                 </label>
                 <select name="category_id[]">
-                    <option value="1" data-ar="برمجة" data-en="Programming" selected>Programming</option>
+                    <option value="1" data-ar="برمجة" data-en="Programming">Programming</option>
                     <option value="2" data-ar="قواعد البيانات" data-en="Database">Database</option>
                     <option value="3" data-ar="تصميم" data-en="Design">Design</option>
                     <option value="4" data-ar="شبكات" data-en="Networking">Networking</option>
@@ -1312,48 +1312,17 @@ function submitForm() {
     
     // Clean up empty fields before creating FormData
     // Remove empty/null values from array inputs to prevent issues
-    // BUT: Keep category_id select values even if empty (they should have a default)
-    const arrayInputs = form.querySelectorAll('input[type="text"], input[type="url"], input[type="date"], textarea');
+    const arrayInputs = form.querySelectorAll('input[type="text"], input[type="url"], input[type="date"], textarea, select');
     arrayInputs.forEach(input => {
         if (input.name && input.name.includes('[]')) {
-            // For array fields, clear empty values (but NOT for select elements)
+            // For array fields, clear empty values
             if (input.value === null || input.value === 'null' || (typeof input.value === 'string' && input.value.trim() === '')) {
                 input.value = '';
             }
         }
     });
     
-    // Ensure category_id selects have a value (use first option if not selected)
-    const categorySelects = form.querySelectorAll('select[name="category_id[]"]');
-    categorySelects.forEach(select => {
-        if (!select.value || select.value === '') {
-            // If no value selected, use first non-empty option
-            const firstOption = Array.from(select.options).find(opt => opt.value && opt.value !== '');
-            if (firstOption) {
-                select.value = firstOption.value;
-                console.log('⚠️ Auto-selected category for empty select:', firstOption.value);
-            }
-        }
-    });
-    
     const formData = new FormData(form);
-    
-    // Debug: Log category_id values before sending
-    const categoryIds = form.querySelectorAll('select[name="category_id[]"]');
-    console.log('📋 Category IDs in form:', Array.from(categoryIds).map((select, index) => ({
-        index: index,
-        value: select.value,
-        selectedIndex: select.selectedIndex,
-        options: Array.from(select.options).map(opt => ({ value: opt.value, text: opt.text, selected: opt.selected }))
-    })));
-    
-    // Debug: Log all FormData entries
-    console.log('📤 FormData entries:');
-    for (const [key, value] of formData.entries()) {
-        if (key.includes('category_id') || key.includes('skill_name')) {
-            console.log(`  ${key}: ${value}`);
-        }
-    }
     
     console.log('📤 Sending form data to:', form.action);
     
