@@ -302,6 +302,29 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
+        // Business Skills (if applicable)
+        if ($user->businessSkills->count() > 0) {
+            $html .= '<div class="section">';
+            $html .= '<h2>BUSINESS SKILLS</h2>';
+            
+            $skillsByCategory = $user->businessSkills->groupBy('category.category_name');
+            $skillLines = [];
+            
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName) {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $skillLines[] = '<strong>' . htmlspecialchars($categoryName) . ':</strong> ' . 
+                                   implode(', ', array_map('htmlspecialchars', $skillNames));
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $skillLines[] = implode(', ', array_map('htmlspecialchars', $skillNames));
+                }
+            }
+            
+            $html .= '<div class="skills-inline">' . implode('<br>', $skillLines) . '</div>';
+            $html .= '</div>';
+        }
+
         // Medical Skills (if applicable)
         if ($user->medicalSkills->count() > 0) {
             $html .= '<div class="section">';
@@ -657,6 +680,7 @@ class DownloadController extends Controller
             $user = User::with([
                 'activities',
                 'analyticalSkills',
+                'businessSkills.category',
                 'certifications',
                 'coreCompetencies',
                 'experiences',
@@ -751,6 +775,42 @@ class DownloadController extends Controller
             $section->addText('TECHNICAL SKILLS', ['bold' => true, 'size' => 12]);
             
             $skillsByCategory = $user->skills->groupBy('category.category_name');
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName) {
+                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                }
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                $section->addText(implode(', ', array_map(function($s) {
+                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                }, $skillNames)));
+            }
+            
+            $section->addTextBreak(1);
+        }
+
+        // Business Skills (if applicable)
+        if ($user->businessSkills->count() > 0) {
+            $section->addText('BUSINESS SKILLS', ['bold' => true, 'size' => 12]);
+            
+            $skillsByCategory = $user->businessSkills->groupBy('category.category_name');
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName) {
+                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                }
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                $section->addText(implode(', ', array_map(function($s) {
+                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                }, $skillNames)));
+            }
+            
+            $section->addTextBreak(1);
+        }
+
+        // Medical Skills (if applicable)
+        if ($user->medicalSkills->count() > 0) {
+            $section->addText('MEDICAL SKILLS', ['bold' => true, 'size' => 12]);
+            
+            $skillsByCategory = $user->medicalSkills->groupBy('category.category_name');
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName) {
                     $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
