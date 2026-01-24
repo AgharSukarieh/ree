@@ -119,18 +119,9 @@
 
                 <!-- Skills Section -->
                 @php
-                    // Ensure skills relationship is loaded with categories
-                    if (!$user->relationLoaded('skills')) {
-                        $user->load('skills.category');
-                    } else {
-                        // If already loaded, ensure categories are loaded
-                        foreach ($user->skills as $skill) {
-                            if (!$skill->relationLoaded('category')) {
-                                $skill->load('category');
-                            }
-                        }
-                    }
-                    
+                    // Force reload skills with categories to ensure they're loaded
+                    // Use fresh() to ensure we get the latest data from database
+                    $user->loadMissing('skills.category');
                     $skillsCount = $user->skills->count();
                 @endphp
                 
@@ -145,8 +136,16 @@
                             $skillsByCategory = [];
                             foreach ($user->skills as $skill) {
                                 $categoryName = 'Other Skills';
-                                if ($skill->category && !empty($skill->category->category_name)) {
+                                
+                                // Check if category relationship is loaded and has name
+                                if ($skill->relationLoaded('category') && $skill->category && !empty($skill->category->category_name)) {
                                     $categoryName = $skill->category->category_name;
+                                } elseif ($skill->category_id) {
+                                    // If category not loaded, try to load it
+                                    $skill->load('category');
+                                    if ($skill->category && !empty($skill->category->category_name)) {
+                                        $categoryName = $skill->category->category_name;
+                                    }
                                 }
                                 
                                 if (!isset($skillsByCategory[$categoryName])) {
@@ -156,18 +155,26 @@
                             }
                             ksort($skillsByCategory);
                         @endphp
-                        @foreach($skillsByCategory as $categoryName => $skills)
-                        <div class="mb-3">
-                            <h6 class="fw-bold text-primary mb-2">
-                                <i class="fas fa-tag me-1"></i>{{ $categoryName }}
-                            </h6>
-                            <div>
-                                @foreach($skills as $skill)
+                        @if(count($skillsByCategory) > 0)
+                            @foreach($skillsByCategory as $categoryName => $skills)
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-primary mb-2">
+                                    <i class="fas fa-tag me-1"></i>{{ $categoryName }}
+                                </h6>
+                                <div>
+                                    @foreach($skills as $skill)
+                                        <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="mb-3">
+                                @foreach($user->skills as $skill)
                                     <span class="skill-tag">{{ $skill->skill_name }}</span>
                                 @endforeach
                             </div>
-                        </div>
-                        @endforeach
+                        @endif
                     </div>
                 </div>
                 @endif

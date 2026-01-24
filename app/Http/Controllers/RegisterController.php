@@ -174,38 +174,77 @@ class RegisterController extends Controller
 
             // Handle IT Skills
             if ($request->has('skill_name') && $request->major === 'IT') {
+                \Log::info('Processing IT Skills', [
+                    'qr_id' => $qr_id,
+                    'skill_count' => count($request->skill_name ?? []),
+                    'category_ids_received' => $request->category_id ?? []
+                ]);
+                
                 foreach ($request->skill_name as $index => $skill_name) {
-                    if (!empty($skill_name)) {
-                        // Get category_id from request or get first available category
-                        $category_id = null;
-                        
-                        if (!empty($request->category_id[$index])) {
-                            $requestedCategoryId = (int)$request->category_id[$index];
-                            // Validate category exists
-                            if (DB::table('skill_categories')->where('id', $requestedCategoryId)->exists()) {
-                                $category_id = $requestedCategoryId;
-                            }
+                    // Skip if skill name is empty or just whitespace
+                    if (empty($skill_name) || trim($skill_name) === '') {
+                        continue;
+                    }
+                    
+                    // Get category_id from request
+                    $category_id = null;
+                    
+                    // Check if category_id exists in request for this index
+                    if (isset($request->category_id[$index]) && !empty($request->category_id[$index])) {
+                        $requestedCategoryId = (int)$request->category_id[$index];
+                        // Validate category exists in database
+                        if (DB::table('skill_categories')->where('id', $requestedCategoryId)->exists()) {
+                            $category_id = $requestedCategoryId;
+                        } else {
+                            \Log::warning('Invalid category_id provided, will use default', [
+                                'skill_name' => $skill_name,
+                                'requested_category_id' => $requestedCategoryId,
+                                'qr_id' => $qr_id
+                            ]);
                         }
-                        
-                        // If no valid category found, get first available category
-                        if (!$category_id) {
-                            $firstCategory = DB::table('skill_categories')->orderBy('id')->first();
-                            if ($firstCategory) {
-                                $category_id = $firstCategory->id;
-                            } else {
-                                // If no categories exist at all, skip this skill
-                                \Log::warning('No skill categories found in database, skipping skill', [
-                                    'skill_name' => $skill_name,
-                                    'qr_id' => $qr_id
-                                ]);
-                                continue;
-                            }
+                    }
+                    
+                    // If no valid category found, get first available category
+                    if (!$category_id) {
+                        $firstCategory = DB::table('skill_categories')->orderBy('id')->first();
+                        if ($firstCategory) {
+                            $category_id = $firstCategory->id;
+                            \Log::info('Using default category for skill', [
+                                'skill_name' => $skill_name,
+                                'default_category_id' => $category_id,
+                                'qr_id' => $qr_id
+                            ]);
+                        } else {
+                            // If no categories exist at all, skip this skill
+                            \Log::error('No skill categories found in database, skipping skill', [
+                                'skill_name' => $skill_name,
+                                'qr_id' => $qr_id
+                            ]);
+                            continue;
                         }
-                        
-                        Skill::create([
+                    }
+                    
+                    // Create skill with logging
+                    try {
+                        $skill = Skill::create([
                             'qr_id' => $qr_id,
-                            'skill_name' => $skill_name,
+                            'skill_name' => trim($skill_name),
                             'category_id' => $category_id
+                        ]);
+                        
+                        \Log::info('Skill created successfully', [
+                            'skill_id' => $skill->id,
+                            'skill_name' => $skill->skill_name,
+                            'category_id' => $skill->category_id,
+                            'qr_id' => $qr_id
+                        ]);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to create skill', [
+                            'skill_name' => $skill_name,
+                            'category_id' => $category_id,
+                            'qr_id' => $qr_id,
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
                         ]);
                     }
                 }

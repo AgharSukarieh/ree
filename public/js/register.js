@@ -614,7 +614,7 @@ function createSkillItem() {
                     <span data-ar="فئة المهارة" data-en="Skill Category">فئة المهارة</span>
                 </label>
                 <select name="category_id[]">
-                    <option value="1" data-ar="برمجة" data-en="Programming">Programming</option>
+                    <option value="1" selected data-ar="برمجة" data-en="Programming">Programming</option>
                     <option value="2" data-ar="قواعد البيانات" data-en="Database">Database</option>
                     <option value="3" data-ar="تصميم" data-en="Design">Design</option>
                     <option value="4" data-ar="شبكات" data-en="Networking">Networking</option>
@@ -1324,6 +1324,25 @@ function submitForm() {
     
     const formData = new FormData(form);
     
+    // Debug: Log skill_name and category_id arrays
+    console.log('📤 FormData entries for skills:');
+    const skillNames = formData.getAll('skill_name[]');
+    const categoryIds = formData.getAll('category_id[]');
+    console.log('  skill_name[]:', skillNames);
+    console.log('  category_id[]:', categoryIds);
+    console.log('  skill_name count:', skillNames.length);
+    console.log('  category_id count:', categoryIds.length);
+    
+    // Verify that each skill has a corresponding category_id
+    if (skillNames.length > 0) {
+        skillNames.forEach((skillName, index) => {
+            if (skillName && skillName.trim() !== '') {
+                const categoryId = categoryIds[index] || 'MISSING';
+                console.log(`  Skill ${index + 1}: "${skillName}" -> category_id: ${categoryId}`);
+            }
+        });
+    }
+    
     console.log('📤 Sending form data to:', form.action);
     
     fetch(form.action, {
@@ -1871,9 +1890,16 @@ function fillITSkillItem(item, skill) {
     const categorySelect = item.querySelector('select[name="category_id[]"]');
     
     setValueAndTrigger(nameInput, skill.skill_name || '');
-    if (categorySelect && skill.category_id) {
-        categorySelect.value = skill.category_id;
-        categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+    if (categorySelect) {
+        const categoryId = skill.category_id;
+        if (categoryId) {
+            categorySelect.value = categoryId;
+            categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+            // Ensure a default is selected if no category_id is provided
+            categorySelect.selectedIndex = 0; // Select the first option (value="1")
+            categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
     }
 }
 
