@@ -5,6 +5,11 @@ let selectedMajor = '';
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Load skill categories from database first
+    loadSkillCategories().then(() => {
+        console.log('✅ Skill categories loaded, initializing form...');
+    });
+    
     initializeThemeToggle();
     initializeLanguageToggle();
     initializeImageUpload();
@@ -598,9 +603,83 @@ function removeSkill(button) {
     }
 }
 
+// Global variable to store skill categories
+let skillCategories = [];
+
+// Load skill categories from API
+async function loadSkillCategories() {
+    try {
+        const response = await fetch('/api/skill-categories');
+        if (response.ok) {
+            skillCategories = await response.json();
+            console.log('✅ Skill categories loaded:', skillCategories.length);
+        } else {
+            console.error('❌ Failed to load skill categories');
+            // Fallback to default categories
+            skillCategories = [
+                {id: 1, category_name: 'Programming Languages'},
+                {id: 2, category_name: 'Web Development'},
+                {id: 3, category_name: 'Mobile Development'},
+                {id: 4, category_name: 'Database Management'},
+                {id: 5, category_name: 'DevOps & Cloud'},
+                {id: 6, category_name: 'Data Science & Analytics'},
+                {id: 7, category_name: 'Machine Learning & AI'},
+                {id: 8, category_name: 'Cybersecurity'},
+                {id: 9, category_name: 'UI/UX Design'},
+                {id: 10, category_name: 'Project Management'},
+                {id: 11, category_name: 'Quality Assurance'},
+                {id: 12, category_name: 'Other'}
+            ];
+        }
+    } catch (error) {
+        console.error('❌ Error loading skill categories:', error);
+        // Fallback to default categories
+        skillCategories = [
+            {id: 1, category_name: 'Programming Languages'},
+            {id: 2, category_name: 'Web Development'},
+            {id: 3, category_name: 'Mobile Development'},
+            {id: 4, category_name: 'Database Management'},
+            {id: 5, category_name: 'DevOps & Cloud'},
+            {id: 6, category_name: 'Data Science & Analytics'},
+            {id: 7, category_name: 'Machine Learning & AI'},
+            {id: 8, category_name: 'Cybersecurity'},
+            {id: 9, category_name: 'UI/UX Design'},
+            {id: 10, category_name: 'Project Management'},
+            {id: 11, category_name: 'Quality Assurance'},
+            {id: 12, category_name: 'Other'}
+        ];
+    }
+}
+
 function createSkillItem() {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
+    
+    // Build options from loaded categories
+    let optionsHtml = '';
+    if (skillCategories.length > 0) {
+        skillCategories.forEach((category, index) => {
+            const selected = index === 0 ? 'selected' : '';
+            optionsHtml += `<option value="${category.id}" ${selected}>${category.category_name}</option>`;
+        });
+    } else {
+        // Fallback if categories not loaded yet
+        optionsHtml = `
+            <option value="1" selected>Programming Languages</option>
+            <option value="2">Web Development</option>
+            <option value="3">Mobile Development</option>
+            <option value="4">Database Management</option>
+            <option value="5">DevOps & Cloud</option>
+            <option value="6">Data Science & Analytics</option>
+            <option value="7">Machine Learning & AI</option>
+            <option value="8">Cybersecurity</option>
+            <option value="9">UI/UX Design</option>
+            <option value="10">Project Management</option>
+            <option value="11">Quality Assurance</option>
+            <option value="12">Other</option>
+        `;
+    }
+    
     div.innerHTML = `
         <div class="form-grid">
             <div class="form-group">
@@ -614,18 +693,7 @@ function createSkillItem() {
                     <span data-ar="فئة المهارة" data-en="Skill Category">فئة المهارة</span>
                 </label>
                 <select name="category_id[]">
-                    <option value="1" selected data-ar="برمجة" data-en="Programming">Programming</option>
-                    <option value="2" data-ar="قواعد البيانات" data-en="Database">Database</option>
-                    <option value="3" data-ar="تصميم" data-en="Design">Design</option>
-                    <option value="4" data-ar="شبكات" data-en="Networking">Networking</option>
-                    <option value="5" data-ar="أمن معلومات" data-en="Cybersecurity">Cybersecurity</option>
-                    <option value="6" data-ar="ذكاء اصطناعي" data-en="Artificial Intelligence">Artificial Intelligence</option>
-                    <option value="7" data-ar="تعلم آلة" data-en="Machine Learning">Machine Learning</option>
-                    <option value="8" data-ar="تحليل بيانات" data-en="Data Analysis">Data Analysis</option>
-                    <option value="9" data-ar="تطوير تطبيقات" data-en="App Development">App Development</option>
-                    <option value="10" data-ar="تطوير ويب" data-en="Web Development">Web Development</option>
-                    <option value="11" data-ar="إدارة مشاريع" data-en="Project Management">Project Management</option>
-                    <option value="12" data-ar="أخرى" data-en="Other">Other</option>
+                    ${optionsHtml}
                 </select>
             </div>
         </div>

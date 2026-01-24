@@ -33,6 +33,12 @@ Route::get('/register/success', [RegisterController::class, 'success'])->name('r
 Route::post('/api/openai/fill-form', [\App\Http\Controllers\OpenAIController::class, 'fillForm'])->name('openai.fill-form');
 Route::get('/openai/response', [\App\Http\Controllers\OpenAIController::class, 'showResponse'])->name('openai.response');
 
+// Skill Categories API route
+Route::get('/api/skill-categories', function () {
+    $categories = \DB::table('skill_categories')->orderBy('id')->get(['id', 'category_name']);
+    return response()->json($categories);
+})->name('api.skill-categories');
+
 // Test registration page
 Route::get('/register-test', function () {
     return view('register_test');

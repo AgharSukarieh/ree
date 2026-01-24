@@ -173,7 +173,21 @@ class RegisterController extends Controller
             }
 
             // Handle IT Skills
-            if ($request->has('skill_name') && $request->major === 'IT') {
+            // Check if user major is IT (case-insensitive) and skills are provided
+            $requestMajor = strtoupper(trim($request->major ?? ''));
+            $userMajor = strtoupper(trim($user->major ?? ''));
+            $isITMajor = $requestMajor === 'IT' || $userMajor === 'IT';
+            
+            \Log::info('Checking IT Skills condition', [
+                'qr_id' => $qr_id,
+                'request_major' => $request->major ?? 'not provided',
+                'user_major' => $user->major ?? 'not set',
+                'is_it_major' => $isITMajor,
+                'has_skill_name' => $request->has('skill_name'),
+                'skill_count' => count($request->skill_name ?? [])
+            ]);
+            
+            if ($request->has('skill_name') && $isITMajor) {
                 \Log::info('Processing IT Skills', [
                     'qr_id' => $qr_id,
                     'skill_count' => count($request->skill_name ?? []),
