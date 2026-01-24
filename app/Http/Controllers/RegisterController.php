@@ -11,6 +11,7 @@ use App\Models\SoftSkill;
 use App\Models\Skill;
 use App\Models\Project;
 use App\Models\MedicalSkill;
+use App\Models\BusinessSkill;
 use App\Models\Research;
 use App\Models\Certification;
 use App\Models\Membership;
@@ -394,6 +395,71 @@ class RegisterController extends Controller
                         \Log::error('Failed to create medical skill', [
                             'qr_id' => $qr_id,
                             'skill_name' => $medical_skill_name,
+                            'category_id' => $category_id ?? 'unknown',
+                            'error' => $e->getMessage()
+                        ]);
+                        // Continue with next skill instead of failing entire registration
+                    }
+                }
+            }
+
+            // Handle Business Skills
+            if ($request->has('business_skill_name')) {
+                foreach ($request->business_skill_name as $index => $business_skill_name) {
+                    // Skip if skill name is empty or null
+                    if (empty($business_skill_name) || trim($business_skill_name) === '') {
+                        continue;
+                    }
+                    
+                    try {
+                        // Get category_id from request or get first available category
+                        $category_id = null;
+                        
+                        if (!empty($request->business_category_id[$index])) {
+                            $requestedCategoryId = (int)$request->business_category_id[$index];
+                            // Validate category exists
+                            try {
+                                if (DB::table('business_skill_categories')->where('id', $requestedCategoryId)->exists()) {
+                                    $category_id = $requestedCategoryId;
+                                }
+                            } catch (\Exception $e) {
+                                // Table might not exist, will get first category below
+                            }
+                        }
+                        
+                        // If no valid category found, get first available category
+                        if (!$category_id) {
+                            try {
+                                $firstCategory = DB::table('business_skill_categories')->orderBy('id')->first();
+                                if ($firstCategory) {
+                                    $category_id = $firstCategory->id;
+                                } else {
+                                    // If no categories exist at all, skip this skill
+                                    \Log::warning('No business skill categories found in database, skipping skill', [
+                                        'skill_name' => $business_skill_name,
+                                        'qr_id' => $qr_id
+                                    ]);
+                                    continue;
+                                }
+                            } catch (\Exception $e) {
+                                // Table doesn't exist, skip this skill
+                                \Log::warning('Business skill categories table not found, skipping skill', [
+                                    'skill_name' => $business_skill_name,
+                                    'qr_id' => $qr_id
+                                ]);
+                                continue;
+                            }
+                        }
+                        
+                        BusinessSkill::create([
+                            'qr_id' => $qr_id,
+                            'skill_name' => trim($business_skill_name),
+                            'category_id' => $category_id
+                        ]);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to create business skill', [
+                            'qr_id' => $qr_id,
+                            'skill_name' => $business_skill_name,
                             'category_id' => $category_id ?? 'unknown',
                             'error' => $e->getMessage()
                         ]);
