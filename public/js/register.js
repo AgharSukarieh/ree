@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     Promise.all([
         loadSkillCategories(),
         loadMedicalSkillCategories(),
-        loadBusinessSkillCategories()
+        loadBusinessSkillCategories(),
+        loadEngineeringSkillCategories()
     ]).then(() => {
         console.log('✅ All skill categories loaded, initializing form...');
     });
@@ -611,6 +612,7 @@ function removeSkill(button) {
 let skillCategories = [];
 let medicalSkillCategories = [];
 let businessSkillCategories = [];
+let engineeringSkillCategories = [];
 
 // Load IT skill categories from API
 async function loadSkillCategories() {
@@ -834,6 +836,67 @@ function updateExistingBusinessSkillDropdowns() {
         const currentValue = select.value;
         select.innerHTML = '';
         businessSkillCategories.forEach((category, index) => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.category_name;
+            if (category.id == currentValue || (index === 0 && !currentValue)) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    });
+}
+
+// Load Engineering skill categories from API
+async function loadEngineeringSkillCategories() {
+    try {
+        const response = await fetch('/api/engineering-skill-categories');
+        if (response.ok) {
+            engineeringSkillCategories = await response.json();
+            console.log('✅ Engineering Skill categories loaded:', engineeringSkillCategories.length);
+            // Update existing engineering skill dropdowns on the page
+            updateExistingEngineeringSkillDropdowns();
+        } else {
+            console.error('❌ Failed to load engineering skill categories');
+            // Fallback to default categories
+            engineeringSkillCategories = [
+                {id: 1, category_name: 'CAD Software'},
+                {id: 2, category_name: '3D Modeling'},
+                {id: 3, category_name: 'Simulation & Analysis'},
+                {id: 4, category_name: 'Technical Drawing'},
+                {id: 5, category_name: 'Manufacturing Tools'},
+                {id: 6, category_name: 'Control Systems'},
+                {id: 7, category_name: 'BIM'},
+                {id: 8, category_name: 'Robotics'},
+                {id: 9, category_name: 'Electrical Design'},
+                {id: 10, category_name: 'Other'}
+            ];
+        }
+    } catch (error) {
+        console.error('❌ Error loading engineering skill categories:', error);
+        // Fallback to default categories
+        engineeringSkillCategories = [
+            {id: 1, category_name: 'CAD Software'},
+            {id: 2, category_name: '3D Modeling'},
+            {id: 3, category_name: 'Simulation & Analysis'},
+            {id: 4, category_name: 'Technical Drawing'},
+            {id: 5, category_name: 'Manufacturing Tools'},
+            {id: 6, category_name: 'Control Systems'},
+            {id: 7, category_name: 'BIM'},
+            {id: 8, category_name: 'Robotics'},
+            {id: 9, category_name: 'Electrical Design'},
+            {id: 10, category_name: 'Other'}
+        ];
+    }
+}
+
+// Update existing Engineering skill dropdowns on the page
+function updateExistingEngineeringSkillDropdowns() {
+    const existingDropdowns = document.querySelectorAll('select[name="engineering_category_id[]"]');
+    existingDropdowns.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '';
+        engineeringSkillCategories.forEach((category, index) => {
             const option = document.createElement('option');
             option.value = category.id;
             option.textContent = category.category_name;
@@ -1309,13 +1372,45 @@ function removeEngineeringSkill(button) {
 function createEngineeringSkillItem() {
     const div = document.createElement('div');
     div.className = 'dynamic-item';
+    
+    // Build options from loaded engineering categories
+    let optionsHtml = '';
+    if (engineeringSkillCategories.length > 0) {
+        engineeringSkillCategories.forEach((category, index) => {
+            const selected = index === 0 ? 'selected' : '';
+            optionsHtml += `<option value="${category.id}" ${selected}>${category.category_name}</option>`;
+        });
+    } else {
+        // Fallback if categories not loaded yet
+        optionsHtml = `
+            <option value="1" selected>CAD Software</option>
+            <option value="2">3D Modeling</option>
+            <option value="3">Simulation & Analysis</option>
+            <option value="4">Technical Drawing</option>
+            <option value="5">Manufacturing Tools</option>
+            <option value="6">Control Systems</option>
+            <option value="7">BIM</option>
+            <option value="8">Robotics</option>
+            <option value="9">Electrical Design</option>
+            <option value="10">Other</option>
+        `;
+    }
+    
     div.innerHTML = `
         <div class="form-grid">
-            <div class="form-group full-width">
+            <div class="form-group">
                 <label>
                     <span data-ar="اسم المهارة الهندسية" data-en="Engineering Skill Name">اسم المهارة الهندسية</span>
                 </label>
                 <input type="text" name="engineering_skill_name[]" placeholder="AutoCAD، SolidWorks، تحليل الهياكل" data-ar-placeholder="AutoCAD، SolidWorks، تحليل الهياكل" data-en-placeholder="AutoCAD, SolidWorks, Structural Analysis">
+            </div>
+            <div class="form-group">
+                <label>
+                    <span data-ar="فئة المهارة" data-en="Skill Category">فئة المهارة</span>
+                </label>
+                <select name="engineering_category_id[]">
+                    ${optionsHtml}
+                </select>
             </div>
         </div>
         <button type="button" class="remove-btn" onclick="removeEngineeringSkill(this)" style="display: none;">
