@@ -118,16 +118,29 @@
                 @endif
 
                 <!-- Skills Section -->
-                @if($user->skills->count() > 0)
+                @php
+                    // Ensure skills relationship is loaded with categories
+                    if (!$user->relationLoaded('skills')) {
+                        $user->load('skills.category');
+                    } else {
+                        // If already loaded, ensure categories are loaded
+                        foreach ($user->skills as $skill) {
+                            if (!$skill->relationLoaded('category')) {
+                                $skill->load('category');
+                            }
+                        }
+                    }
+                    
+                    $skillsCount = $user->skills->count();
+                @endphp
+                
+                @if($skillsCount > 0)
                 <div class="card section-card">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fas fa-code me-2"></i>Technical Skills</h5>
                     </div>
                     <div class="card-body">
                         @php
-                            // Ensure category relationship is loaded
-                            $user->load('skills.category');
-                            
                             // Group skills by category name
                             $skillsByCategory = [];
                             foreach ($user->skills as $skill) {
