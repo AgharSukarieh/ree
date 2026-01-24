@@ -12,6 +12,7 @@ use App\Models\Skill;
 use App\Models\Project;
 use App\Models\MedicalSkill;
 use App\Models\BusinessSkill;
+use App\Models\EngineeringSkill;
 use App\Models\Research;
 use App\Models\Certification;
 use App\Models\Membership;
@@ -460,6 +461,71 @@ class RegisterController extends Controller
                         \Log::error('Failed to create business skill', [
                             'qr_id' => $qr_id,
                             'skill_name' => $business_skill_name,
+                            'category_id' => $category_id ?? 'unknown',
+                            'error' => $e->getMessage()
+                        ]);
+                        // Continue with next skill instead of failing entire registration
+                    }
+                }
+            }
+
+            // Handle Engineering Skills
+            if ($request->has('engineering_skill_name')) {
+                foreach ($request->engineering_skill_name as $index => $engineering_skill_name) {
+                    // Skip if skill name is empty or null
+                    if (empty($engineering_skill_name) || trim($engineering_skill_name) === '') {
+                        continue;
+                    }
+                    
+                    try {
+                        // Get category_id from request or get first available category
+                        $category_id = null;
+                        
+                        if (!empty($request->engineering_category_id[$index])) {
+                            $requestedCategoryId = (int)$request->engineering_category_id[$index];
+                            // Validate category exists
+                            try {
+                                if (DB::table('engineering_skill_categories')->where('id', $requestedCategoryId)->exists()) {
+                                    $category_id = $requestedCategoryId;
+                                }
+                            } catch (\Exception $e) {
+                                // Table might not exist, will get first category below
+                            }
+                        }
+                        
+                        // If no valid category found, get first available category
+                        if (!$category_id) {
+                            try {
+                                $firstCategory = DB::table('engineering_skill_categories')->orderBy('id')->first();
+                                if ($firstCategory) {
+                                    $category_id = $firstCategory->id;
+                                } else {
+                                    // If no categories exist at all, skip this skill
+                                    \Log::warning('No engineering skill categories found in database, skipping skill', [
+                                        'skill_name' => $engineering_skill_name,
+                                        'qr_id' => $qr_id
+                                    ]);
+                                    continue;
+                                }
+                            } catch (\Exception $e) {
+                                // Table doesn't exist, skip this skill
+                                \Log::warning('Engineering skill categories table not found, skipping skill', [
+                                    'skill_name' => $engineering_skill_name,
+                                    'qr_id' => $qr_id
+                                ]);
+                                continue;
+                            }
+                        }
+                        
+                        EngineeringSkill::create([
+                            'qr_id' => $qr_id,
+                            'skill_name' => trim($engineering_skill_name),
+                            'category_id' => $category_id
+                        ]);
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to create engineering skill', [
+                            'qr_id' => $qr_id,
+                            'skill_name' => $engineering_skill_name,
                             'category_id' => $category_id ?? 'unknown',
                             'error' => $e->getMessage()
                         ]);

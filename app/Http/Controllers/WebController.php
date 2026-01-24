@@ -20,6 +20,7 @@ class WebController extends Controller
             'businessSkills.category',
             'certifications',
             'coreCompetencies',
+            'engineeringSkills.category',
             'experiences',
             'interests',
             'languages',
@@ -55,6 +56,17 @@ class WebController extends Controller
             foreach ($user->businessSkills as $businessSkill) {
                 if (!$businessSkill->relationLoaded('category') && $businessSkill->category_id) {
                     $businessSkill->load('category');
+                }
+            }
+        }
+
+        // Ensure engineering skills categories are loaded
+        if (!$user->relationLoaded('engineeringSkills')) {
+            $user->load('engineeringSkills.category');
+        } else {
+            foreach ($user->engineeringSkills as $engineeringSkill) {
+                if (!$engineeringSkill->relationLoaded('category') && $engineeringSkill->category_id) {
+                    $engineeringSkill->load('category');
                 }
             }
         }

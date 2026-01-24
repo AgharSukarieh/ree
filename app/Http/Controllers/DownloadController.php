@@ -325,6 +325,29 @@ class DownloadController extends Controller
             $html .= '</div>';
         }
 
+        // Engineering Skills (if applicable)
+        if ($user->engineeringSkills->count() > 0) {
+            $html .= '<div class="section">';
+            $html .= '<h2>ENGINEERING SKILLS</h2>';
+            
+            $skillsByCategory = $user->engineeringSkills->groupBy('category.category_name');
+            $skillLines = [];
+            
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName) {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $skillLines[] = '<strong>' . htmlspecialchars($categoryName) . ':</strong> ' . 
+                                   implode(', ', array_map('htmlspecialchars', $skillNames));
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $skillLines[] = implode(', ', array_map('htmlspecialchars', $skillNames));
+                }
+            }
+            
+            $html .= '<div class="skills-inline">' . implode('<br>', $skillLines) . '</div>';
+            $html .= '</div>';
+        }
+
         // Medical Skills (if applicable)
         if ($user->medicalSkills->count() > 0) {
             $html .= '<div class="section">';
@@ -683,6 +706,7 @@ class DownloadController extends Controller
                 'businessSkills.category',
                 'certifications',
                 'coreCompetencies',
+                'engineeringSkills.category',
                 'experiences',
                 'interests',
                 'languages',
@@ -793,6 +817,24 @@ class DownloadController extends Controller
             $section->addText('BUSINESS SKILLS', ['bold' => true, 'size' => 12]);
             
             $skillsByCategory = $user->businessSkills->groupBy('category.category_name');
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName) {
+                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                }
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                $section->addText(implode(', ', array_map(function($s) {
+                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                }, $skillNames)));
+            }
+            
+            $section->addTextBreak(1);
+        }
+
+        // Engineering Skills (if applicable)
+        if ($user->engineeringSkills->count() > 0) {
+            $section->addText('ENGINEERING SKILLS', ['bold' => true, 'size' => 12]);
+            
+            $skillsByCategory = $user->engineeringSkills->groupBy('category.category_name');
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName) {
                     $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);

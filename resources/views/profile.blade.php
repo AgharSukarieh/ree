@@ -303,6 +303,63 @@
                 </div>
                 @endif
 
+                <!-- Engineering Skills Section -->
+                @php
+                    // Only show engineering skills if user's major is Engineering or related
+                    $isEngineeringMajor = in_array(strtoupper($user->major ?? ''), ['ENGINEERING', 'هندسة', 'MECHANICAL ENGINEERING', 'هندسة ميكانيكية', 'CIVIL ENGINEERING', 'هندسة مدنية', 'ELECTRICAL ENGINEERING', 'هندسة كهربائية', 'CHEMICAL ENGINEERING', 'هندسة كيميائية', 'INDUSTRIAL ENGINEERING', 'هندسة صناعية', 'AEROSPACE ENGINEERING', 'هندسة طيران']);
+                @endphp
+                @if($isEngineeringMajor && $user->engineeringSkills->count() > 0)
+                <div class="card section-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Engineering Skills</h5>
+                    </div>
+                    <div class="card-body">
+                        @php
+                            // Group skills by category name
+                            $engineeringSkillsByCategory = [];
+                            foreach ($user->engineeringSkills as $skill) {
+                                $categoryName = 'Other Skills';
+                                
+                                if ($skill->relationLoaded('category') && $skill->category && !empty($skill->category->category_name)) {
+                                    $categoryName = $skill->category->category_name;
+                                } elseif ($skill->category_id) {
+                                    $skill->load('category');
+                                    if ($skill->category && !empty($skill->category->category_name)) {
+                                        $categoryName = $skill->category->category_name;
+                                    }
+                                }
+                                
+                                if (!isset($engineeringSkillsByCategory[$categoryName])) {
+                                    $engineeringSkillsByCategory[$categoryName] = [];
+                                }
+                                $engineeringSkillsByCategory[$categoryName][] = $skill;
+                            }
+                            ksort($engineeringSkillsByCategory);
+                        @endphp
+                        @if(count($engineeringSkillsByCategory) > 0)
+                            @foreach($engineeringSkillsByCategory as $categoryName => $skills)
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-warning mb-2">
+                                    <i class="fas fa-tag me-1"></i>{{ $categoryName }}
+                                </h6>
+                                <div>
+                                    @foreach($skills as $skill)
+                                        <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="mb-3">
+                                @foreach($user->engineeringSkills as $skill)
+                                    <span class="skill-tag">{{ $skill->skill_name }}</span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
                 <!-- Projects Section -->
                 @if($user->projects->count() > 0)
                 <div class="card section-card">

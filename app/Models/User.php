@@ -79,6 +79,11 @@ class User extends Model
         return $this->hasMany(BusinessSkill::class, 'qr_id', 'qr_id');
     }
 
+    public function engineeringSkills()
+    {
+        return $this->hasMany(EngineeringSkill::class, 'qr_id', 'qr_id');
+    }
+
     public function memberships()
     {
         return $this->hasMany(Membership::class, 'qr_id', 'qr_id');
