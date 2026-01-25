@@ -6,6 +6,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Mpdf\Mpdf;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\SimpleType\Jc;
+use PhpOffice\PhpWord\Style\ListItem;
+use PhpOffice\PhpWord\SimpleType\TblWidth;
 
 class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
 {
@@ -389,19 +394,19 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             
             foreach ($user->projects as $project) {
                 $html .= '<div class="item">';
-                $html .= '<div class="job-title">' . htmlspecialchars($project->project_name) . '</div>';
+                $html .= '<div class="job-title">' . htmlspecialchars($project->project_title ?? '') . '</div>';
                 
-                if ($project->project_link) {
-                    $link = $project->project_link;
+                if ($project->link && trim($project->link)) {
+                    $link = $project->link;
                     if (!preg_match('/^https?:\/\//', $link)) {
                         $link = 'https://' . $link;
                     }
-                    $linkText = str_replace(['http://', 'https://'], '', $project->project_link);
+                    $linkText = str_replace(['http://', 'https://'], '', $project->link);
                     $html .= '<div style="font-size: 10pt; margin-bottom: 5px;"><a href="' . htmlspecialchars($link) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
-                if ($project->description_project && trim($project->description_project)) {
-                    $bullets = $this->formatBulletPoints($project->description_project);
+                if ($project->description && trim($project->description)) {
+                    $bullets = $this->formatBulletPoints($project->description);
                     if (!empty($bullets)) {
                         $html .= '<ul>';
                         foreach ($bullets as $bullet) {
@@ -841,19 +846,19 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $addSectionHeader('KEY PROJECTS');
             
             foreach ($user->projects as $project) {
-                $section->addText(htmlspecialchars($project->project_name, ENT_QUOTES, 'UTF-8'), 'ExpTitle', ['spaceAfter' => 60]);
+                $section->addText(htmlspecialchars($project->project_title ?? '', ENT_QUOTES, 'UTF-8'), 'ExpTitle', ['spaceAfter' => 60]);
                 
-                if ($project->project_link) {
-                    $link = $project->project_link;
+                if ($project->link && trim($project->link)) {
+                    $link = $project->link;
                     if (!preg_match('/^https?:\/\//', $link)) {
                         $link = 'https://' . $link;
                     }
-                    $linkText = str_replace(['http://', 'https://'], '', $project->project_link);
+                    $linkText = str_replace(['http://', 'https://'], '', $project->link);
                     $section->addLink($link, htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'), ['size' => 10], ['spaceAfter' => 60]);
                 }
                 
-                if ($project->description_project && trim($project->description_project)) {
-                    $bullets = $this->formatBulletPoints($project->description_project);
+                if ($project->description && trim($project->description)) {
+                    $bullets = $this->formatBulletPoints($project->description);
                     if (!empty($bullets)) {
                         foreach ($bullets as $bullet) {
                             $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0, [], 'BulletStyle');
