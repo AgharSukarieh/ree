@@ -475,8 +475,8 @@
                         @endif
                         @if($user->profile_website)
                         <div class="mb-3">
-                            <i class="fas fa-globe me-2"></i>
-                            <a href="{{ $user->profile_website }}" class="contact-link" target="_blank">Personal Website</a>
+                            <i class="fas fa-briefcase me-2"></i>
+                            <a href="{{ $user->profile_website }}" class="contact-link" target="_blank">Portfolio / Personal Website</a>
                         </div>
                         @endif
                     </div>
