@@ -215,7 +215,10 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             .container { width: 100%; }
             
             /* Header Section */
-            .header { margin-bottom: 20pt; }
+            .header { 
+                margin-bottom: 24pt; 
+                padding-bottom: 12pt;
+            }
             .name { 
                 font-size: 26pt; 
                 font-weight: bold; 
@@ -246,35 +249,73 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 font-size: 12pt;
                 font-weight: bold;
                 color: ' . $primaryColor . ';
-                margin-bottom: 8pt;
-                margin-top: 15pt;
+                margin-bottom: 12pt;
+                margin-top: 20pt;
                 text-transform: uppercase;
                 border-bottom: 0.5pt solid #dddddd;
-                padding-bottom: 2pt;
+                padding-bottom: 4pt;
             }
             
             /* Experience & Education Items */
-            .item { margin-bottom: 12pt; }
-            .item-header { font-weight: bold; font-size: 10.5pt; color: #000000; }
-            .item-sub { font-weight: bold; color: #555555; font-size: 10pt; }
-            .item-date { color: ' . $lightTextColor . '; font-size: 9pt; margin-bottom: 3pt; font-style: italic; }
+            .item { 
+                margin-bottom: 16pt; 
+                padding-bottom: 10pt;
+            }
+            .item-header { 
+                font-weight: bold; 
+                font-size: 10.5pt; 
+                color: #000000; 
+                margin-bottom: 4pt;
+            }
+            .item-sub { 
+                font-weight: bold; 
+                color: #555555; 
+                font-size: 10pt; 
+                margin-bottom: 3pt;
+            }
+            .item-date { 
+                color: ' . $lightTextColor . '; 
+                font-size: 9pt; 
+                margin-bottom: 5pt; 
+                font-style: italic; 
+            }
             
-            .bullet-list { margin-top: 4pt; margin-bottom: 8pt; padding-left: 12pt; }
-            .bullet-item { margin-bottom: 2pt; list-style-type: disc; }
+            .bullet-list { 
+                margin-top: 5pt; 
+                margin-bottom: 8pt; 
+                padding-left: 14pt; 
+            }
+            .bullet-item { 
+                margin-bottom: 3pt; 
+                list-style-type: disc; 
+            }
             
             /* Sidebar Styling */
-            .sidebar-section { margin-bottom: 18pt; }
+            .sidebar-section { 
+                margin-bottom: 20pt; 
+                padding-bottom: 10pt;
+            }
             .sidebar-title {
                 font-size: 11pt;
                 font-weight: bold;
                 color: ' . $primaryColor . ';
-                margin-bottom: 6pt;
+                margin-bottom: 8pt;
                 border-bottom: 0.5pt solid #dddddd;
-                padding-bottom: 2pt;
+                padding-bottom: 3pt;
             }
-            .contact-info { font-size: 9pt; margin-bottom: 4pt; color: ' . $textColor . '; }
-            .skill-list { padding-left: 10pt; margin: 0; }
-            .skill-item { margin-bottom: 2pt; font-size: 9pt; }
+            .contact-info { 
+                font-size: 9pt; 
+                margin-bottom: 5pt; 
+                color: ' . $textColor . '; 
+            }
+            .skill-list { 
+                padding-left: 12pt; 
+                margin: 0; 
+            }
+            .skill-item { 
+                margin-bottom: 3pt; 
+                font-size: 9pt; 
+            }
             
             .clearfix { clear: both; }
         </style>
@@ -475,7 +516,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $proj->link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -547,7 +588,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $res->link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -602,7 +643,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -633,7 +674,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 $html .= '<div class="contact-info">' . htmlspecialchars($user->phone) . '</div>';
             }
             if ($user->email && trim($user->email)) {
-                $html .= '<div class="contact-info">✉️ ' . htmlspecialchars($user->email) . '</div>';
+                $html .= '<div class="contact-info">Email: ' . htmlspecialchars($user->email) . '</div>';
             }
             if ($user->profile_website && trim($user->profile_website)) {
                 $link = $user->profile_website;
@@ -641,7 +682,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     $link = 'https://' . $link;
                 }
                 $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
-                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                $html .= '<div class="contact-info">Portfolio: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
             }
             if ($user->linkedin_profile && trim($user->linkedin_profile)) {
                 $link = $user->linkedin_profile;
@@ -795,7 +836,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         if (!preg_match('/^https?:\/\//', $link)) {
                             $link = 'https://' . $link;
                         }
-                        $html .= '<br><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; font-size: 8pt; text-decoration: none;">🔗 View Certificate</a>';
+                        $html .= '<br><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; font-size: 8pt; text-decoration: none;">View Certificate</a>';
                     }
                     
                     $html .= '</li>';
