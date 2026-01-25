@@ -586,12 +586,18 @@ class RegisterController extends Controller
             if ($request->has('organization_name')) {
                 foreach ($request->organization_name as $index => $org_name) {
                     if (!empty($org_name)) {
+                        // Ensure start_date is not null - use current date as default if not provided
+                        $startDate = $request->start_date_membership[$index] ?? null;
+                        if (empty($startDate)) {
+                            $startDate = date('Y-m-d'); // Use current date as default
+                        }
+                        
                         Membership::create([
                             'qr_id' => $qr_id,
                             'organization_name' => $org_name,
                             'membership_type' => $request->membership_type[$index] ?? '',
-                            'start_date' => $request->start_date_membership[$index] ?? null,
-                            'end_date' => $request->end_date_membership[$index] ?? null,
+                            'start_date' => $startDate,
+                            'end_date' => !empty($request->end_date_membership[$index]) ? $request->end_date_membership[$index] : null,
                             'membership_status' => $request->membership_status[$index] ?? 'Active'
                         ]);
                     }
