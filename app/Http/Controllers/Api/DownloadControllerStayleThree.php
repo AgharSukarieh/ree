@@ -336,7 +336,15 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 3. Work Experience (Most important section for HR)
+        // 3. Location (ATS-friendly section)
+        if ($user->city && trim($user->city)) {
+            $html .= '<div class="section">';
+            $html .= '<h2>LOCATION</h2>';
+            $html .= '<p style="margin-bottom: 12pt;">' . htmlspecialchars($user->city) . '</p>';
+            $html .= '</div>';
+        }
+
+        // 4. Work Experience (Most important section for HR)
         if ($user->experiences->count() > 0) {
             $html .= '<div class="section">';
             $html .= '<h2>PROFESSIONAL EXPERIENCE</h2>';
@@ -383,7 +391,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 4. Projects (If no experience, or for portfolio/tech roles)
+        // 5. Projects (If no experience, or for portfolio/tech roles)
         if ($user->projects->count() > 0) {
             $html .= '<div class="section">';
             $html .= '<h2>KEY PROJECTS</h2>';
@@ -832,7 +840,13 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText('', [], ['spaceAfter' => 120]);
         }
 
-        // 3. Work Experience
+        // 3. Location (ATS-friendly section)
+        if ($user->city && trim($user->city)) {
+            $addSectionHeader('LOCATION');
+            $section->addText(htmlspecialchars($user->city, ENT_QUOTES, 'UTF-8'), [], ['spaceAfter' => 120]);
+        }
+
+        // 4. Work Experience
         if ($user->experiences->count() > 0) {
             $addSectionHeader('PROFESSIONAL EXPERIENCE');
             
@@ -880,7 +894,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             }
         }
 
-        // 4. Projects
+        // 5. Projects
         if ($user->projects->count() > 0) {
             $addSectionHeader('KEY PROJECTS');
             
@@ -909,7 +923,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             }
         }
 
-        // 5. Education
+        // 6. Education
         if ($education->count() > 0) {
             $addSectionHeader('EDUCATION');
             
@@ -974,7 +988,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             }
         }
 
-        // 6. Certifications
+        // 7. Certifications
         if ($user->certifications->count() > 0) {
             $addSectionHeader('CERTIFICATIONS');
             
@@ -1000,7 +1014,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText('', [], ['spaceAfter' => 120]); // Spacer
         }
 
-        // 7. Languages (ATS-friendly section name)
+        // 8. Languages (ATS-friendly section name)
         if ($user->languages->count() > 0) {
             $addSectionHeader('LANGUAGES');
             
@@ -1015,7 +1029,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText($langList, [], ['spaceAfter' => 120]);
         }
 
-        // 8. Core Competencies (ATS-friendly name for Soft Skills)
+        // 9. Core Competencies (ATS-friendly name for Soft Skills)
         if ($user->softSkills->count() >= 3) {
             $addSectionHeader('CORE COMPETENCIES');
             
@@ -1028,7 +1042,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText($softList, [], ['spaceAfter' => 120]);
         }
 
-        // 9. Analytical Skills (for IT major - ATS-friendly)
+        // 10. Analytical Skills (for IT major - ATS-friendly)
         if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
             $addSectionHeader('ANALYTICAL SKILLS');
             
