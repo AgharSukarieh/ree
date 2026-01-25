@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Mpdf\Mpdf;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\SimpleType\Jc;
-use PhpOffice\PhpWord\Style\ListItem;
 use PhpOffice\PhpWord\SimpleType\TblWidth;
+use PhpOffice\PhpWord\Style\ListItem;
+use Mpdf\Mpdf;
 
 class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
 {
@@ -23,11 +23,8 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $user = User::with([
                 'activities',
                 'analyticalSkills',
-                'businessSkills.category',
                 'certifications',
                 'coreCompetencies',
-                'education',
-                'engineeringSkills.category',
                 'experiences',
                 'interests',
                 'languages',
@@ -74,18 +71,13 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
                 'margin_top' => 15,
                 'margin_bottom' => 15,
                 'tempDir' => sys_get_temp_dir(),
-                'default_font' => 'arial',
                 'allow_charset_conversion' => true
             ]);
             
-            // ATS-friendly settings
+            // Enable links in PDF
             $mpdf->SetHTMLFooter('');
             $mpdf->autoScriptToLang = true;
             $mpdf->autoLangToFont = true;
-            $mpdf->SetDisplayMode('fullpage');
-            
-            // Enable text selection (important for ATS parsing)
-            $mpdf->shrink_tables_to_fit = 1;
             
             $mpdf->WriteHTML($html);
             $mpdf->Output('CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf', 'D');
@@ -359,18 +351,10 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
 
                 $html .= '<div class="experience-header">';
                 $html .= '<div class="exp-title-company">';
-                if ($exp->title && trim($exp->title)) {
-                    $html .= '<span class="job-title">' . htmlspecialchars($exp->title) . '</span>';
-                    if ($exp->company && trim($exp->company)) {
-                        $html .= ', <span class="company">' . htmlspecialchars($exp->company) . '</span>';
-                    }
-                } else if ($exp->company && trim($exp->company)) {
-                    $html .= '<span class="company">' . htmlspecialchars($exp->company) . '</span>';
-                }
+                $html .= '<span class="job-title">' . htmlspecialchars($exp->title) . '</span>, ';
+                $html .= '<span class="company">' . htmlspecialchars($exp->company) . '</span>';
                 $html .= '</div>';
-                if ($dateRange) {
-                    $html .= '<div class="exp-date">' . htmlspecialchars($dateRange) . '</div>';
-                }
+                $html .= '<div class="exp-date">' . htmlspecialchars($dateRange) . '</div>';
                 $html .= '</div>';
                 
                 // Location (optional)
@@ -406,19 +390,19 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             
             foreach ($user->projects as $project) {
                 $html .= '<div class="item">';
-                $html .= '<div class="job-title">' . htmlspecialchars($project->project_title ?? '') . '</div>';
+                $html .= '<div class="job-title">' . htmlspecialchars($project->project_name) . '</div>';
                 
-                if ($project->link && trim($project->link)) {
-                    $link = $project->link;
+                if ($project->project_link) {
+                    $link = $project->project_link;
                     if (!preg_match('/^https?:\/\//', $link)) {
                         $link = 'https://' . $link;
                     }
-                    $linkText = str_replace(['http://', 'https://'], '', $project->link);
+                    $linkText = str_replace(['http://', 'https://'], '', $project->project_link);
                     $html .= '<div style="font-size: 10pt; margin-bottom: 5px;"><a href="' . htmlspecialchars($link) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
-                if ($project->description && trim($project->description)) {
-                    $bullets = $this->formatBulletPoints($project->description);
+                if ($project->description_project && trim($project->description_project)) {
+                    $bullets = $this->formatBulletPoints($project->description_project);
                     if (!empty($bullets)) {
                         $html .= '<ul>';
                         foreach ($bullets as $bullet) {
@@ -443,43 +427,27 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '<h2>EDUCATION</h2>';
             
             foreach ($education as $edu) {
-                $degree = $edu->degree_name ?? $edu->degree ?? '';
-                $university = $edu->university_name ?? $edu->institution ?? $edu->university ?? '';
-                $field = $edu->field_of_study ?? '';
-                
-                if (!$degree && !$university) {
-                    continue; // Skip if no data
-                }
-                
                 $html .= '<div class="item">';
                 
-                $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
-                $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
-                $dateRange = $startYear . ($startYear && $endYear ? ' - ' : '') . $endYear;
+                $startDate = $edu->start_year ? date('M Y', strtotime($edu->start_year . '-01-01')) : '';
+                $endDate = $edu->end_year ? date('M Y', strtotime($edu->end_year . '-01-01')) : 'Present';
+                $dateRange = $startDate . ($startDate && $endDate ? ' - ' : '') . $endDate;
 
                 $html .= '<div class="education-header">';
                 $html .= '<div class="exp-title-company">';
-                if ($degree) {
-                    $html .= '<span class="job-title">' . htmlspecialchars($degree) . '</span>';
-                    if ($field) {
-                        $html .= ' in ' . htmlspecialchars($field);
-                    }
-                    if ($university) {
-                        $html .= ', <span class="company">' . htmlspecialchars($university) . '</span>';
-                    }
-                } else if ($university) {
-                    $html .= '<span class="company">' . htmlspecialchars($university) . '</span>';
-                }
+                $html .= '<span class="job-title">' . htmlspecialchars($edu->degree) . '</span>, ';
+                $html .= '<span class="company">' . htmlspecialchars($edu->university) . '</span>';
                 $html .= '</div>';
-                if ($dateRange) {
-                    $html .= '<div class="exp-date">' . htmlspecialchars($dateRange) . '</div>';
-                }
+                $html .= '<div class="exp-date">' . htmlspecialchars($dateRange) . '</div>';
                 $html .= '</div>';
                 
-                // Field of study (if not already shown)
+                // Major/Thesis/Notes
                 $notes = [];
-                if ($field && $degree && strpos($html, $field) === false) {
-                    $notes[] = 'Field: ' . htmlspecialchars($field);
+                if ($edu->major) {
+                    $notes[] = 'Major in ' . htmlspecialchars($edu->major);
+                }
+                if ($edu->thesis) {
+                    $notes[] = 'Thesis on "' . htmlspecialchars($edu->thesis) . '"';
                 }
                 if ($edu->notes) {
                     $notes[] = htmlspecialchars($edu->notes);
@@ -506,18 +474,13 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             
             $html .= '<ul>';
             foreach ($user->certifications as $cert) {
-                $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
-                if (empty($certName)) {
-                    continue;
-                }
-                
-                $certText = htmlspecialchars($certName);
-                if ($cert->issuing_org && trim($cert->issuing_org)) {
+                $certText = htmlspecialchars($cert->certifications_name);
+                if ($cert->issuing_org) {
                     $certText .= ' - ' . htmlspecialchars($cert->issuing_org);
                 }
                 
                 $issueDate = $cert->issue_date ? date('M Y', strtotime($cert->issue_date)) : '';
-                $expiryDate = ($cert->expiration_date && $cert->expiration_date != '0000-00-00') ? date('M Y', strtotime($cert->expiration_date)) : '';
+                $expiryDate = $cert->expiration_date ? date('M Y', strtotime($cert->expiration_date)) : '';
                 
                 if ($issueDate) {
                     $certText .= ', ' . $issueDate;
@@ -538,16 +501,10 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
         
         // Languages
         if ($user->languages->count() > 0) {
-            $langList = $user->languages->filter(function($lang) {
-                return !empty($lang->language_name);
-            })->map(function($lang) {
-                $langName = htmlspecialchars($lang->language_name ?? '');
-                $proficiency = htmlspecialchars($lang->proficiency_level ?? $lang->proficiency ?? '');
-                return $langName . ($proficiency ? ': ' . $proficiency : '');
-            })->filter()->implode(', ');
-            if (!empty($langList)) {
-                $additionalInfo[] = 'Languages: ' . $langList;
-            }
+            $langList = $user->languages->map(function($lang) {
+                return htmlspecialchars($lang->language_name) . ': ' . htmlspecialchars($lang->proficiency_level);
+            })->implode(', ');
+            $additionalInfo[] = 'Languages: ' . $langList;
         }
 
         // Soft Skills
@@ -559,22 +516,10 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
         // Activities & Memberships (Combined)
         $activities = [];
         foreach ($user->activities as $act) {
-            if ($act->activity_title && trim($act->activity_title)) {
-                $actText = htmlspecialchars($act->activity_title);
-                if ($act->organization && trim($act->organization)) {
-                    $actText .= ' (' . htmlspecialchars($act->organization) . ')';
-                }
-                $activities[] = $actText;
-            }
+            $activities[] = htmlspecialchars($act->activity_title) . ' (' . htmlspecialchars($act->organization) . ')';
         }
         foreach ($user->memberships as $m) {
-            if ($m->organization_name && trim($m->organization_name)) {
-                $memText = htmlspecialchars($m->organization_name);
-                if ($m->membership_type && trim($m->membership_type)) {
-                    $memText .= ' (' . htmlspecialchars($m->membership_type) . ')';
-                }
-                $activities[] = $memText;
-            }
+            $activities[] = htmlspecialchars($m->organization_name) . ' (' . htmlspecialchars($m->membership_type) . ')';
         }
         if (!empty($activities)) {
             $additionalInfo[] = 'Activities/Memberships: ' . implode(', ', $activities);
@@ -881,19 +826,19 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $addSectionHeader('KEY PROJECTS');
             
             foreach ($user->projects as $project) {
-                $section->addText(htmlspecialchars($project->project_title ?? '', ENT_QUOTES, 'UTF-8'), 'ExpTitle', ['spaceAfter' => 60]);
+                $section->addText(htmlspecialchars($project->project_name, ENT_QUOTES, 'UTF-8'), 'ExpTitle', ['spaceAfter' => 60]);
                 
-                if ($project->link && trim($project->link)) {
-                    $link = $project->link;
+                if ($project->project_link) {
+                    $link = $project->project_link;
                     if (!preg_match('/^https?:\/\//', $link)) {
                         $link = 'https://' . $link;
                     }
-                    $linkText = str_replace(['http://', 'https://'], '', $project->link);
+                    $linkText = str_replace(['http://', 'https://'], '', $project->project_link);
                     $section->addLink($link, htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8'), ['size' => 10], ['spaceAfter' => 60]);
                 }
                 
-                if ($project->description && trim($project->description)) {
-                    $bullets = $this->formatBulletPoints($project->description);
+                if ($project->description_project && trim($project->description_project)) {
+                    $bullets = $this->formatBulletPoints($project->description_project);
                     if (!empty($bullets)) {
                         foreach ($bullets as $bullet) {
                             $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0, [], 'BulletStyle');
@@ -910,38 +855,17 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $addSectionHeader('EDUCATION');
             
             foreach ($education as $edu) {
-                $degree = $edu->degree_name ?? $edu->degree ?? '';
-                $university = $edu->university_name ?? $edu->institution ?? $edu->university ?? '';
-                $field = $edu->field_of_study ?? '';
-                
-                if (!$degree && !$university) {
-                    continue; // Skip if no data
-                }
-                
-                $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
-                $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
-                $dateRange = $startYear . ($startYear && $endYear ? ' - ' : '') . $endYear;
+                $startDate = $edu->start_year ? date('M Y', strtotime($edu->start_year . '-01-01')) : '';
+                $endDate = $edu->end_year ? date('M Y', strtotime($edu->end_year . '-01-01')) : 'Present';
+                $dateRange = $startDate . ($startDate && $endDate ? ' - ' : '') . $endDate;
 
                 $table = $section->addTable(['width' => 10000, 'unit' => TblWidth::TWIP, 'cellMargin' => 0]);
                 $table->addRow();
                 
                 // Degree and University (Left)
                 $cellLeft = $table->addCell(7000);
-                $degreeText = '';
-                if ($degree) {
-                    $degreeText = htmlspecialchars($degree, ENT_QUOTES, 'UTF-8');
-                    if ($field) {
-                        $degreeText .= ' in ' . htmlspecialchars($field, ENT_QUOTES, 'UTF-8');
-                    }
-                    if ($university) {
-                        $degreeText .= ', ' . htmlspecialchars($university, ENT_QUOTES, 'UTF-8');
-                    }
-                } else if ($university) {
-                    $degreeText = htmlspecialchars($university, ENT_QUOTES, 'UTF-8');
-                }
-                
                 $cellLeft->addText(
-                    $degreeText,
+                    htmlspecialchars($edu->degree, ENT_QUOTES, 'UTF-8') . ', ' . htmlspecialchars($edu->university, ENT_QUOTES, 'UTF-8'),
                     'ExpTitle',
                     ['spaceAfter' => 0]
                 );
@@ -954,10 +878,16 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
                     ['alignment' => Jc::RIGHT, 'spaceAfter' => 0]
                 );
                 
-                // Field of study (if not already shown)
+                // Major/Thesis/Notes
                 $notes = [];
-                if ($field && $degree && strpos($degreeText, $field) === false) {
-                    $notes[] = 'Field: ' . htmlspecialchars($field, ENT_QUOTES, 'UTF-8');
+                if ($edu->major) {
+                    $notes[] = 'Major in ' . htmlspecialchars($edu->major);
+                }
+                if ($edu->thesis) {
+                    $notes[] = 'Thesis on "' . htmlspecialchars($edu->thesis) . '"';
+                }
+                if ($edu->notes) {
+                    $notes[] = htmlspecialchars($edu->notes);
                 }
                 
                 if (!empty($notes)) {
@@ -1001,16 +931,10 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
         
         // Languages
         if ($user->languages->count() > 0) {
-            $langList = $user->languages->filter(function($lang) {
-                return !empty($lang->language_name);
-            })->map(function($lang) {
-                $langName = htmlspecialchars($lang->language_name ?? '');
-                $proficiency = htmlspecialchars($lang->proficiency_level ?? $lang->proficiency ?? '');
-                return $langName . ($proficiency ? ': ' . $proficiency : '');
-            })->filter()->implode(', ');
-            if (!empty($langList)) {
-                $additionalInfo[] = 'Languages: ' . $langList;
-            }
+            $langList = $user->languages->map(function($lang) {
+                return htmlspecialchars($lang->language_name) . ': ' . htmlspecialchars($lang->proficiency_level);
+            })->implode(', ');
+            $additionalInfo[] = 'Languages: ' . $langList;
         }
 
         // Soft Skills
@@ -1022,22 +946,10 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
         // Activities & Memberships (Combined)
         $activities = [];
         foreach ($user->activities as $act) {
-            if ($act->activity_title && trim($act->activity_title)) {
-                $actText = htmlspecialchars($act->activity_title);
-                if ($act->organization && trim($act->organization)) {
-                    $actText .= ' (' . htmlspecialchars($act->organization) . ')';
-                }
-                $activities[] = $actText;
-            }
+            $activities[] = htmlspecialchars($act->activity_title) . ' (' . htmlspecialchars($act->organization) . ')';
         }
         foreach ($user->memberships as $m) {
-            if ($m->organization_name && trim($m->organization_name)) {
-                $memText = htmlspecialchars($m->organization_name);
-                if ($m->membership_type && trim($m->membership_type)) {
-                    $memText .= ' (' . htmlspecialchars($m->membership_type) . ')';
-                }
-                $activities[] = $memText;
-            }
+            $activities[] = htmlspecialchars($m->organization_name) . ' (' . htmlspecialchars($m->membership_type) . ')';
         }
         if (!empty($activities)) {
             $additionalInfo[] = 'Activities/Memberships: ' . implode(', ', $activities);
