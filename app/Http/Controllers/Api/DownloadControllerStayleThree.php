@@ -74,13 +74,18 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
                 'margin_top' => 15,
                 'margin_bottom' => 15,
                 'tempDir' => sys_get_temp_dir(),
+                'default_font' => 'arial',
                 'allow_charset_conversion' => true
             ]);
             
-            // Enable links in PDF
+            // ATS-friendly settings
             $mpdf->SetHTMLFooter('');
             $mpdf->autoScriptToLang = true;
             $mpdf->autoLangToFont = true;
+            $mpdf->SetDisplayMode('fullpage');
+            
+            // Enable text selection (important for ATS parsing)
+            $mpdf->shrink_tables_to_fit = 1;
             
             $mpdf->WriteHTML($html);
             
@@ -355,10 +360,18 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
 
                 $html .= '<div class="experience-header">';
                 $html .= '<div class="exp-title-company">';
-                $html .= '<span class="job-title">' . htmlspecialchars($exp->title) . '</span>, ';
-                $html .= '<span class="company">' . htmlspecialchars($exp->company) . '</span>';
+                if ($exp->title && trim($exp->title)) {
+                    $html .= '<span class="job-title">' . htmlspecialchars($exp->title) . '</span>';
+                    if ($exp->company && trim($exp->company)) {
+                        $html .= ', <span class="company">' . htmlspecialchars($exp->company) . '</span>';
+                    }
+                } else if ($exp->company && trim($exp->company)) {
+                    $html .= '<span class="company">' . htmlspecialchars($exp->company) . '</span>';
+                }
                 $html .= '</div>';
-                $html .= '<div class="exp-date">' . htmlspecialchars($dateRange) . '</div>';
+                if ($dateRange) {
+                    $html .= '<div class="exp-date">' . htmlspecialchars($dateRange) . '</div>';
+                }
                 $html .= '</div>';
                 
                 // Location (optional)
@@ -494,13 +507,18 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             
             $html .= '<ul>';
             foreach ($user->certifications as $cert) {
-                $certText = htmlspecialchars($cert->certifications_name);
-                if ($cert->issuing_org) {
+                $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
+                if (empty($certName)) {
+                    continue;
+                }
+                
+                $certText = htmlspecialchars($certName);
+                if ($cert->issuing_org && trim($cert->issuing_org)) {
                     $certText .= ' - ' . htmlspecialchars($cert->issuing_org);
                 }
                 
                 $issueDate = $cert->issue_date ? date('M Y', strtotime($cert->issue_date)) : '';
-                $expiryDate = $cert->expiration_date ? date('M Y', strtotime($cert->expiration_date)) : '';
+                $expiryDate = ($cert->expiration_date && $cert->expiration_date != '0000-00-00') ? date('M Y', strtotime($cert->expiration_date)) : '';
                 
                 if ($issueDate) {
                     $certText .= ', ' . $issueDate;
@@ -521,10 +539,16 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
         
         // Languages
         if ($user->languages->count() > 0) {
-            $langList = $user->languages->map(function($lang) {
-                return htmlspecialchars($lang->language_name) . ': ' . htmlspecialchars($lang->proficiency_level);
-            })->implode(', ');
-            $additionalInfo[] = 'Languages: ' . $langList;
+            $langList = $user->languages->filter(function($lang) {
+                return !empty($lang->language_name);
+            })->map(function($lang) {
+                $langName = htmlspecialchars($lang->language_name ?? '');
+                $proficiency = htmlspecialchars($lang->proficiency_level ?? $lang->proficiency ?? '');
+                return $langName . ($proficiency ? ': ' . $proficiency : '');
+            })->filter()->implode(', ');
+            if (!empty($langList)) {
+                $additionalInfo[] = 'Languages: ' . $langList;
+            }
         }
 
         // Soft Skills
@@ -536,10 +560,22 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
         // Activities & Memberships (Combined)
         $activities = [];
         foreach ($user->activities as $act) {
-            $activities[] = htmlspecialchars($act->activity_title) . ' (' . htmlspecialchars($act->organization) . ')';
+            if ($act->activity_title && trim($act->activity_title)) {
+                $actText = htmlspecialchars($act->activity_title);
+                if ($act->organization && trim($act->organization)) {
+                    $actText .= ' (' . htmlspecialchars($act->organization) . ')';
+                }
+                $activities[] = $actText;
+            }
         }
         foreach ($user->memberships as $m) {
-            $activities[] = htmlspecialchars($m->organization_name) . ' (' . htmlspecialchars($m->membership_type) . ')';
+            if ($m->organization_name && trim($m->organization_name)) {
+                $memText = htmlspecialchars($m->organization_name);
+                if ($m->membership_type && trim($m->membership_type)) {
+                    $memText .= ' (' . htmlspecialchars($m->membership_type) . ')';
+                }
+                $activities[] = $memText;
+            }
         }
         if (!empty($activities)) {
             $additionalInfo[] = 'Activities/Memberships: ' . implode(', ', $activities);
@@ -966,10 +1002,16 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
         
         // Languages
         if ($user->languages->count() > 0) {
-            $langList = $user->languages->map(function($lang) {
-                return htmlspecialchars($lang->language_name) . ': ' . htmlspecialchars($lang->proficiency_level);
-            })->implode(', ');
-            $additionalInfo[] = 'Languages: ' . $langList;
+            $langList = $user->languages->filter(function($lang) {
+                return !empty($lang->language_name);
+            })->map(function($lang) {
+                $langName = htmlspecialchars($lang->language_name ?? '');
+                $proficiency = htmlspecialchars($lang->proficiency_level ?? $lang->proficiency ?? '');
+                return $langName . ($proficiency ? ': ' . $proficiency : '');
+            })->filter()->implode(', ');
+            if (!empty($langList)) {
+                $additionalInfo[] = 'Languages: ' . $langList;
+            }
         }
 
         // Soft Skills
@@ -981,10 +1023,22 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
         // Activities & Memberships (Combined)
         $activities = [];
         foreach ($user->activities as $act) {
-            $activities[] = htmlspecialchars($act->activity_title) . ' (' . htmlspecialchars($act->organization) . ')';
+            if ($act->activity_title && trim($act->activity_title)) {
+                $actText = htmlspecialchars($act->activity_title);
+                if ($act->organization && trim($act->organization)) {
+                    $actText .= ' (' . htmlspecialchars($act->organization) . ')';
+                }
+                $activities[] = $actText;
+            }
         }
         foreach ($user->memberships as $m) {
-            $activities[] = htmlspecialchars($m->organization_name) . ' (' . htmlspecialchars($m->membership_type) . ')';
+            if ($m->organization_name && trim($m->organization_name)) {
+                $memText = htmlspecialchars($m->organization_name);
+                if ($m->membership_type && trim($m->membership_type)) {
+                    $memText .= ' (' . htmlspecialchars($m->membership_type) . ')';
+                }
+                $activities[] = $memText;
+            }
         }
         if (!empty($activities)) {
             $additionalInfo[] = 'Activities/Memberships: ' . implode(', ', $activities);
