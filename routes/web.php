@@ -21,6 +21,7 @@ Route::get('/profile/{qr_id}', [WebController::class, 'profile'])->name('profile
 
 // Download routes
 Route::get('/download/pdf/{qr_id}', [\App\Http\Controllers\DownloadController::class, 'generatePdf'])->name('download.pdf');
+Route::get('/download/pdf-style2/{qr_id}', [\App\Http\Controllers\Api\DownloadControllerStayleTow::class, 'generatePdf'])->name('download.pdf.style2');
 Route::get('/download/word/{qr_id}', [\App\Http\Controllers\DownloadController::class, 'generateWord'])->name('download.word');
 Route::get('/download/wishes/{qr_id}', [\App\Http\Controllers\DownloadController::class, 'generateWishes'])->name('download.wishes');
 

@@ -110,30 +110,7 @@
                                     <span class="badge bg-info ms-2">Internship</span>
                                 @endif
                             </p>
-                            @if($experience->description && trim($experience->description))
-                                @php
-                                    $description = trim($experience->description);
-                                    $lines = explode("\n", $description);
-                                    $validLines = [];
-                                    foreach ($lines as $line) {
-                                        $line = trim($line);
-                                        if (!empty($line)) {
-                                            $line = preg_replace('/^[-•*]\s*/', '', $line);
-                                            $line = trim($line);
-                                            if (!empty($line)) {
-                                                $validLines[] = $line;
-                                            }
-                                        }
-                                    }
-                                @endphp
-                                @if(!empty($validLines))
-                                    <ul class="mb-0">
-                                        @foreach($validLines as $line)
-                                            <li class="mb-1">{{ $line }}</li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            @endif
+                            <p class="card-text">{{ $experience->description }}</p>
                         </div>
                         @endforeach
                     </div>
@@ -431,33 +408,8 @@
                         @foreach($user->projects as $project)
                         <div class="mb-4">
                             <h6 class="fw-bold">{{ $project->project_title }}</h6>
-                            @if($project->technologies_used && trim($project->technologies_used))
-                                <p class="text-muted mb-2">{{ $project->technologies_used }}</p>
-                            @endif
-                            @if($project->description && trim($project->description))
-                                @php
-                                    $description = trim($project->description);
-                                    $lines = explode("\n", $description);
-                                    $validLines = [];
-                                    foreach ($lines as $line) {
-                                        $line = trim($line);
-                                        if (!empty($line)) {
-                                            $line = preg_replace('/^[-•*]\s*/', '', $line);
-                                            $line = trim($line);
-                                            if (!empty($line)) {
-                                                $validLines[] = $line;
-                                            }
-                                        }
-                                    }
-                                @endphp
-                                @if(!empty($validLines))
-                                    <ul class="mb-2">
-                                        @foreach($validLines as $line)
-                                            <li class="mb-1">{{ $line }}</li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            @endif
+                            <p class="text-muted mb-2">{{ $project->technologies_used }}</p>
+                            <p class="card-text">{{ $project->description }}</p>
                             @if($project->link)
                                 <a href="{{ $project->link }}" class="btn btn-outline-primary btn-sm" target="_blank">
                                     <i class="fas fa-external-link-alt me-1"></i>View Project
@@ -480,30 +432,7 @@
                         <div class="mb-3">
                             <h6 class="fw-bold">{{ $activity->activity_title }}</h6>
                             <p class="text-muted mb-1">{{ $activity->organization }} - {{ $activity->activity_date->format('M Y') }}</p>
-                            @if($activity->description_activity && trim($activity->description_activity))
-                                @php
-                                    $description = trim($activity->description_activity);
-                                    $lines = explode("\n", $description);
-                                    $validLines = [];
-                                    foreach ($lines as $line) {
-                                        $line = trim($line);
-                                        if (!empty($line)) {
-                                            $line = preg_replace('/^[-•*]\s*/', '', $line);
-                                            $line = trim($line);
-                                            if (!empty($line)) {
-                                                $validLines[] = $line;
-                                            }
-                                        }
-                                    }
-                                @endphp
-                                @if(!empty($validLines))
-                                    <ul class="mb-2">
-                                        @foreach($validLines as $line)
-                                            <li class="mb-1">{{ $line }}</li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                            @endif
+                            <p class="card-text">{{ $activity->description }}</p>
                             @if($activity->activity_link)
                                 <a href="{{ $activity->activity_link }}" class="btn btn-outline-secondary btn-sm" target="_blank">
                                     <i class="fas fa-external-link-alt me-1"></i>Learn More
@@ -606,6 +535,9 @@
                     <div class="card-body">
                         <a href="{{ route('download.pdf', $user->qr_id) }}" class="btn btn-danger w-100 mb-2">
                             <i class="fas fa-file-pdf me-2"></i>Download PDF
+                        </a>
+                        <a href="{{ route('download.pdf.style2', $user->qr_id) }}" class="btn btn-danger w-100 mb-2" style="background-color: #8B0000;">
+                            <i class="fas fa-file-pdf me-2"></i>Download PDF Style 2
                         </a>
                         <a href="{{ route('download.word', $user->qr_id) }}" class="btn btn-primary w-100 mb-2">
                             <i class="fas fa-file-word me-2"></i>Download Word
