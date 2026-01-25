@@ -19,9 +19,11 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             $user = User::with([
                 'activities',
                 'analyticalSkills',
+                'businessSkills.category',
                 'certifications',
                 'coreCompetencies',
                 'education',
+                'engineeringSkills.category',
                 'experiences',
                 'interests',
                 'languages',
@@ -216,6 +218,48 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
+        // Projects Section
+        if ($user->projects->count() > 0) {
+            $html .= '
+                <div class="section-title">Projects</div>';
+            
+            foreach ($user->projects as $proj) {
+                $html .= '
+                    <div class="item">
+                        <div class="item-header">' . htmlspecialchars($proj->project_title) . '</div>';
+                
+                if ($proj->description && trim($proj->description)) {
+                    $description = trim($proj->description);
+                    $lines = explode("\n", $description);
+                    $validLines = [];
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if (!empty($line)) {
+                            $line = preg_replace('/^[-•*]\s*/', '', $line);
+                            $line = trim($line);
+                            if (!empty($line)) {
+                                $validLines[] = $line;
+                            }
+                        }
+                    }
+                    
+                    if (!empty($validLines)) {
+                        $html .= '<ul class="bullet-list">';
+                        foreach ($validLines as $line) {
+                            $html .= '<li class="bullet-item">' . htmlspecialchars($line) . '</li>';
+                        }
+                        $html .= '</ul>';
+                    }
+                }
+                
+                if ($proj->technologies_used && trim($proj->technologies_used)) {
+                    $html .= '<div style="font-size: 9pt; color: ' . $lightTextColor . '; margin-top: 3pt;"><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</div>';
+                }
+                
+                $html .= '</div>';
+            }
+        }
+
         $html .= '
                 <div class="section-title">Educational Background</div>';
 
@@ -255,6 +299,82 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             }
         }
 
+        // Research Section (for Medical majors)
+        if ($user->research->count() > 0 && $user->major === 'Medicine') {
+            $html .= '
+                <div class="section-title">Research</div>';
+            
+            foreach ($user->research as $res) {
+                $html .= '
+                    <div class="item">
+                        <div class="item-header">' . htmlspecialchars($res->title) . '</div>';
+                
+                if ($res->publication_year) {
+                    $html .= '<div class="item-date">' . htmlspecialchars($res->publication_year) . '</div>';
+                }
+                
+                if ($res->description && trim($res->description)) {
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">' . nl2br(htmlspecialchars($res->description)) . '</div>';
+                }
+                
+                if ($res->link) {
+                    $link = $res->link;
+                    if (!preg_match('/^https?:\/\//', $link)) {
+                        $link = 'https://' . $link;
+                    }
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . ';">View Research</a></div>';
+                }
+                
+                $html .= '</div>';
+            }
+        }
+
+        // Activities Section
+        if ($user->activities->count() > 0) {
+            $html .= '
+                <div class="section-title">Activities & Volunteer Work</div>';
+            
+            foreach ($user->activities as $act) {
+                $html .= '
+                    <div class="item">
+                        <div class="item-header">' . htmlspecialchars($act->activity_title) . '</div>';
+                
+                if ($act->organization) {
+                    $html .= '<div class="item-sub">' . htmlspecialchars($act->organization) . '</div>';
+                }
+                
+                if ($act->activity_date) {
+                    $html .= '<div class="item-date">' . date('M Y', strtotime($act->activity_date)) . '</div>';
+                }
+                
+                if ($act->description_activity && trim($act->description_activity)) {
+                    $description = trim($act->description_activity);
+                    $lines = explode("\n", $description);
+                    $validLines = [];
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if (!empty($line)) {
+                            $line = preg_replace('/^[-•*]\s*/', '', $line);
+                            $line = trim($line);
+                            if (!empty($line)) {
+                                $validLines[] = $line;
+                            }
+                        }
+                    }
+                    
+                    if (!empty($validLines)) {
+                        $html .= '<ul class="bullet-list">';
+                        foreach ($validLines as $line) {
+                            $html .= '<li class="bullet-item">' . htmlspecialchars($line) . '</li>';
+                        }
+                        $html .= '</ul>';
+                    }
+                }
+                
+                $html .= '</div>';
+            }
+        }
+
         $html .= '
             </div>
 
@@ -285,11 +405,51 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             $html .= '</ul>';
         }
 
+        // Business Skills
+        if ($user->businessSkills->count() > 0) {
+            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Business Skills</div>
+                      <ul class="skill-list">';
+            foreach ($user->businessSkills->take(8) as $skill) {
+                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
+            }
+            $html .= '</ul>';
+        }
+
+        // Engineering Skills
+        if ($user->engineeringSkills->count() > 0) {
+            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Engineering Skills</div>
+                      <ul class="skill-list">';
+            foreach ($user->engineeringSkills->take(8) as $skill) {
+                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
+            }
+            $html .= '</ul>';
+        }
+
+        // Medical Skills
+        if ($user->medicalSkills->count() > 0) {
+            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Medical Skills</div>
+                      <ul class="skill-list">';
+            foreach ($user->medicalSkills->take(8) as $skill) {
+                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
+            }
+            $html .= '</ul>';
+        }
+
+        // Analytical Skills
+        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
+            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Analytical Skills</div>
+                      <ul class="skill-list">';
+            foreach ($user->analyticalSkills->take(6) as $skill) {
+                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
+            }
+            $html .= '</ul>';
+        }
+
         if ($user->softSkills->count() > 0) {
             $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Soft Skills</div>
                       <ul class="skill-list">';
             foreach ($user->softSkills->take(6) as $skill) {
-                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
+                $html .= '<li class="skill-item">' . htmlspecialchars($skill->soft_name) . '</li>';
             }
             $html .= '</ul>';
         }
@@ -318,6 +478,41 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             if ($certName) {
                 $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . htmlspecialchars($certName) . '</li>';
             }
+        }
+        $html .= '</ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Professional Memberships</div>
+                    <ul class="skill-list">';
+        foreach ($user->memberships as $m) {
+            $membershipText = htmlspecialchars($m->organization_name);
+            if ($m->membership_type) {
+                $membershipText .= ' - ' . htmlspecialchars($m->membership_type);
+            }
+            $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $membershipText . '</li>';
+        }
+        $html .= '</ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Core Competencies</div>
+                    <ul class="skill-list">';
+        foreach ($user->coreCompetencies as $comp) {
+            $compText = htmlspecialchars($comp->competency_name);
+            if ($comp->description && trim($comp->description)) {
+                $compText .= ' - ' . htmlspecialchars(substr(trim($comp->description), 0, 50));
+            }
+            $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $compText . '</li>';
+        }
+        $html .= '</ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Interests</div>
+                    <ul class="skill-list">';
+        foreach ($user->interests as $interest) {
+            $html .= '<li class="skill-item">' . htmlspecialchars($interest->interest_name) . '</li>';
         }
         $html .= '</ul>
                 </div>
