@@ -676,14 +676,11 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             if ($user->email && trim($user->email)) {
                 $html .= '<div class="contact-info">Email: ' . htmlspecialchars($user->email) . '</div>';
             }
-            if ($user->profile_website && trim($user->profile_website)) {
-                $link = $user->profile_website;
-                if (!preg_match('/^https?:\/\//', $link)) {
-                    $link = 'https://' . $link;
-                }
-                $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
-                $html .= '<div class="contact-info">Portfolio: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
-            }
+            
+            // Profile URL (always show)
+            $profileUrl = route('profile', $user->qr_id);
+            $html .= '<div class="contact-info">Profile URL: <a href="' . htmlspecialchars($profileUrl) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($profileUrl) . '</a></div>';
+            
             if ($user->linkedin_profile && trim($user->linkedin_profile)) {
                 $link = $user->linkedin_profile;
                 if (!preg_match('/^https?:\/\//', $link)) {
@@ -701,6 +698,14 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 $cleanGithub = str_replace(['https://', 'http://', 'www.', 'github.com/'], '', $user->github_profile);
                 $cleanGithub = rtrim($cleanGithub, '/');
                 $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">GitHub: ' . htmlspecialchars($cleanGithub) . '</a></div>';
+            }
+            if ($user->profile_website && trim($user->profile_website)) {
+                $link = $user->profile_website;
+                if (!preg_match('/^https?:\/\//', $link)) {
+                    $link = 'https://' . $link;
+                }
+                $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
+                $html .= '<div class="contact-info">Portfolio: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
             }
             
             $html .= '</div>';
