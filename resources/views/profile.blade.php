@@ -473,6 +473,10 @@
                             <a href="{{ $user->github_profile }}" class="contact-link" target="_blank">GitHub: {{ str_replace(['https://', 'http://', 'www.', 'github.com/'], '', $user->github_profile) }}</a>
                         </div>
                         @endif
+                        <div class="mb-3">
+                            <i class="fas fa-link me-2"></i>
+                            <a href="{{ route('profile', $user->qr_id) }}" class="contact-link" target="_blank">Profile URL: {{ route('profile', $user->qr_id) }}</a>
+                        </div>
                         @if($user->profile_website)
                         <div class="mb-3">
                             <i class="fas fa-briefcase me-2"></i>
