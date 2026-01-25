@@ -88,9 +88,8 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $mpdf->shrink_tables_to_fit = 1;
             
             $mpdf->WriteHTML($html);
-            
-            $fileName = 'CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf';
-            return $mpdf->Output($fileName, 'D');
+            $mpdf->Output('CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf', 'D');
+            exit;
         } catch (\Exception $e) {
             abort(500, 'Error generating PDF: ' . $e->getMessage());
         }
