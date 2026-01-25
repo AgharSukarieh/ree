@@ -53,25 +53,34 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             $education = collect([]);
         }
 
-        // Prepare HTML with the high-end modern design
-        $html = $this->buildModernATSHtml($user, $education);
+        // Generate optimized professional summary for ATS
+        $summary = $this->generateProfessionalSummary($user, $education);
 
-        // Generate PDF using MPDF
+        // Prepare HTML with the high-end modern design (ATS-optimized)
+        $html = $this->buildModernATSHtml($user, $education, $summary);
+
+        // Generate PDF using MPDF (ATS-optimized settings)
         try {
             $mpdf = new Mpdf([
                 'mode' => 'utf-8',
                 'format' => 'A4',
-                'margin_left' => 10,
-                'margin_right' => 10,
-                'margin_top' => 10,
-                'margin_bottom' => 10,
+                'orientation' => 'P',
+                'margin_left' => 15,
+                'margin_right' => 15,
+                'margin_top' => 15,
+                'margin_bottom' => 15,
                 'tempDir' => sys_get_temp_dir(),
-                'default_font' => 'arial'
+                'default_font' => 'arial',
+                'allow_charset_conversion' => true
             ]);
             
+            // ATS-friendly settings
             $mpdf->autoScriptToLang = true;
             $mpdf->autoLangToFont = true;
             $mpdf->SetDisplayMode('fullpage');
+            
+            // Enable text selection (important for ATS parsing)
+            $mpdf->shrink_tables_to_fit = 1;
             
             $mpdf->WriteHTML($html);
             
@@ -84,10 +93,109 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
     }
 
     /**
+     * Generate optimized professional summary for ATS
+     */
+    private function generateProfessionalSummary($user, $education)
+    {
+        $summary = $user->profile_summary ?? '';
+        
+        // If summary exists and is substantial, use it
+        if (!empty($summary) && strlen(trim($summary)) > 50) {
+            return $this->enhanceSummary($summary, $user);
+        }
+
+        // Generate summary from available data
+        $parts = [];
+        
+        // Job title and years of experience
+        if ($user->job_title) {
+            $parts[] = $user->job_title;
+        }
+        
+        // Major/field
+        if ($user->major) {
+            $majorText = $this->formatMajor($user->major);
+            $parts[] = "specialized in {$majorText}";
+        }
+        
+        // Key skills mention
+        if ($user->skills->count() > 0) {
+            $topSkills = $user->skills->take(3)->pluck('skill_name')->toArray();
+            if (!empty($topSkills)) {
+                $parts[] = "proficient in " . implode(', ', $topSkills);
+            }
+        }
+        
+        // Experience level
+        if ($user->experiences->count() > 0) {
+            $parts[] = "with proven experience in";
+            $expTypes = $user->experiences->pluck('title')->unique()->take(2)->toArray();
+            if (!empty($expTypes)) {
+                $parts[] = strtolower(implode(' and ', $expTypes));
+            }
+        }
+        
+        // Value proposition
+        $parts[] = "focused on delivering high-quality solutions and driving results";
+        
+        $generated = ucfirst(implode(' ', $parts)) . '.';
+        
+        return $this->enhanceSummary($generated, $user);
+    }
+
+    /**
+     * Enhance summary with action verbs and keywords
+     */
+    private function enhanceSummary($summary, $user)
+    {
+        // Clean and normalize
+        $summary = trim($summary);
+        $summary = preg_replace('/\s+/', ' ', $summary);
+        
+        // Ensure it starts with capital and ends with period
+        $summary = ucfirst($summary);
+        if (!preg_match('/[.!?]$/', $summary)) {
+            $summary .= '.';
+        }
+        
+        // Limit length for ATS (2-3 sentences, max 150 words)
+        $sentences = preg_split('/(?<=[.!?])\s+/', $summary);
+        $final = [];
+        $wordCount = 0;
+        
+        foreach ($sentences as $sentence) {
+            $words = str_word_count($sentence);
+            if ($wordCount + $words <= 150) {
+                $final[] = trim($sentence);
+                $wordCount += $words;
+            } else {
+                break;
+            }
+        }
+        
+        return implode(' ', $final);
+    }
+
+    /**
+     * Format major for display
+     */
+    private function formatMajor($major)
+    {
+        $majors = [
+            'IT' => 'Information Technology',
+            'Medicine' => 'Medicine',
+            'Business' => 'Business Administration',
+            'Engineering' => 'Engineering'
+        ];
+        
+        return $majors[$major] ?? $major;
+    }
+
+    /**
      * Build Modern, High-End, ATS-Optimized HTML
      * Layout: Two-column structure with professional blue accents.
      */
-    private function buildModernATSHtml($user, $education)
+    private function buildModernATSHtml($user, $education, $summary)
     {
         $primaryColor = '#3E5C9A'; // Professional Blue
         $textColor = '#333333';
@@ -174,25 +282,152 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
         <div class="container">
             <!-- Header -->
             <div class="header">
-                <div class="name">' . htmlspecialchars($user->name) . '</div>
-                <div class="summary">
+                <div class="name">' . htmlspecialchars(strtoupper($user->name)) . '</div>';
+        
+        if ($user->job_title) {
+            $html .= '<div class="job-title">' . htmlspecialchars($user->job_title) . '</div>';
+        }
+        
+        // Contact information (ATS-friendly format)
+        $contact = [];
+        if ($user->city && trim($user->city)) $contact[] = htmlspecialchars($user->city);
+        if ($user->phone && trim($user->phone)) $contact[] = htmlspecialchars($user->phone);
+        if ($user->email && trim($user->email)) $contact[] = htmlspecialchars($user->email);
+        if ($user->profile_website && trim($user->profile_website)) {
+            $link = $user->profile_website;
+            if (!preg_match('/^https?:\/\//', $link)) {
+                $link = 'https://' . $link;
+            }
+            $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
+            $contact[] = htmlspecialchars($linkText);
+        }
+        if ($user->linkedin_profile && trim($user->linkedin_profile)) {
+            $cleanLinkedin = str_replace(['https://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile);
+            $contact[] = 'LinkedIn: ' . htmlspecialchars(rtrim($cleanLinkedin, '/'));
+        }
+        if ($user->github_profile && trim($user->github_profile)) {
+            $cleanGithub = str_replace(['https://', 'www.', 'github.com/'], '', $user->github_profile);
+            $contact[] = 'GitHub: ' . htmlspecialchars(rtrim($cleanGithub, '/'));
+        }
+        
+        if (!empty($contact)) {
+            $html .= '<div style="font-size: 9pt; margin-bottom: 10pt; text-align: center; color: ' . $textColor . ';">' . implode(' | ', $contact) . '</div>';
+        }
+        
+        // Professional Summary (ATS-optimized - appears first)
+        if ($summary && trim($summary)) {
+            $html .= '<div class="summary">
+                    <strong style="font-size: 11pt; display: block; margin-bottom: 5pt;">PROFESSIONAL SUMMARY</strong>
+                    ' . nl2br(htmlspecialchars($summary)) . '
+                </div>';
+        } else if ($user->profile_summary && trim($user->profile_summary)) {
+            $html .= '<div class="summary">
+                    <strong style="font-size: 11pt; display: block; margin-bottom: 5pt;">PROFESSIONAL SUMMARY</strong>
                     ' . nl2br(htmlspecialchars($user->profile_summary)) . '
-                </div>
-            </div>
+                </div>';
+        }
+        
+        $html .= '</div>
             
             <!-- Main Column -->
             <div class="main-content">';
 
+        // Technical Skills Section (ATS filters from here - MUST be before Experience)
+        if ($user->skills->count() > 0) {
+            $html .= '<div class="section-title">Technical Skills</div>';
+            
+            $skillsByCategory = $user->skills->groupBy('category.category_name');
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName && trim($categoryName)) {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= '<div style="margin-bottom: 5pt;">
+                        <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
+                        <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
+                    </div>';
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= '<div style="margin-bottom: 5pt; font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+                }
+            }
+        }
+
+        // Business Skills (if applicable)
+        if ($user->businessSkills->count() > 0) {
+            $html .= '<div class="section-title">Business Skills</div>';
+            
+            $skillsByCategory = $user->businessSkills->groupBy('category.category_name');
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName && trim($categoryName)) {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= '<div style="margin-bottom: 5pt;">
+                        <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
+                        <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
+                    </div>';
+                }
+            }
+        }
+
+        // Engineering Skills (if applicable)
+        if ($user->engineeringSkills->count() > 0) {
+            $html .= '<div class="section-title">Engineering Skills</div>';
+            
+            $skillsByCategory = $user->engineeringSkills->groupBy('category.category_name');
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName && trim($categoryName)) {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= '<div style="margin-bottom: 5pt;">
+                        <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
+                        <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
+                    </div>';
+                }
+            }
+        }
+
+        // Medical Skills (if applicable)
+        if ($user->medicalSkills->count() > 0) {
+            $html .= '<div class="section-title">Medical Skills</div>';
+            
+            $skillsByCategory = $user->medicalSkills->groupBy('category.category_name');
+            foreach ($skillsByCategory as $categoryName => $skills) {
+                if ($categoryName && trim($categoryName)) {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $html .= '<div style="margin-bottom: 5pt;">
+                        <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
+                        <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
+                    </div>';
+                }
+            }
+        }
+
         // Work Experience Section
         if ($user->experiences->count() > 0) {
-            $html .= '<div class="section-title">Work Experience</div>';
+            $html .= '<div class="section-title">Professional Experience</div>';
 
-            foreach ($user->experiences as $exp) {
+            // Sort experiences by date (newest first)
+            $experiences = $user->experiences->sortByDesc(function($exp) {
+                return $exp->start_date ? strtotime($exp->start_date) : 0;
+            });
+
+            foreach ($experiences as $exp) {
                 $html .= '
                     <div class="item">
-                        <div class="item-header">' . htmlspecialchars($exp->title) . '</div>
-                        <div class="item-sub">' . htmlspecialchars($exp->company) . '</div>
-                        <div class="item-date">' . htmlspecialchars($exp->start_date) . ' - ' . ($exp->end_date ?: 'Present') . '</div>';
+                        <div class="item-header">' . htmlspecialchars($exp->title) . '</div>';
+                
+                $companyLine = [];
+                if ($exp->company && trim($exp->company)) $companyLine[] = htmlspecialchars($exp->company);
+                if ($exp->location && trim($exp->location)) $companyLine[] = htmlspecialchars($exp->location);
+                
+                if (!empty($companyLine)) {
+                    $html .= '<div class="item-sub">' . implode(' - ', $companyLine) . '</div>';
+                }
+                
+                $startDate = $exp->start_date ? date('M Y', strtotime($exp->start_date)) : '';
+                $endDate = $exp->end_date ? date('M Y', strtotime($exp->end_date)) : 'Present';
+                $dateText = $startDate . ' - ' . $endDate;
+                if ($exp->is_internship) {
+                    $dateText .= ' (Internship)';
+                }
+                $html .= '<div class="item-date">' . $dateText . '</div>';
                 
                 // Check if description exists (using description or responsibilities field)
                 $description = $exp->description ?? $exp->responsibilities ?? '';
@@ -260,6 +495,15 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     $html .= '<div style="font-size: 9pt; color: ' . $lightTextColor . '; margin-top: 3pt;"><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</div>';
                 }
                 
+                if ($proj->link && trim($proj->link)) {
+                    $link = $proj->link;
+                    if (!preg_match('/^https?:\/\//', $link)) {
+                        $link = 'https://' . $link;
+                    }
+                    $linkText = str_replace(['http://', 'https://'], '', $proj->link);
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
+                }
+                
                 $html .= '</div>';
             }
         }
@@ -323,12 +567,13 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     $html .= '<div style="font-size: 9pt; margin-top: 3pt;">' . nl2br(htmlspecialchars($res->description)) . '</div>';
                 }
                 
-                if ($res->link) {
+                if ($res->link && trim($res->link)) {
                     $link = $res->link;
                     if (!preg_match('/^https?:\/\//', $link)) {
                         $link = 'https://' . $link;
                     }
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . ';">View Research</a></div>';
+                    $linkText = str_replace(['http://', 'https://'], '', $res->link);
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -377,6 +622,15 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     }
                 }
                 
+                if ($act->activity_link && trim($act->activity_link)) {
+                    $link = $act->activity_link;
+                    if (!preg_match('/^https?:\/\//', $link)) {
+                        $link = 'https://' . $link;
+                    }
+                    $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
+                }
+                
                 $html .= '</div>';
             }
         }
@@ -390,24 +644,46 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
         $hasContact = ($user->city && trim($user->city)) || 
                       ($user->phone && trim($user->phone)) || 
                       ($user->email && trim($user->email)) || 
-                      ($user->linkedin_profile && trim($user->linkedin_profile));
+                      ($user->profile_website && trim($user->profile_website)) ||
+                      ($user->linkedin_profile && trim($user->linkedin_profile)) ||
+                      ($user->github_profile && trim($user->github_profile));
         
         if ($hasContact) {
             $html .= '<div class="sidebar-section">
                     <div class="sidebar-title">Contact</div>';
             
             if ($user->city && trim($user->city)) {
-                $html .= '<div class="contact-info">' . htmlspecialchars($user->city) . '</div>';
+                $html .= '<div class="contact-info">📍 ' . htmlspecialchars($user->city) . '</div>';
             }
             if ($user->phone && trim($user->phone)) {
-                $html .= '<div class="contact-info">' . htmlspecialchars($user->phone) . '</div>';
+                $html .= '<div class="contact-info">📞 ' . htmlspecialchars($user->phone) . '</div>';
             }
             if ($user->email && trim($user->email)) {
-                $html .= '<div class="contact-info">' . htmlspecialchars($user->email) . '</div>';
+                $html .= '<div class="contact-info">✉️ ' . htmlspecialchars($user->email) . '</div>';
+            }
+            if ($user->profile_website && trim($user->profile_website)) {
+                $link = $user->profile_website;
+                if (!preg_match('/^https?:\/\//', $link)) {
+                    $link = 'https://' . $link;
+                }
+                $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
+                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🌐 ' . htmlspecialchars($linkText) . '</a></div>';
             }
             if ($user->linkedin_profile && trim($user->linkedin_profile)) {
+                $link = $user->linkedin_profile;
+                if (!preg_match('/^https?:\/\//', $link)) {
+                    $link = 'https://' . $link;
+                }
                 $cleanLinkedin = str_replace(['https://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile);
-                $html .= '<div class="contact-info">' . htmlspecialchars(rtrim($cleanLinkedin, '/')) . '</div>';
+                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">💼 LinkedIn: ' . htmlspecialchars(rtrim($cleanLinkedin, '/')) . '</a></div>';
+            }
+            if ($user->github_profile && trim($user->github_profile)) {
+                $link = $user->github_profile;
+                if (!preg_match('/^https?:\/\//', $link)) {
+                    $link = 'https://' . $link;
+                }
+                $cleanGithub = str_replace(['https://', 'www.', 'github.com/'], '', $user->github_profile);
+                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">💻 GitHub: ' . htmlspecialchars(rtrim($cleanGithub, '/')) . '</a></div>';
             }
             
             $html .= '</div>';
@@ -520,7 +796,33 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             foreach ($user->certifications as $cert) {
                 $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
                 if ($certName && trim($certName)) {
-                    $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . htmlspecialchars($certName) . '</li>';
+                    $certText = htmlspecialchars($certName);
+                    
+                    if ($cert->issuing_org && trim($cert->issuing_org)) {
+                        $certText .= ' - ' . htmlspecialchars($cert->issuing_org);
+                    }
+                    
+                    if ($cert->issue_date) {
+                        $issueDate = date('M Y', strtotime($cert->issue_date));
+                        $certText .= ' (' . $issueDate;
+                        if ($cert->expiration_date && $cert->expiration_date != '0000-00-00') {
+                            $expDate = date('M Y', strtotime($cert->expiration_date));
+                            $certText .= ' - ' . $expDate;
+                        }
+                        $certText .= ')';
+                    }
+                    
+                    $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $certText;
+                    
+                    if ($cert->link_driver && trim($cert->link_driver)) {
+                        $link = $cert->link_driver;
+                        if (!preg_match('/^https?:\/\//', $link)) {
+                            $link = 'https://' . $link;
+                        }
+                        $html .= '<br><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; font-size: 8pt; text-decoration: none;">🔗 View Certificate</a>';
+                    }
+                    
+                    $html .= '</li>';
                 }
             }
             $html .= '</ul>
@@ -538,6 +840,19 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     if ($m->membership_type && trim($m->membership_type)) {
                         $membershipText .= ' - ' . htmlspecialchars($m->membership_type);
                     }
+                    
+                    if ($m->start_date_membership || $m->end_date_membership) {
+                        $startDate = $m->start_date_membership ? date('M Y', strtotime($m->start_date_membership)) : '';
+                        $endDate = $m->end_date_membership ? date('M Y', strtotime($m->end_date_membership)) : 'Present';
+                        if ($startDate || $endDate) {
+                            $membershipText .= ' (' . $startDate . ' - ' . $endDate . ')';
+                        }
+                    }
+                    
+                    if ($m->membership_status && trim($m->membership_status)) {
+                        $membershipText .= ' [' . htmlspecialchars($m->membership_status) . ']';
+                    }
+                    
                     $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $membershipText . '</li>';
                 }
             }
