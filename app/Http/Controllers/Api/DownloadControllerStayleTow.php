@@ -288,32 +288,6 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             $html .= '<div class="job-title">' . htmlspecialchars($user->job_title) . '</div>';
         }
         
-        // Contact information (ATS-friendly format)
-        $contact = [];
-        if ($user->city && trim($user->city)) $contact[] = htmlspecialchars($user->city);
-        if ($user->phone && trim($user->phone)) $contact[] = htmlspecialchars($user->phone);
-        if ($user->email && trim($user->email)) $contact[] = htmlspecialchars($user->email);
-        if ($user->profile_website && trim($user->profile_website)) {
-            $link = $user->profile_website;
-            if (!preg_match('/^https?:\/\//', $link)) {
-                $link = 'https://' . $link;
-            }
-            $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
-            $contact[] = htmlspecialchars($linkText);
-        }
-        if ($user->linkedin_profile && trim($user->linkedin_profile)) {
-            $cleanLinkedin = str_replace(['https://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile);
-            $contact[] = 'LinkedIn: ' . htmlspecialchars(rtrim($cleanLinkedin, '/'));
-        }
-        if ($user->github_profile && trim($user->github_profile)) {
-            $cleanGithub = str_replace(['https://', 'www.', 'github.com/'], '', $user->github_profile);
-            $contact[] = 'GitHub: ' . htmlspecialchars(rtrim($cleanGithub, '/'));
-        }
-        
-        if (!empty($contact)) {
-            $html .= '<div style="font-size: 9pt; margin-bottom: 10pt; text-align: center; color: ' . $textColor . ';">' . implode(' | ', $contact) . '</div>';
-        }
-        
         // Professional Summary (ATS-optimized - appears first)
         if ($summary && trim($summary)) {
             $html .= '<div class="summary">
@@ -653,10 +627,10 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     <div class="sidebar-title">Contact</div>';
             
             if ($user->city && trim($user->city)) {
-                $html .= '<div class="contact-info">📍 ' . htmlspecialchars($user->city) . '</div>';
+                $html .= '<div class="contact-info">' . htmlspecialchars($user->city) . '</div>';
             }
             if ($user->phone && trim($user->phone)) {
-                $html .= '<div class="contact-info">📞 ' . htmlspecialchars($user->phone) . '</div>';
+                $html .= '<div class="contact-info">' . htmlspecialchars($user->phone) . '</div>';
             }
             if ($user->email && trim($user->email)) {
                 $html .= '<div class="contact-info">✉️ ' . htmlspecialchars($user->email) . '</div>';
@@ -667,23 +641,25 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     $link = 'https://' . $link;
                 }
                 $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
-                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🌐 ' . htmlspecialchars($linkText) . '</a></div>';
+                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
             }
             if ($user->linkedin_profile && trim($user->linkedin_profile)) {
                 $link = $user->linkedin_profile;
                 if (!preg_match('/^https?:\/\//', $link)) {
                     $link = 'https://' . $link;
                 }
-                $cleanLinkedin = str_replace(['https://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile);
-                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">💼 LinkedIn: ' . htmlspecialchars(rtrim($cleanLinkedin, '/')) . '</a></div>';
+                $cleanLinkedin = str_replace(['https://', 'http://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile);
+                $cleanLinkedin = rtrim($cleanLinkedin, '/');
+                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">LinkedIn: ' . htmlspecialchars($cleanLinkedin) . '</a></div>';
             }
             if ($user->github_profile && trim($user->github_profile)) {
                 $link = $user->github_profile;
                 if (!preg_match('/^https?:\/\//', $link)) {
                     $link = 'https://' . $link;
                 }
-                $cleanGithub = str_replace(['https://', 'www.', 'github.com/'], '', $user->github_profile);
-                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">💻 GitHub: ' . htmlspecialchars(rtrim($cleanGithub, '/')) . '</a></div>';
+                $cleanGithub = str_replace(['https://', 'http://', 'www.', 'github.com/'], '', $user->github_profile);
+                $cleanGithub = rtrim($cleanGithub, '/');
+                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">GitHub: ' . htmlspecialchars($cleanGithub) . '</a></div>';
             }
             
             $html .= '</div>';
