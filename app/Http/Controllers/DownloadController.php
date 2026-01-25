@@ -755,14 +755,14 @@ class DownloadController extends Controller
         $section->addText(
             strtoupper(htmlspecialchars($user->name, ENT_QUOTES, 'UTF-8')),
             ['size' => 18, 'bold' => true],
-            ['alignment' => Jc::CENTER]
+            ['alignment' => Jc::CENTER, 'spaceAfter' => 60]
         );
 
         if ($user->job_title) {
             $section->addText(
                 htmlspecialchars($user->job_title, ENT_QUOTES, 'UTF-8'),
                 ['size' => 11],
-                ['alignment' => Jc::CENTER]
+                ['alignment' => Jc::CENTER, 'spaceAfter' => 120]
             );
         }
 
@@ -780,114 +780,178 @@ class DownloadController extends Controller
             $section->addText(
                 implode(' | ', $contact),
                 ['size' => 10],
-                ['alignment' => Jc::CENTER]
+                ['alignment' => Jc::CENTER, 'spaceAfter' => 240]
             );
         }
 
-        $section->addTextBreak(1);
+        // Helper function to add section header with underline
+        $addSectionHeader = function($title) use ($section) {
+            $section->addText($title, ['bold' => true, 'size' => 12], ['spaceAfter' => 60]);
+            // Add underline using repeated character (matching PDF style)
+            $section->addText(
+                str_repeat('━', 100),
+                ['bold' => true, 'size' => 8, 'color' => '000000'],
+                ['spaceAfter' => 120]
+            );
+        };
 
         // 1. Professional Summary
         if ($summary) {
-            $section->addText('PROFESSIONAL SUMMARY', ['bold' => true, 'size' => 12]);
-            $section->addText(htmlspecialchars($summary, ENT_QUOTES, 'UTF-8'));
-            $section->addTextBreak(1);
+            $addSectionHeader('PROFESSIONAL SUMMARY');
+            $section->addText(htmlspecialchars($summary, ENT_QUOTES, 'UTF-8'), [], ['spaceAfter' => 240]);
         }
 
         // 2. Technical Skills (ATS filters from here - MUST be before Experience)
         // Technical Skills
         if ($user->skills->count() > 0) {
-            $section->addText('TECHNICAL SKILLS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('TECHNICAL SKILLS');
             
             $skillsByCategory = $user->skills->groupBy('category.category_name');
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName) {
-                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $section->addText(
+                        htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . ': ' . 
+                        implode(', ', array_map(function($s) {
+                            return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                        }, $skillNames)),
+                        [],
+                        ['spaceAfter' => 60]
+                    );
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $section->addText(
+                        implode(', ', array_map(function($s) {
+                            return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                        }, $skillNames)),
+                        [],
+                        ['spaceAfter' => 60]
+                    );
                 }
-                $skillNames = $skills->pluck('skill_name')->toArray();
-                $section->addText(implode(', ', array_map(function($s) {
-                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-                }, $skillNames)));
             }
             
-            $section->addTextBreak(1);
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // Business Skills (if applicable)
         if ($user->businessSkills->count() > 0) {
-            $section->addText('BUSINESS SKILLS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('BUSINESS SKILLS');
             
             $skillsByCategory = $user->businessSkills->groupBy('category.category_name');
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName) {
-                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $section->addText(
+                        htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . ': ' . 
+                        implode(', ', array_map(function($s) {
+                            return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                        }, $skillNames)),
+                        [],
+                        ['spaceAfter' => 60]
+                    );
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $section->addText(
+                        implode(', ', array_map(function($s) {
+                            return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                        }, $skillNames)),
+                        [],
+                        ['spaceAfter' => 60]
+                    );
                 }
-                $skillNames = $skills->pluck('skill_name')->toArray();
-                $section->addText(implode(', ', array_map(function($s) {
-                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-                }, $skillNames)));
             }
             
-            $section->addTextBreak(1);
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // Engineering Skills (if applicable)
         if ($user->engineeringSkills->count() > 0) {
-            $section->addText('ENGINEERING SKILLS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('ENGINEERING SKILLS');
             
             $skillsByCategory = $user->engineeringSkills->groupBy('category.category_name');
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName) {
-                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $section->addText(
+                        htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . ': ' . 
+                        implode(', ', array_map(function($s) {
+                            return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                        }, $skillNames)),
+                        [],
+                        ['spaceAfter' => 60]
+                    );
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $section->addText(
+                        implode(', ', array_map(function($s) {
+                            return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                        }, $skillNames)),
+                        [],
+                        ['spaceAfter' => 60]
+                    );
                 }
-                $skillNames = $skills->pluck('skill_name')->toArray();
-                $section->addText(implode(', ', array_map(function($s) {
-                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-                }, $skillNames)));
             }
             
-            $section->addTextBreak(1);
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // Medical Skills (if applicable)
         if ($user->medicalSkills->count() > 0) {
-            $section->addText('MEDICAL SKILLS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('MEDICAL SKILLS');
             
             $skillsByCategory = $user->medicalSkills->groupBy('category.category_name');
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName) {
-                    $section->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $section->addText(
+                        htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8') . ': ' . 
+                        implode(', ', array_map(function($s) {
+                            return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                        }, $skillNames)),
+                        [],
+                        ['spaceAfter' => 60]
+                    );
+                } else {
+                    $skillNames = $skills->pluck('skill_name')->toArray();
+                    $section->addText(
+                        implode(', ', array_map(function($s) {
+                            return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+                        }, $skillNames)),
+                        [],
+                        ['spaceAfter' => 60]
+                    );
                 }
-                $skillNames = $skills->pluck('skill_name')->toArray();
-                $section->addText(implode(', ', array_map(function($s) {
-                    return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-                }, $skillNames)));
             }
             
-            $section->addTextBreak(1);
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // 3. Work Experience (Most important section for HR)
         if ($user->experiences->count() > 0) {
-            $section->addText('PROFESSIONAL EXPERIENCE', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('PROFESSIONAL EXPERIENCE');
             
             $experiences = $user->experiences->sortByDesc(function($exp) {
                 return $exp->start_date ? strtotime($exp->start_date) : 0;
             });
             
             foreach ($experiences as $exp) {
-                $section->addText(htmlspecialchars($exp->title, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                $section->addText(htmlspecialchars($exp->title, ENT_QUOTES, 'UTF-8'), ['bold' => true, 'size' => 11], ['spaceAfter' => 60]);
                 
                 $companyLine = [];
                 if ($exp->company) $companyLine[] = htmlspecialchars($exp->company);
                 if ($exp->location) $companyLine[] = htmlspecialchars($exp->location);
                 
                 if (!empty($companyLine)) {
-                    $section->addText(implode(' - ', $companyLine), ['bold' => true]);
+                    $section->addText(implode(' - ', $companyLine), ['bold' => true], ['spaceAfter' => 60]);
                 }
                 
                 $startDate = $exp->start_date ? date('M Y', strtotime($exp->start_date)) : '';
                 $endDate = $exp->end_date ? date('M Y', strtotime($exp->end_date)) : 'Present';
-                $section->addText($startDate . ' - ' . $endDate, ['italic' => true, 'size' => 10]);
+                $dateText = $startDate . ' - ' . $endDate;
+                if ($exp->is_internship) {
+                    $dateText .= ' (Internship)';
+                }
+                $section->addText($dateText, ['italic' => true, 'size' => 10], ['spaceAfter' => 60]);
                 
                 if ($exp->description) {
                     $bullets = $this->formatBulletPoints($exp->description);
@@ -896,18 +960,18 @@ class DownloadController extends Controller
                     }
                 }
                 
-                $section->addTextBreak(1);
+                $section->addText('', [], ['spaceAfter' => 120]);
             }
             
-            $section->addTextBreak(1);
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // 4. Projects (Especially important for Tech/Fresh/Juniors)
         if ($user->projects->count() > 0) {
-            $section->addText('PROJECTS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('PROJECTS');
             
             foreach ($user->projects as $proj) {
-                $section->addText(htmlspecialchars($proj->project_title, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                $section->addText(htmlspecialchars($proj->project_title, ENT_QUOTES, 'UTF-8'), ['bold' => true, 'size' => 11], ['spaceAfter' => 60]);
                 
                 if ($proj->description) {
                     $bullets = $this->formatBulletPoints($proj->description);
@@ -917,18 +981,18 @@ class DownloadController extends Controller
                 }
                 
                 if ($proj->technologies_used) {
-                    $section->addText('Technologies: ' . htmlspecialchars($proj->technologies_used, ENT_QUOTES, 'UTF-8'), ['size' => 10]);
+                    $section->addText('Technologies: ' . htmlspecialchars($proj->technologies_used, ENT_QUOTES, 'UTF-8'), ['size' => 10], ['spaceAfter' => 120]);
+                } else {
+                    $section->addText('', [], ['spaceAfter' => 120]);
                 }
-                
-                $section->addTextBreak(1);
             }
             
-            $section->addTextBreak(1);
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // 5. Education
         if ($education->count() > 0) {
-            $section->addText('EDUCATION', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('EDUCATION');
             
             foreach ($education as $edu) {
                 $degree = $edu->degree_name ?? $edu->degree ?? '';
@@ -940,26 +1004,28 @@ class DownloadController extends Controller
                     if ($field) {
                         $degreeText .= ' in ' . htmlspecialchars($field, ENT_QUOTES, 'UTF-8');
                     }
-                    $section->addText($degreeText, ['bold' => true]);
+                    $section->addText($degreeText, ['bold' => true, 'size' => 11], ['spaceAfter' => 60]);
                 }
                 
                 if ($university) {
-                    $section->addText(htmlspecialchars($university, ENT_QUOTES, 'UTF-8'));
+                    $section->addText(htmlspecialchars($university, ENT_QUOTES, 'UTF-8'), [], ['spaceAfter' => 60]);
                 }
                 
-                $startYear = $edu->start_year ?? '';
-                $endYear = ($edu->end_year ?? 0) == 0 ? 'Present' : ($edu->end_year ?? '');
+                $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
+                $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
                 if ($startYear || $endYear) {
-                    $section->addText($startYear . ' - ' . $endYear, ['italic' => true, 'size' => 10]);
+                    $section->addText($startYear . ' - ' . $endYear, ['italic' => true, 'size' => 10], ['spaceAfter' => 120]);
+                } else {
+                    $section->addText('', [], ['spaceAfter' => 120]);
                 }
-                
-                $section->addTextBreak(1);
             }
+            
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // 6. Certifications (Supporting, not essential)
         if ($user->certifications->count() > 0) {
-            $section->addText('CERTIFICATIONS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('CERTIFICATIONS');
             
             foreach ($user->certifications as $cert) {
                 $certText = htmlspecialchars($cert->certifications_name, ENT_QUOTES, 'UTF-8');
@@ -975,36 +1041,32 @@ class DownloadController extends Controller
                 $section->addListItem($certText, 0);
             }
             
-            $section->addTextBreak(1);
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // 7. Analytical Skills (Only if strong)
         if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
-            $section->addText('ANALYTICAL SKILLS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('ANALYTICAL SKILLS');
             
             $skillNames = $user->analyticalSkills->pluck('skill_name')->toArray();
             $section->addText(implode(', ', array_map(function($s) {
                 return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-            }, $skillNames)));
-            
-            $section->addTextBreak(1);
+            }, $skillNames)), [], ['spaceAfter' => 120]);
         }
 
         // 8. Soft Skills (Short, no filler)
         if ($user->softSkills->count() >= 3) {
-            $section->addText('SOFT SKILLS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('SOFT SKILLS');
             
             $skillNames = $user->softSkills->pluck('soft_name')->toArray();
             $section->addText(implode(', ', array_map(function($s) {
                 return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
-            }, $skillNames)));
-            
-            $section->addTextBreak(1);
+            }, $skillNames)), [], ['spaceAfter' => 120]);
         }
 
         // 9. Languages
         if ($user->languages->count() > 0) {
-            $section->addText('LANGUAGES', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('LANGUAGES');
             
             foreach ($user->languages as $lang) {
                 $section->addListItem(
@@ -1014,22 +1076,22 @@ class DownloadController extends Controller
                 );
             }
             
-            $section->addTextBreak(1);
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // 10. Activities & Volunteer Work (Last, optional)
         if ($user->activities->count() > 0) {
-            $section->addText('ACTIVITIES & VOLUNTEER WORK', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('ACTIVITIES & VOLUNTEER WORK');
             
             foreach ($user->activities as $act) {
-                $section->addText(htmlspecialchars($act->activity_title, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                $section->addText(htmlspecialchars($act->activity_title, ENT_QUOTES, 'UTF-8'), ['bold' => true, 'size' => 11], ['spaceAfter' => 60]);
                 
                 if ($act->organization) {
-                    $section->addText(htmlspecialchars($act->organization, ENT_QUOTES, 'UTF-8'), ['bold' => true]);
+                    $section->addText(htmlspecialchars($act->organization, ENT_QUOTES, 'UTF-8'), ['bold' => true], ['spaceAfter' => 60]);
                 }
                 
                 if ($act->activity_date) {
-                    $section->addText(date('M Y', strtotime($act->activity_date)), ['italic' => true, 'size' => 10]);
+                    $section->addText(date('M Y', strtotime($act->activity_date)), ['italic' => true, 'size' => 10], ['spaceAfter' => 60]);
                 }
                 
                 if ($act->description_activity) {
@@ -1039,13 +1101,15 @@ class DownloadController extends Controller
                     }
                 }
                 
-                $section->addTextBreak(1);
+                $section->addText('', [], ['spaceAfter' => 120]);
             }
+            
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
         // Professional Memberships (if applicable)
         if ($user->memberships->count() > 0) {
-            $section->addText('PROFESSIONAL MEMBERSHIPS', ['bold' => true, 'size' => 12]);
+            $addSectionHeader('PROFESSIONAL MEMBERSHIPS');
             
             foreach ($user->memberships as $m) {
                 $membershipText = htmlspecialchars($m->organization_name, ENT_QUOTES, 'UTF-8');
