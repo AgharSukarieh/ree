@@ -10,8 +10,8 @@ use Mpdf\Mpdf;
 class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
 {
     /**
-     * Generate and download PDF CV (High-End Design & ATS-Optimized)
-     * This version is designed to match the two-column professional layout.
+     * Generate and download PDF CV (100% ATS-Optimized)
+     * Single-column layout optimized for Applicant Tracking Systems
      */
     public function generatePdf($qr_id)
     {
@@ -56,10 +56,10 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
         // Generate optimized professional summary for ATS
         $summary = $this->generateProfessionalSummary($user, $education);
 
-        // Prepare HTML with the high-end modern design (ATS-optimized)
-        $html = $this->buildModernATSHtml($user, $education, $summary);
+        // Build ATS-optimized HTML (single-column layout)
+        $html = $this->buildATSOptimizedHtml($user, $education, $summary);
 
-        // Generate PDF using MPDF (ATS-optimized settings)
+        // Generate PDF using MPDF with ATS-optimized settings
         try {
             $mpdf = new Mpdf([
                 'mode' => 'utf-8',
@@ -78,9 +78,9 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             $mpdf->autoScriptToLang = true;
             $mpdf->autoLangToFont = true;
             $mpdf->SetDisplayMode('fullpage');
-            
-            // Enable text selection (important for ATS parsing)
             $mpdf->shrink_tables_to_fit = 1;
+            $mpdf->SetHTMLFooter('');
+            $mpdf->SetAutoPageBreak(true, 15);
             
             $mpdf->WriteHTML($html);
             
@@ -107,18 +107,15 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
         // Generate summary from available data
         $parts = [];
         
-        // Job title and years of experience
         if ($user->job_title) {
             $parts[] = $user->job_title;
         }
         
-        // Major/field
         if ($user->major) {
             $majorText = $this->formatMajor($user->major);
             $parts[] = "specialized in {$majorText}";
         }
         
-        // Key skills mention
         if ($user->skills->count() > 0) {
             $topSkills = $user->skills->take(3)->pluck('skill_name')->toArray();
             if (!empty($topSkills)) {
@@ -126,7 +123,6 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             }
         }
         
-        // Experience level
         if ($user->experiences->count() > 0) {
             $parts[] = "with proven experience in";
             $expTypes = $user->experiences->pluck('title')->unique()->take(2)->toArray();
@@ -135,7 +131,6 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             }
         }
         
-        // Value proposition
         $parts[] = "focused on delivering high-quality solutions and driving results";
         
         $generated = ucfirst(implode(' ', $parts)) . '.';
@@ -144,21 +139,19 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
     }
 
     /**
-     * Enhance summary with action verbs and keywords
+     * Enhance summary with proper formatting for ATS
      */
     private function enhanceSummary($summary, $user)
     {
-        // Clean and normalize
         $summary = trim($summary);
         $summary = preg_replace('/\s+/', ' ', $summary);
-        
-        // Ensure it starts with capital and ends with period
         $summary = ucfirst($summary);
+        
         if (!preg_match('/[.!?]$/', $summary)) {
             $summary .= '.';
         }
         
-        // Limit length for ATS (2-3 sentences, max 150 words)
+        // Limit length for ATS (max 150 words)
         $sentences = preg_split('/(?<=[.!?])\s+/', $summary);
         $final = [];
         $wordCount = 0;
@@ -192,12 +185,67 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
     }
 
     /**
-     * Build Modern, High-End, ATS-Optimized HTML
-     * Layout: Two-column structure with professional blue accents.
+     * Collect all skills into a single unified list
      */
-    private function buildModernATSHtml($user, $education, $summary)
+    private function collectAllSkills($user)
     {
-        $primaryColor = '#3E5C9A'; // Professional Blue
+        $allSkills = [];
+        
+        // Technical Skills
+        foreach ($user->skills as $skill) {
+            if ($skill->skill_name && trim($skill->skill_name)) {
+                $allSkills[] = trim($skill->skill_name);
+            }
+        }
+        
+        // Soft Skills
+        foreach ($user->softSkills as $skill) {
+            if ($skill->soft_name && trim($skill->soft_name)) {
+                $allSkills[] = trim($skill->soft_name);
+            }
+        }
+        
+        // Business Skills
+        foreach ($user->businessSkills as $skill) {
+            if ($skill->skill_name && trim($skill->skill_name)) {
+                $allSkills[] = trim($skill->skill_name);
+            }
+        }
+        
+        // Engineering Skills
+        foreach ($user->engineeringSkills as $skill) {
+            if ($skill->skill_name && trim($skill->skill_name)) {
+                $allSkills[] = trim($skill->skill_name);
+            }
+        }
+        
+        // Medical Skills
+        foreach ($user->medicalSkills as $skill) {
+            if ($skill->skill_name && trim($skill->skill_name)) {
+                $allSkills[] = trim($skill->skill_name);
+            }
+        }
+        
+        // Analytical Skills
+        if ($user->major === 'IT') {
+            foreach ($user->analyticalSkills as $skill) {
+                if ($skill->skill_name && trim($skill->skill_name)) {
+                    $allSkills[] = trim($skill->skill_name);
+                }
+            }
+        }
+        
+        // Remove duplicates and return
+        return array_unique($allSkills);
+    }
+
+    /**
+     * Build 100% ATS-Optimized HTML
+     * Single-column layout with standard section titles
+     */
+    private function buildATSOptimizedHtml($user, $education, $summary)
+    {
+        $primaryColor = '#3E5C9A';
         $textColor = '#333333';
         $lightTextColor = '#666666';
 
@@ -205,122 +253,114 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
         <style>
             @page { margin: 30pt; }
             body { 
-                font-family: "Arial", "Helvetica", sans-serif; 
+                font-family: Arial, Helvetica, sans-serif; 
                 color: ' . $textColor . '; 
-                line-height: 1.5; 
+                line-height: 1.6; 
                 font-size: 10pt;
                 margin: 0;
                 padding: 0;
             }
-            .container { width: 100%; }
             
-            /* Header Section */
+            /* Header */
             .header { 
-                margin-bottom: 24pt; 
+                margin-bottom: 20pt; 
                 padding-bottom: 12pt;
+                border-bottom: 1pt solid #dddddd;
             }
             .name { 
-                font-size: 26pt; 
+                font-size: 24pt; 
                 font-weight: bold; 
                 color: ' . $primaryColor . '; 
-                margin-bottom: 2pt;
-                text-transform: capitalize;
+                margin-bottom: 4pt;
             }
             .job-title {
-                font-size: 13pt;
+                font-size: 12pt;
                 font-weight: bold;
                 color: #444444;
-                margin-bottom: 10pt;
+                margin-bottom: 8pt;
+            }
+            .contact-header {
+                font-size: 9pt;
+                color: ' . $textColor . ';
+                margin-bottom: 8pt;
+                line-height: 1.5;
             }
             .summary {
                 font-size: 10pt;
                 color: ' . $textColor . ';
                 margin-bottom: 20pt;
                 text-align: justify;
-                width: 100%;
+                line-height: 1.7;
             }
             
-            /* Layout Columns */
-            .main-content { width: 68%; float: left; }
-            .sidebar { width: 28%; float: right; }
-            
-            /* Section Styling */
+            /* Section Titles - Standard ATS format */
             .section-title {
                 font-size: 12pt;
                 font-weight: bold;
                 color: ' . $primaryColor . ';
-                margin-bottom: 12pt;
-                margin-top: 20pt;
+                margin-bottom: 10pt;
+                margin-top: 18pt;
                 text-transform: uppercase;
-                border-bottom: 0.5pt solid #dddddd;
-                padding-bottom: 4pt;
+                border-bottom: 1pt solid #dddddd;
+                padding-bottom: 3pt;
+                page-break-after: avoid;
             }
             
             /* Experience & Education Items */
             .item { 
-                margin-bottom: 16pt; 
-                padding-bottom: 10pt;
+                margin-bottom: 14pt; 
+                padding-bottom: 8pt;
+                page-break-inside: avoid;
             }
             .item-header { 
                 font-weight: bold; 
                 font-size: 10.5pt; 
                 color: #000000; 
-                margin-bottom: 4pt;
+                margin-bottom: 3pt;
             }
             .item-sub { 
                 font-weight: bold; 
                 color: #555555; 
                 font-size: 10pt; 
-                margin-bottom: 3pt;
+                margin-bottom: 2pt;
             }
             .item-date { 
                 color: ' . $lightTextColor . '; 
                 font-size: 9pt; 
-                margin-bottom: 5pt; 
+                margin-bottom: 4pt; 
                 font-style: italic; 
             }
             
             .bullet-list { 
-                margin-top: 5pt; 
-                margin-bottom: 8pt; 
-                padding-left: 14pt; 
+                margin-top: 4pt; 
+                margin-bottom: 6pt; 
+                padding-left: 16pt; 
+                page-break-inside: avoid;
             }
             .bullet-item { 
-                margin-bottom: 3pt; 
+                margin-bottom: 2pt; 
                 list-style-type: disc; 
             }
             
-            /* Sidebar Styling */
-            .sidebar-section { 
-                margin-bottom: 20pt; 
-                padding-bottom: 10pt;
+            .skill-list {
+                margin: 0;
+                padding-left: 0;
+                list-style: none;
             }
-            .sidebar-title {
-                font-size: 11pt;
-                font-weight: bold;
-                color: ' . $primaryColor . ';
-                margin-bottom: 8pt;
-                border-bottom: 0.5pt solid #dddddd;
-                padding-bottom: 3pt;
+            .skill-item {
+                display: inline;
+                margin-right: 8pt;
+                font-size: 9.5pt;
             }
-            .contact-info { 
-                font-size: 9pt; 
-                margin-bottom: 5pt; 
-                color: ' . $textColor . '; 
+            .skill-item:after {
+                content: ", ";
             }
-            .skill-list { 
-                padding-left: 12pt; 
-                margin: 0; 
+            .skill-item:last-child:after {
+                content: "";
             }
-            .skill-item { 
-                margin-bottom: 3pt; 
-                font-size: 9pt; 
-            }
-            
-            .clearfix { clear: both; }
         </style>
 
-        <div class="container">
+        <div>
             <!-- Header -->
             <div class="header">
                 <div class="name">' . htmlspecialchars(strtoupper($user->name)) . '</div>';
@@ -329,108 +369,93 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             $html .= '<div class="job-title">' . htmlspecialchars($user->job_title) . '</div>';
         }
         
-        // Professional Summary (ATS-optimized - appears first)
+        // Contact information in header
+        $contactInfo = [];
+        if ($user->city && trim($user->city)) {
+            $contactInfo[] = htmlspecialchars($user->city);
+        }
+        if ($user->phone && trim($user->phone)) {
+            $contactInfo[] = htmlspecialchars($user->phone);
+        }
+        if ($user->email && trim($user->email)) {
+            $contactInfo[] = htmlspecialchars($user->email);
+        }
+        
+        // Profile URL
+        $profileUrl = route('profile', $user->qr_id);
+        $contactInfo[] = 'Profile: ' . htmlspecialchars($profileUrl);
+        
+        if ($user->linkedin_profile && trim($user->linkedin_profile)) {
+            $link = $user->linkedin_profile;
+            if (!preg_match('/^https?:\/\//', $link)) {
+                $link = 'https://' . $link;
+            }
+            $contactInfo[] = 'LinkedIn: ' . htmlspecialchars($link);
+        }
+        if ($user->github_profile && trim($user->github_profile)) {
+            $link = $user->github_profile;
+            if (!preg_match('/^https?:\/\//', $link)) {
+                $link = 'https://' . $link;
+            }
+            $contactInfo[] = 'GitHub: ' . htmlspecialchars($link);
+        }
+        if ($user->profile_website && trim($user->profile_website)) {
+            $link = $user->profile_website;
+            if (!preg_match('/^https?:\/\//', $link)) {
+                $link = 'https://' . $link;
+            }
+            $contactInfo[] = 'Portfolio: ' . htmlspecialchars($link);
+        }
+        
+        if (!empty($contactInfo)) {
+            $html .= '<div class="contact-header">' . implode(' | ', $contactInfo) . '</div>';
+        }
+        
+        // Summary Section (ATS standard: "Summary")
         if ($summary && trim($summary)) {
             $html .= '<div class="summary">
-                    <strong style="font-size: 11pt; display: block; margin-bottom: 5pt;">PROFESSIONAL SUMMARY</strong>
-                    ' . nl2br(htmlspecialchars($summary)) . '
+                    <div class="section-title">Summary</div>
+                    <div>' . nl2br(htmlspecialchars($summary)) . '</div>
                 </div>';
         } else if ($user->profile_summary && trim($user->profile_summary)) {
             $html .= '<div class="summary">
-                    <strong style="font-size: 11pt; display: block; margin-bottom: 5pt;">PROFESSIONAL SUMMARY</strong>
-                    ' . nl2br(htmlspecialchars($user->profile_summary)) . '
+                    <div class="section-title">Summary</div>
+                    <div>' . nl2br(htmlspecialchars($user->profile_summary)) . '</div>
                 </div>';
         }
         
-        $html .= '</div>
-            
-            <!-- Main Column -->
-            <div class="main-content">';
+        $html .= '</div>';
 
-        // Technical Skills Section (ATS filters from here - MUST be before Experience)
-        if ($user->skills->count() > 0) {
-            $html .= '<div class="section-title">Technical Skills</div>';
-            
-            $skillsByCategory = $user->skills->groupBy('category.category_name');
-            foreach ($skillsByCategory as $categoryName => $skills) {
-                if ($categoryName && trim($categoryName)) {
-                    $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 5pt;">
-                        <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
-                        <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
-                    </div>';
-                } else {
-                    $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 5pt; font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
-                }
+        // Skills Section - Consolidated (ATS standard: "Skills")
+        $allSkills = $this->collectAllSkills($user);
+        if (!empty($allSkills)) {
+            $html .= '<div class="section-title">Skills</div>';
+            $html .= '<ul class="skill-list">';
+            foreach ($allSkills as $skill) {
+                $html .= '<li class="skill-item">' . htmlspecialchars($skill) . '</li>';
             }
+            $html .= '</ul>';
         }
 
-        // Business Skills (if applicable)
-        if ($user->businessSkills->count() > 0) {
-            $html .= '<div class="section-title">Business Skills</div>';
-            
-            $skillsByCategory = $user->businessSkills->groupBy('category.category_name');
-            foreach ($skillsByCategory as $categoryName => $skills) {
-                if ($categoryName && trim($categoryName)) {
-                    $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 5pt;">
-                        <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
-                        <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
-                    </div>';
-                }
-            }
-        }
-
-        // Engineering Skills (if applicable)
-        if ($user->engineeringSkills->count() > 0) {
-            $html .= '<div class="section-title">Engineering Skills</div>';
-            
-            $skillsByCategory = $user->engineeringSkills->groupBy('category.category_name');
-            foreach ($skillsByCategory as $categoryName => $skills) {
-                if ($categoryName && trim($categoryName)) {
-                    $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 5pt;">
-                        <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
-                        <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
-                    </div>';
-                }
-            }
-        }
-
-        // Medical Skills (if applicable)
-        if ($user->medicalSkills->count() > 0) {
-            $html .= '<div class="section-title">Medical Skills</div>';
-            
-            $skillsByCategory = $user->medicalSkills->groupBy('category.category_name');
-            foreach ($skillsByCategory as $categoryName => $skills) {
-                if ($categoryName && trim($categoryName)) {
-                    $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 5pt;">
-                        <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
-                        <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
-                    </div>';
-                }
-            }
-        }
-
-        // Work Experience Section
+        // Work Experience Section (ATS standard: "Work Experience")
         if ($user->experiences->count() > 0) {
-            $html .= '<div class="section-title">Professional Experience</div>';
+            $html .= '<div class="section-title">Work Experience</div>';
 
-            // Sort experiences by date (newest first)
             $experiences = $user->experiences->sortByDesc(function($exp) {
                 return $exp->start_date ? strtotime($exp->start_date) : 0;
             });
 
             foreach ($experiences as $exp) {
-                $html .= '
-                    <div class="item">
+                $html .= '<div class="item">
                         <div class="item-header">' . htmlspecialchars($exp->title) . '</div>';
                 
                 $companyLine = [];
-                if ($exp->company && trim($exp->company)) $companyLine[] = htmlspecialchars($exp->company);
-                if ($exp->location && trim($exp->location)) $companyLine[] = htmlspecialchars($exp->location);
+                if ($exp->company && trim($exp->company)) {
+                    $companyLine[] = htmlspecialchars($exp->company);
+                }
+                if ($exp->location && trim($exp->location)) {
+                    $companyLine[] = htmlspecialchars($exp->location);
+                }
                 
                 if (!empty($companyLine)) {
                     $html .= '<div class="item-sub">' . implode(' - ', $companyLine) . '</div>';
@@ -444,7 +469,6 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 }
                 $html .= '<div class="item-date">' . $dateText . '</div>';
                 
-                // Check if description exists (using description or responsibilities field)
                 $description = $exp->description ?? $exp->responsibilities ?? '';
                 if ($description && trim($description)) {
                     $responsibilities = explode("\n", $description);
@@ -452,7 +476,8 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     foreach ($responsibilities as $res) {
                         $res = trim($res);
                         if (!empty($res)) {
-                            $res = trim($res, "•- *");
+                            $res = preg_replace('/^[-•*]\s*/', '', $res);
+                            $res = trim($res);
                             if (!empty($res)) {
                                 $validItems[] = $res;
                             }
@@ -472,14 +497,52 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             }
         }
 
+        // Education Section (ATS standard: "Education")
+        if ($education->count() > 0) {
+            $html .= '<div class="section-title">Education</div>';
+
+            foreach ($education as $edu) {
+                $degree = $edu->degree_name ?? $edu->degree ?? '';
+                $university = $edu->university_name ?? $edu->institution ?? '';
+                $field = $edu->field_of_study ?? '';
+                
+                if ($degree || $university) {
+                    $html .= '<div class="item">
+                            <div class="item-header">';
+                    
+                    if ($degree) {
+                        $degreeText = htmlspecialchars($degree);
+                        if ($field) {
+                            $degreeText .= ' in ' . htmlspecialchars($field);
+                        }
+                        $html .= $degreeText;
+                    } else if ($field) {
+                        $html .= htmlspecialchars($field);
+                    }
+                    
+                    $html .= '</div>';
+                    
+                    if ($university) {
+                        $html .= '<div class="item-sub">' . htmlspecialchars($university) . '</div>';
+                    }
+                    
+                    $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
+                    $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
+                    if ($startYear || $endYear) {
+                        $html .= '<div class="item-date">' . $startYear . ' - ' . $endYear . '</div>';
+                    }
+                    
+                    $html .= '</div>';
+                }
+            }
+        }
+
         // Projects Section
         if ($user->projects->count() > 0) {
-            $html .= '
-                <div class="section-title">Projects</div>';
+            $html .= '<div class="section-title">Projects</div>';
             
             foreach ($user->projects as $proj) {
-                $html .= '
-                    <div class="item">
+                $html .= '<div class="item">
                         <div class="item-header">' . htmlspecialchars($proj->project_title) . '</div>';
                 
                 if ($proj->description && trim($proj->description)) {
@@ -515,48 +578,95 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     if (!preg_match('/^https?:\/\//', $link)) {
                         $link = 'https://' . $link;
                     }
-                    $linkText = str_replace(['http://', 'https://'], '', $proj->link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
                 }
                 
                 $html .= '</div>';
             }
         }
 
-        // Educational Background Section
-        if ($education->count() > 0) {
-            $html .= '<div class="section-title">Educational Background</div>';
-
-            foreach ($education as $edu) {
-                $degree = $edu->degree_name ?? $edu->degree ?? '';
-                $university = $edu->university_name ?? $edu->institution ?? '';
-                $field = $edu->field_of_study ?? '';
-                
-                if ($degree || $university) {
-                    $html .= '
-                        <div class="item">
-                            <div class="item-header">';
+        // Certifications Section
+        $hasCertifications = false;
+        foreach ($user->certifications as $cert) {
+            $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
+            if ($certName && trim($certName)) {
+                $hasCertifications = true;
+                break;
+            }
+        }
+        
+        if ($hasCertifications) {
+            $html .= '<div class="section-title">Certifications</div>';
+            foreach ($user->certifications as $cert) {
+                $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
+                if ($certName && trim($certName)) {
+                    $html .= '<div class="item">
+                            <div class="item-header">' . htmlspecialchars($certName) . '</div>';
                     
-                    if ($degree) {
-                        $degreeText = htmlspecialchars($degree);
-                        if ($field) {
-                            $degreeText .= ' in ' . htmlspecialchars($field);
+                    if ($cert->issuing_org && trim($cert->issuing_org)) {
+                        $html .= '<div class="item-sub">' . htmlspecialchars($cert->issuing_org) . '</div>';
+                    }
+                    
+                    if ($cert->issue_date) {
+                        $issueDate = date('M Y', strtotime($cert->issue_date));
+                        $certText = $issueDate;
+                        if ($cert->expiration_date && $cert->expiration_date != '0000-00-00') {
+                            $expDate = date('M Y', strtotime($cert->expiration_date));
+                            $certText .= ' - ' . $expDate;
                         }
-                        $html .= $degreeText;
-                    } else if ($field) {
-                        $html .= htmlspecialchars($field);
+                        $html .= '<div class="item-date">' . $certText . '</div>';
+                    }
+                    
+                    if ($cert->link_driver && trim($cert->link_driver)) {
+                        $link = $cert->link_driver;
+                        if (!preg_match('/^https?:\/\//', $link)) {
+                            $link = 'https://' . $link;
+                        }
+                        $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
                     }
                     
                     $html .= '</div>';
+                }
+            }
+        }
+
+        // Languages Section
+        if ($user->languages->count() > 0) {
+            $html .= '<div class="section-title">Languages</div>';
+            $html .= '<ul class="skill-list">';
+            foreach ($user->languages as $lang) {
+                $proficiency = $lang->proficiency_level ?? $lang->proficiency ?? '';
+                if ($proficiency) {
+                    $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . ' (' . htmlspecialchars($proficiency) . ')</li>';
+                } else {
+                    $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . '</li>';
+                }
+            }
+            $html .= '</ul>';
+        }
+
+        // Professional Memberships
+        if ($user->memberships->count() > 0) {
+            $html .= '<div class="section-title">Professional Memberships</div>';
+            foreach ($user->memberships as $m) {
+                if ($m->organization_name && trim($m->organization_name)) {
+                    $html .= '<div class="item">
+                            <div class="item-header">' . htmlspecialchars($m->organization_name) . '</div>';
                     
-                    if ($university) {
-                        $html .= '<div class="item-sub">' . htmlspecialchars($university) . '</div>';
+                    if ($m->membership_type && trim($m->membership_type)) {
+                        $html .= '<div class="item-sub">' . htmlspecialchars($m->membership_type) . '</div>';
                     }
                     
-                    $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
-                    $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
-                    if ($startYear || $endYear) {
-                        $html .= '<div class="item-date">' . $startYear . ' - ' . $endYear . '</div>';
+                    if ($m->start_date_membership || $m->end_date_membership) {
+                        $startDate = $m->start_date_membership ? date('M Y', strtotime($m->start_date_membership)) : '';
+                        $endDate = $m->end_date_membership ? date('M Y', strtotime($m->end_date_membership)) : 'Present';
+                        if ($startDate || $endDate) {
+                            $html .= '<div class="item-date">' . $startDate . ' - ' . $endDate . '</div>';
+                        }
+                    }
+                    
+                    if ($m->membership_status && trim($m->membership_status)) {
+                        $html .= '<div style="font-size: 9pt; color: ' . $lightTextColor . ';">Status: ' . htmlspecialchars($m->membership_status) . '</div>';
                     }
                     
                     $html .= '</div>';
@@ -566,12 +676,10 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
 
         // Research Section (for Medical majors)
         if ($user->research->count() > 0 && $user->major === 'Medicine') {
-            $html .= '
-                <div class="section-title">Research</div>';
+            $html .= '<div class="section-title">Research</div>';
             
             foreach ($user->research as $res) {
-                $html .= '
-                    <div class="item">
+                $html .= '<div class="item">
                         <div class="item-header">' . htmlspecialchars($res->title) . '</div>';
                 
                 if ($res->publication_year) {
@@ -587,8 +695,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     if (!preg_match('/^https?:\/\//', $link)) {
                         $link = 'https://' . $link;
                     }
-                    $linkText = str_replace(['http://', 'https://'], '', $res->link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -597,12 +704,10 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
 
         // Activities Section
         if ($user->activities->count() > 0) {
-            $html .= '
-                <div class="section-title">Activities & Volunteer Work</div>';
+            $html .= '<div class="section-title">Activities</div>';
             
             foreach ($user->activities as $act) {
-                $html .= '
-                    <div class="item">
+                $html .= '<div class="item">
                         <div class="item-header">' . htmlspecialchars($act->activity_title) . '</div>';
                 
                 if ($act->organization) {
@@ -642,277 +747,14 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     if (!preg_match('/^https?:\/\//', $link)) {
                         $link = 'https://' . $link;
                     }
-                    $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
                 }
                 
                 $html .= '</div>';
             }
         }
-
-        $html .= '</div>
-
-            <!-- Sidebar -->
-            <div class="sidebar">';
-
-        // Contact Section - only show if there's at least one contact info
-        $hasContact = ($user->city && trim($user->city)) || 
-                      ($user->phone && trim($user->phone)) || 
-                      ($user->email && trim($user->email)) || 
-                      ($user->profile_website && trim($user->profile_website)) ||
-                      ($user->linkedin_profile && trim($user->linkedin_profile)) ||
-                      ($user->github_profile && trim($user->github_profile));
         
-        if ($hasContact) {
-            $html .= '<div class="sidebar-section">
-                    <div class="sidebar-title">Contact</div>';
-            
-            if ($user->city && trim($user->city)) {
-                $html .= '<div class="contact-info">' . htmlspecialchars($user->city) . '</div>';
-            }
-            if ($user->phone && trim($user->phone)) {
-                $html .= '<div class="contact-info">' . htmlspecialchars($user->phone) . '</div>';
-            }
-            if ($user->email && trim($user->email)) {
-                $html .= '<div class="contact-info">Email: <a href="mailto:' . htmlspecialchars($user->email) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($user->email) . '</a></div>';
-            }
-            
-            // Profile URL (always show) - show user name instead of full URL
-            $profileUrl = route('profile', $user->qr_id);
-            $html .= '<div class="contact-info">Profile URL: <a href="' . htmlspecialchars($profileUrl) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($user->name) . '</a></div>';
-            
-            if ($user->linkedin_profile && trim($user->linkedin_profile)) {
-                $link = $user->linkedin_profile;
-                if (!preg_match('/^https?:\/\//', $link)) {
-                    $link = 'https://' . $link;
-                }
-                $html .= '<div class="contact-info">LinkedIn: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
-            }
-            if ($user->github_profile && trim($user->github_profile)) {
-                $link = $user->github_profile;
-                if (!preg_match('/^https?:\/\//', $link)) {
-                    $link = 'https://' . $link;
-                }
-                $html .= '<div class="contact-info">GitHub: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
-            }
-            if ($user->profile_website && trim($user->profile_website)) {
-                $link = $user->profile_website;
-                if (!preg_match('/^https?:\/\//', $link)) {
-                    $link = 'https://' . $link;
-                }
-                $html .= '<div class="contact-info">Portfolio: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
-            }
-            
-            $html .= '</div>';
-        }
-
-        // Skills Section - only show if there's at least one skill
-        $hasSkills = $user->skills->count() > 0 || 
-                     $user->businessSkills->count() > 0 || 
-                     $user->engineeringSkills->count() > 0 || 
-                     $user->medicalSkills->count() > 0 || 
-                     ($user->analyticalSkills->count() > 0 && $user->major === 'IT') || 
-                     $user->softSkills->count() > 0;
-        
-        if ($hasSkills) {
-            $html .= '<div class="sidebar-section">
-                    <div class="sidebar-title">Skills</div>';
-        
-        if ($user->skills->count() > 0) {
-            $html .= '<div style="font-weight:bold; font-size:9pt; margin-bottom:3pt;">Technical Skills</div>
-                      <ul class="skill-list">';
-            foreach ($user->skills->take(10) as $skill) {
-                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
-            }
-            $html .= '</ul>';
-        }
-
-        // Business Skills
-        if ($user->businessSkills->count() > 0) {
-            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Business Skills</div>
-                      <ul class="skill-list">';
-            foreach ($user->businessSkills->take(8) as $skill) {
-                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
-            }
-            $html .= '</ul>';
-        }
-
-        // Engineering Skills
-        if ($user->engineeringSkills->count() > 0) {
-            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Engineering Skills</div>
-                      <ul class="skill-list">';
-            foreach ($user->engineeringSkills->take(8) as $skill) {
-                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
-            }
-            $html .= '</ul>';
-        }
-
-        // Medical Skills
-        if ($user->medicalSkills->count() > 0) {
-            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Medical Skills</div>
-                      <ul class="skill-list">';
-            foreach ($user->medicalSkills->take(8) as $skill) {
-                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
-            }
-            $html .= '</ul>';
-        }
-
-        // Analytical Skills
-        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
-            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Analytical Skills</div>
-                      <ul class="skill-list">';
-            foreach ($user->analyticalSkills->take(6) as $skill) {
-                $html .= '<li class="skill-item">' . htmlspecialchars($skill->skill_name) . '</li>';
-            }
-            $html .= '</ul>';
-        }
-
-        if ($user->softSkills->count() > 0) {
-            $html .= '<div style="font-weight:bold; font-size:9pt; margin-top:8pt; margin-bottom:3pt;">Soft Skills</div>
-                      <ul class="skill-list">';
-            foreach ($user->softSkills->take(6) as $skill) {
-                $html .= '<li class="skill-item">' . htmlspecialchars($skill->soft_name) . '</li>';
-            }
-            $html .= '</ul>';
-        }
-
-            $html .= '</div>';
-        }
-
-        // Languages Section
-        if ($user->languages->count() > 0) {
-            $html .= '<div class="sidebar-section">
-                    <div class="sidebar-title">Languages</div>
-                    <ul class="skill-list">';
-            foreach ($user->languages as $lang) {
-                $proficiency = $lang->proficiency_level ?? $lang->proficiency ?? '';
-                if ($proficiency) {
-                    $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . ' (' . htmlspecialchars($proficiency) . ')</li>';
-                } else {
-                    $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . '</li>';
-                }
-            }
-            $html .= '</ul>
-                    </div>';
-        }
-
-        // Certifications Section
-        $hasCertifications = false;
-        foreach ($user->certifications as $cert) {
-            $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
-            if ($certName && trim($certName)) {
-                $hasCertifications = true;
-                break;
-            }
-        }
-        
-        if ($hasCertifications) {
-            $html .= '<div class="sidebar-section">
-                    <div class="sidebar-title">Certifications</div>
-                    <ul class="skill-list">';
-            foreach ($user->certifications as $cert) {
-                $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
-                if ($certName && trim($certName)) {
-                    $certText = htmlspecialchars($certName);
-                    
-                    if ($cert->issuing_org && trim($cert->issuing_org)) {
-                        $certText .= ' - ' . htmlspecialchars($cert->issuing_org);
-                    }
-                    
-                    if ($cert->issue_date) {
-                        $issueDate = date('M Y', strtotime($cert->issue_date));
-                        $certText .= ' (' . $issueDate;
-                        if ($cert->expiration_date && $cert->expiration_date != '0000-00-00') {
-                            $expDate = date('M Y', strtotime($cert->expiration_date));
-                            $certText .= ' - ' . $expDate;
-                        }
-                        $certText .= ')';
-                    }
-                    
-                    $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $certText;
-                    
-                    if ($cert->link_driver && trim($cert->link_driver)) {
-                        $link = $cert->link_driver;
-                        if (!preg_match('/^https?:\/\//', $link)) {
-                            $link = 'https://' . $link;
-                        }
-                        $html .= '<br><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; font-size: 8pt; text-decoration: none;">View Certificate</a>';
-                    }
-                    
-                    $html .= '</li>';
-                }
-            }
-            $html .= '</ul>
-                    </div>';
-        }
-
-        // Professional Memberships Section
-        if ($user->memberships->count() > 0) {
-            $html .= '<div class="sidebar-section">
-                    <div class="sidebar-title">Professional Memberships</div>
-                    <ul class="skill-list">';
-            foreach ($user->memberships as $m) {
-                if ($m->organization_name && trim($m->organization_name)) {
-                    $membershipText = htmlspecialchars($m->organization_name);
-                    if ($m->membership_type && trim($m->membership_type)) {
-                        $membershipText .= ' - ' . htmlspecialchars($m->membership_type);
-                    }
-                    
-                    if ($m->start_date_membership || $m->end_date_membership) {
-                        $startDate = $m->start_date_membership ? date('M Y', strtotime($m->start_date_membership)) : '';
-                        $endDate = $m->end_date_membership ? date('M Y', strtotime($m->end_date_membership)) : 'Present';
-                        if ($startDate || $endDate) {
-                            $membershipText .= ' (' . $startDate . ' - ' . $endDate . ')';
-                        }
-                    }
-                    
-                    if ($m->membership_status && trim($m->membership_status)) {
-                        $membershipText .= ' [' . htmlspecialchars($m->membership_status) . ']';
-                    }
-                    
-                    $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $membershipText . '</li>';
-                }
-            }
-            $html .= '</ul>
-                    </div>';
-        }
-
-        // Core Competencies Section
-        if ($user->coreCompetencies->count() > 0) {
-            $html .= '<div class="sidebar-section">
-                    <div class="sidebar-title">Core Competencies</div>
-                    <ul class="skill-list">';
-            foreach ($user->coreCompetencies as $comp) {
-                if ($comp->competency_name && trim($comp->competency_name)) {
-                    $compText = htmlspecialchars($comp->competency_name);
-                    if ($comp->description && trim($comp->description)) {
-                        $compText .= ' - ' . htmlspecialchars(substr(trim($comp->description), 0, 50));
-                    }
-                    $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $compText . '</li>';
-                }
-            }
-            $html .= '</ul>
-                    </div>';
-        }
-
-        // Interests Section
-        if ($user->interests->count() > 0) {
-            $html .= '<div class="sidebar-section">
-                    <div class="sidebar-title">Interests</div>
-                    <ul class="skill-list">';
-            foreach ($user->interests as $interest) {
-                if ($interest->interest_name && trim($interest->interest_name)) {
-                    $html .= '<li class="skill-item">' . htmlspecialchars($interest->interest_name) . '</li>';
-                }
-            }
-            $html .= '</ul>
-                    </div>';
-        }
-        
-        $html .= '</div>
-            
-            <div class="clearfix"></div>
-        </div>';
+        $html .= '</div>';
 
         return $html;
     }
