@@ -276,7 +276,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             body { 
                 font-family: Arial, Helvetica, "Times New Roman", Times, serif, sans-serif; 
                 color: ' . $textColor . '; 
-                line-height: 1.5; 
+                line-height: 1.6; 
                 font-size: 10pt;
                 margin: 0;
                 padding: 0;
@@ -286,7 +286,11 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             td { vertical-align: top; padding: 0; }
             
             /* Header Section */
-            .header { margin-bottom: 20pt; }
+            .header { 
+                margin-bottom: 24pt; 
+                padding-bottom: 16pt;
+                border-bottom: 1pt solid #e0e0e0;
+            }
             .name { 
                 font-size: 26pt; 
                 font-weight: bold; 
@@ -303,9 +307,13 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             .summary {
                 font-size: 10pt;
                 color: ' . $textColor . ';
-                margin-bottom: 20pt;
+                margin-bottom: 24pt;
                 text-align: justify;
                 width: 100%;
+                line-height: 1.7;
+                padding: 8pt;
+                background-color: #f9f9f9;
+                border-left: 3pt solid ' . $primaryColor . ';
             }
             
             /* Layout Columns - Using table for better ATS compatibility */
@@ -317,35 +325,91 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 font-size: 12pt;
                 font-weight: bold;
                 color: ' . $primaryColor . ';
-                margin-bottom: 8pt;
-                margin-top: 15pt;
+                margin-bottom: 12pt;
+                margin-top: 20pt;
                 text-transform: uppercase;
-                border-bottom: 0.5pt solid #dddddd;
-                padding-bottom: 2pt;
+                border-bottom: 1pt solid #dddddd;
+                padding-bottom: 4pt;
+                letter-spacing: 0.5pt;
             }
             
             /* Experience & Education Items */
-            .item { margin-bottom: 12pt; }
-            .item-header { font-weight: bold; font-size: 10.5pt; color: #000000; }
-            .item-sub { font-weight: bold; color: #555555; font-size: 10pt; }
-            .item-date { color: ' . $lightTextColor . '; font-size: 9pt; margin-bottom: 3pt; font-style: italic; }
+            .item { 
+                margin-bottom: 18pt; 
+                padding-bottom: 12pt;
+                border-bottom: 0.5pt solid #f0f0f0;
+            }
+            .item:last-child {
+                border-bottom: none;
+            }
+            .item-header { 
+                font-weight: bold; 
+                font-size: 10.5pt; 
+                color: #000000; 
+                margin-bottom: 4pt;
+                line-height: 1.4;
+            }
+            .item-sub { 
+                font-weight: bold; 
+                color: #555555; 
+                font-size: 10pt; 
+                margin-bottom: 3pt;
+                line-height: 1.4;
+            }
+            .item-date { 
+                color: ' . $lightTextColor . '; 
+                font-size: 9pt; 
+                margin-bottom: 6pt; 
+                font-style: italic;
+                line-height: 1.4;
+            }
             
-            .bullet-list { margin-top: 4pt; margin-bottom: 8pt; padding-left: 12pt; }
-            .bullet-item { margin-bottom: 2pt; list-style-type: disc; }
+            .bullet-list { 
+                margin-top: 6pt; 
+                margin-bottom: 8pt; 
+                padding-left: 16pt; 
+                line-height: 1.6;
+            }
+            .bullet-item { 
+                margin-bottom: 4pt; 
+                list-style-type: disc;
+                line-height: 1.5;
+            }
             
             /* Sidebar Styling */
-            .sidebar-section { margin-bottom: 18pt; }
+            .sidebar-section { 
+                margin-bottom: 22pt; 
+                padding-bottom: 12pt;
+                border-bottom: 0.5pt solid #f0f0f0;
+            }
+            .sidebar-section:last-child {
+                border-bottom: none;
+            }
             .sidebar-title {
                 font-size: 11pt;
                 font-weight: bold;
                 color: ' . $primaryColor . ';
-                margin-bottom: 6pt;
-                border-bottom: 0.5pt solid #dddddd;
-                padding-bottom: 2pt;
+                margin-bottom: 10pt;
+                border-bottom: 1pt solid #dddddd;
+                padding-bottom: 4pt;
+                letter-spacing: 0.3pt;
             }
-            .contact-info { font-size: 9pt; margin-bottom: 4pt; color: ' . $textColor . '; }
-            .skill-list { padding-left: 10pt; margin: 0; }
-            .skill-item { margin-bottom: 2pt; font-size: 9pt; }
+            .contact-info { 
+                font-size: 9pt; 
+                margin-bottom: 6pt; 
+                color: ' . $textColor . ';
+                line-height: 1.5;
+            }
+            .skill-list { 
+                padding-left: 12pt; 
+                margin: 0;
+                line-height: 1.6;
+            }
+            .skill-item { 
+                margin-bottom: 4pt; 
+                font-size: 9pt;
+                line-height: 1.5;
+            }
             
             .clearfix { clear: both; }
         </style>
@@ -362,12 +426,12 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
         // Professional Summary (ATS-optimized - appears first)
         if ($summary && trim($summary)) {
             $html .= '<div class="summary">
-                    <strong style="font-size: 11pt; display: block; margin-bottom: 5pt;">PROFESSIONAL SUMMARY</strong>
+                    <strong style="font-size: 11pt; display: block; margin-bottom: 8pt;">PROFESSIONAL SUMMARY</strong>
                     ' . nl2br(htmlspecialchars($summary)) . '
                 </div>';
         } else if ($user->profile_summary && trim($user->profile_summary)) {
             $html .= '<div class="summary">
-                    <strong style="font-size: 11pt; display: block; margin-bottom: 5pt;">PROFESSIONAL SUMMARY</strong>
+                    <strong style="font-size: 11pt; display: block; margin-bottom: 8pt;">PROFESSIONAL SUMMARY</strong>
                     ' . nl2br(htmlspecialchars($user->profile_summary)) . '
                 </div>';
         }
@@ -387,13 +451,13 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName && trim($categoryName)) {
                     $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 5pt;">
+                    $html .= '<div style="margin-bottom: 10pt; line-height: 1.7;">
                         <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
                         <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
                     </div>';
                 } else {
                     $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 5pt; font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+                    $html .= '<div style="margin-bottom: 10pt; font-size: 9.5pt; line-height: 1.7;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
                 }
             }
         }
@@ -539,7 +603,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 }
                 
                 if ($proj->technologies_used && trim($proj->technologies_used)) {
-                    $html .= '<div style="font-size: 9pt; color: ' . $lightTextColor . '; margin-top: 3pt;"><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</div>';
+                    $html .= '<div style="font-size: 9pt; color: ' . $lightTextColor . '; margin-top: 6pt; margin-bottom: 4pt; line-height: 1.5;"><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</div>';
                 }
                 
                 if ($proj->link && trim($proj->link)) {
@@ -548,7 +612,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $proj->link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 4pt; line-height: 1.5;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -611,7 +675,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 }
                 
                 if ($res->description && trim($res->description)) {
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">' . nl2br(htmlspecialchars($res->description)) . '</div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 6pt; margin-bottom: 4pt; line-height: 1.6;">' . nl2br(htmlspecialchars($res->description)) . '</div>';
                 }
                 
                 if ($res->link && trim($res->link)) {
@@ -620,7 +684,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $res->link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 4pt; line-height: 1.5;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -675,7 +739,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 4pt; line-height: 1.5;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
