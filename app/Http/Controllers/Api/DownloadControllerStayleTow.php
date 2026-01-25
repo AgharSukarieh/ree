@@ -82,6 +82,10 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             // Enable text selection (important for ATS parsing)
             $mpdf->shrink_tables_to_fit = 1;
             
+            // Page break control settings - prevent orphans and widows
+            $mpdf->SetHTMLFooter('');
+            $mpdf->SetAutoPageBreak(true, 15);
+            
             $mpdf->WriteHTML($html);
             
             $fileName = 'CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf';
@@ -254,12 +258,16 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 text-transform: uppercase;
                 border-bottom: 0.5pt solid #dddddd;
                 padding-bottom: 4pt;
+                page-break-after: avoid;
+                page-break-inside: avoid;
             }
             
             /* Experience & Education Items */
             .item { 
                 margin-bottom: 16pt; 
                 padding-bottom: 10pt;
+                page-break-inside: avoid;
+                page-break-after: auto;
             }
             .item-header { 
                 font-weight: bold; 
@@ -284,16 +292,19 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 margin-top: 5pt; 
                 margin-bottom: 8pt; 
                 padding-left: 14pt; 
+                page-break-inside: avoid;
             }
             .bullet-item { 
                 margin-bottom: 3pt; 
                 list-style-type: disc; 
+                page-break-inside: avoid;
             }
             
             /* Sidebar Styling */
             .sidebar-section { 
                 margin-bottom: 20pt; 
                 padding-bottom: 10pt;
+                page-break-inside: avoid;
             }
             .sidebar-title {
                 font-size: 11pt;
@@ -306,15 +317,18 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             .contact-info { 
                 font-size: 9pt; 
                 margin-bottom: 5pt; 
-                color: ' . $textColor . '; 
+                color: ' . $textColor . ';
+                page-break-inside: avoid;
             }
             .skill-list { 
                 padding-left: 12pt; 
-                margin: 0; 
+                margin: 0;
+                page-break-inside: avoid;
             }
             .skill-item { 
                 margin-bottom: 3pt; 
-                font-size: 9pt; 
+                font-size: 9pt;
+                page-break-inside: avoid;
             }
             
             .clearfix { clear: both; }
