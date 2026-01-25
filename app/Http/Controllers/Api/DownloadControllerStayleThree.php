@@ -514,30 +514,71 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 7. Additional Information (Languages, Soft Skills, Activities, Memberships)
+        // 7. Languages (ATS-friendly section name)
+        if ($user->languages->count() > 0) {
+            $html .= '<div class="section">';
+            $html .= '<h2>LANGUAGES</h2>';
+            
+            $langList = $user->languages->filter(function($lang) {
+                return !empty($lang->language_name);
+            })->map(function($lang) {
+                $langName = htmlspecialchars($lang->language_name ?? '');
+                $proficiency = htmlspecialchars($lang->proficiency_level ?? $lang->proficiency ?? '');
+                return $langName . ($proficiency ? ': ' . $proficiency : '');
+            })->filter()->implode(', ');
+            
+            $html .= '<p style="margin-bottom: 12pt;">' . $langList . '</p>';
+            $html .= '</div>';
+        }
+
+        // 8. Core Competencies (ATS-friendly name for Soft Skills)
+        if ($user->softSkills->count() >= 3) {
+            $html .= '<div class="section">';
+            $html .= '<h2>CORE COMPETENCIES</h2>';
+            
+            $softList = $user->softSkills->filter(function($skill) {
+                return !empty($skill->soft_name);
+            })->pluck('soft_name')->map('htmlspecialchars')->implode(', ');
+            
+            $html .= '<p style="margin-bottom: 12pt;">' . $softList . '</p>';
+            $html .= '</div>';
+        }
+
+        // 9. Analytical Skills (for IT major - ATS-friendly)
+        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
+            $html .= '<div class="section">';
+            $html .= '<h2>ANALYTICAL SKILLS</h2>';
+            
+            $analyticalList = $user->analyticalSkills->filter(function($skill) {
+                return !empty($skill->skill_name);
+            })->pluck('skill_name')->map('htmlspecialchars')->implode(', ');
+            
+            $html .= '<p style="margin-bottom: 12pt;">' . $analyticalList . '</p>';
+            $html .= '</div>';
+        }
+
+        // 10. Additional Information (Activities, Memberships, Research)
         $additionalInfo = [];
         
-        // Languages
-        if ($user->languages->count() > 0) {
-            $langList = $user->languages->map(function($lang) {
-                return htmlspecialchars($lang->language_name) . ': ' . htmlspecialchars($lang->proficiency_level);
-            })->implode(', ');
-            $additionalInfo[] = 'Languages: ' . $langList;
-        }
-
-        // Soft Skills
-        if ($user->softSkills->count() >= 3) {
-            $softList = $user->softSkills->pluck('soft_name')->map('htmlspecialchars')->implode(', ');
-            $additionalInfo[] = 'Soft Skills: ' . $softList;
-        }
-
         // Activities & Memberships (Combined)
         $activities = [];
         foreach ($user->activities as $act) {
-            $activities[] = htmlspecialchars($act->activity_title) . ' (' . htmlspecialchars($act->organization) . ')';
+            if ($act->activity_title && trim($act->activity_title)) {
+                $actText = htmlspecialchars($act->activity_title);
+                if ($act->organization && trim($act->organization)) {
+                    $actText .= ' (' . htmlspecialchars($act->organization) . ')';
+                }
+                $activities[] = $actText;
+            }
         }
         foreach ($user->memberships as $m) {
-            $activities[] = htmlspecialchars($m->organization_name) . ' (' . htmlspecialchars($m->membership_type) . ')';
+            if ($m->organization_name && trim($m->organization_name)) {
+                $memText = htmlspecialchars($m->organization_name);
+                if ($m->membership_type && trim($m->membership_type)) {
+                    $memText .= ' (' . htmlspecialchars($m->membership_type) . ')';
+                }
+                $activities[] = $memText;
+            }
         }
         if (!empty($activities)) {
             $additionalInfo[] = 'Activities/Memberships: ' . implode(', ', $activities);
@@ -959,22 +1000,49 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText('', [], ['spaceAfter' => 120]); // Spacer
         }
 
-        // 7. Additional Information
-        $additionalInfo = [];
-        
-        // Languages
+        // 7. Languages (ATS-friendly section name)
         if ($user->languages->count() > 0) {
-            $langList = $user->languages->map(function($lang) {
-                return htmlspecialchars($lang->language_name) . ': ' . htmlspecialchars($lang->proficiency_level);
-            })->implode(', ');
-            $additionalInfo[] = 'Languages: ' . $langList;
+            $addSectionHeader('LANGUAGES');
+            
+            $langList = $user->languages->filter(function($lang) {
+                return !empty($lang->language_name);
+            })->map(function($lang) {
+                $langName = htmlspecialchars($lang->language_name ?? '', ENT_QUOTES, 'UTF-8');
+                $proficiency = htmlspecialchars($lang->proficiency_level ?? $lang->proficiency ?? '', ENT_QUOTES, 'UTF-8');
+                return $langName . ($proficiency ? ': ' . $proficiency : '');
+            })->filter()->implode(', ');
+            
+            $section->addText($langList, [], ['spaceAfter' => 120]);
         }
 
-        // Soft Skills
+        // 8. Core Competencies (ATS-friendly name for Soft Skills)
         if ($user->softSkills->count() >= 3) {
-            $softList = $user->softSkills->pluck('soft_name')->map('htmlspecialchars')->implode(', ');
-            $additionalInfo[] = 'Soft Skills: ' . $softList;
+            $addSectionHeader('CORE COMPETENCIES');
+            
+            $softList = $user->softSkills->filter(function($skill) {
+                return !empty($skill->soft_name);
+            })->pluck('soft_name')->map(function($name) {
+                return htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+            })->implode(', ');
+            
+            $section->addText($softList, [], ['spaceAfter' => 120]);
         }
+
+        // 9. Analytical Skills (for IT major - ATS-friendly)
+        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
+            $addSectionHeader('ANALYTICAL SKILLS');
+            
+            $analyticalList = $user->analyticalSkills->filter(function($skill) {
+                return !empty($skill->skill_name);
+            })->pluck('skill_name')->map(function($name) {
+                return htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+            })->implode(', ');
+            
+            $section->addText($analyticalList, [], ['spaceAfter' => 120]);
+        }
+
+        // 10. Additional Information (Activities, Memberships, Research)
+        $additionalInfo = [];
 
         // Activities & Memberships (Combined)
         $activities = [];
