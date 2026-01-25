@@ -464,19 +464,19 @@
                         @if($user->linkedin_profile)
                         <div class="mb-3">
                             <i class="fab fa-linkedin me-2"></i>
-                            <a href="{{ $user->linkedin_profile }}" class="contact-link" target="_blank">LinkedIn Profile</a>
+                            <a href="{{ $user->linkedin_profile }}" class="contact-link" target="_blank">LinkedIn: {{ str_replace(['https://', 'http://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile) }}</a>
                         </div>
                         @endif
                         @if($user->github_profile)
                         <div class="mb-3">
                             <i class="fab fa-github me-2"></i>
-                            <a href="{{ $user->github_profile }}" class="contact-link" target="_blank">GitHub Profile</a>
+                            <a href="{{ $user->github_profile }}" class="contact-link" target="_blank">GitHub: {{ str_replace(['https://', 'http://', 'www.', 'github.com/'], '', $user->github_profile) }}</a>
                         </div>
                         @endif
                         @if($user->profile_website)
                         <div class="mb-3">
                             <i class="fas fa-briefcase me-2"></i>
-                            <a href="{{ $user->profile_website }}" class="contact-link" target="_blank">Portfolio / Personal Website</a>
+                            <a href="{{ $user->profile_website }}" class="contact-link" target="_blank">Portfolio: {{ str_replace(['https://', 'http://'], '', $user->profile_website) }}</a>
                         </div>
                         @endif
                     </div>
