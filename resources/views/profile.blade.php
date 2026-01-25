@@ -543,6 +543,9 @@
                         <a href="{{ route('download.pdf.style2', $user->qr_id) }}" class="btn btn-danger w-100 mb-2" style="background-color: #8B0000;">
                             <i class="fas fa-file-pdf me-2"></i>Download PDF Style 2
                         </a>
+                        <a href="{{ route('download.pdf.style3', $user->qr_id) }}" class="btn btn-danger w-100 mb-2" style="background-color: #6B0000;">
+                            <i class="fas fa-file-pdf me-2"></i>Download PDF Style 3
+                        </a>
                         <a href="{{ route('download.word', $user->qr_id) }}" class="btn btn-primary w-100 mb-2">
                             <i class="fas fa-file-word me-2"></i>Download Word
                         </a>
