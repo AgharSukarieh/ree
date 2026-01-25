@@ -181,41 +181,45 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             </div>
             
             <!-- Main Column -->
-            <div class="main-content">
-                <div class="section-title">Work Experience</div>';
+            <div class="main-content">';
 
-        foreach ($user->experiences as $exp) {
-            $html .= '
-                <div class="item">
-                    <div class="item-header">' . htmlspecialchars($exp->title) . '</div>
-                    <div class="item-sub">' . htmlspecialchars($exp->company) . '</div>
-                    <div class="item-date">' . htmlspecialchars($exp->start_date) . ' - ' . ($exp->end_date ?: 'Present') . '</div>';
-            
-            // Check if description exists (using description or responsibilities field)
-            $description = $exp->description ?? $exp->responsibilities ?? '';
-            if ($description && trim($description)) {
-                $responsibilities = explode("\n", $description);
-                $validItems = [];
-                foreach ($responsibilities as $res) {
-                    $res = trim($res);
-                    if (!empty($res)) {
-                        $res = trim($res, "•- *");
+        // Work Experience Section
+        if ($user->experiences->count() > 0) {
+            $html .= '<div class="section-title">Work Experience</div>';
+
+            foreach ($user->experiences as $exp) {
+                $html .= '
+                    <div class="item">
+                        <div class="item-header">' . htmlspecialchars($exp->title) . '</div>
+                        <div class="item-sub">' . htmlspecialchars($exp->company) . '</div>
+                        <div class="item-date">' . htmlspecialchars($exp->start_date) . ' - ' . ($exp->end_date ?: 'Present') . '</div>';
+                
+                // Check if description exists (using description or responsibilities field)
+                $description = $exp->description ?? $exp->responsibilities ?? '';
+                if ($description && trim($description)) {
+                    $responsibilities = explode("\n", $description);
+                    $validItems = [];
+                    foreach ($responsibilities as $res) {
+                        $res = trim($res);
                         if (!empty($res)) {
-                            $validItems[] = $res;
+                            $res = trim($res, "•- *");
+                            if (!empty($res)) {
+                                $validItems[] = $res;
+                            }
                         }
+                    }
+                    
+                    if (!empty($validItems)) {
+                        $html .= '<ul class="bullet-list">';
+                        foreach ($validItems as $item) {
+                            $html .= '<li class="bullet-item">' . htmlspecialchars($item) . '</li>';
+                        }
+                        $html .= '</ul>';
                     }
                 }
                 
-                if (!empty($validItems)) {
-                    $html .= '<ul class="bullet-list">';
-                    foreach ($validItems as $item) {
-                        $html .= '<li class="bullet-item">' . htmlspecialchars($item) . '</li>';
-                    }
-                    $html .= '</ul>';
-                }
+                $html .= '</div>';
             }
-            
-            $html .= '</div>';
         }
 
         // Projects Section
@@ -260,42 +264,44 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             }
         }
 
-        $html .= '
-                <div class="section-title">Educational Background</div>';
+        // Educational Background Section
+        if ($education->count() > 0) {
+            $html .= '<div class="section-title">Educational Background</div>';
 
-        foreach ($education as $edu) {
-            $degree = $edu->degree_name ?? $edu->degree ?? '';
-            $university = $edu->university_name ?? $edu->institution ?? '';
-            $field = $edu->field_of_study ?? '';
-            
-            if ($degree || $university) {
-                $html .= '
-                    <div class="item">
-                        <div class="item-header">';
+            foreach ($education as $edu) {
+                $degree = $edu->degree_name ?? $edu->degree ?? '';
+                $university = $edu->university_name ?? $edu->institution ?? '';
+                $field = $edu->field_of_study ?? '';
                 
-                if ($degree) {
-                    $degreeText = htmlspecialchars($degree);
-                    if ($field) {
-                        $degreeText .= ' in ' . htmlspecialchars($field);
+                if ($degree || $university) {
+                    $html .= '
+                        <div class="item">
+                            <div class="item-header">';
+                    
+                    if ($degree) {
+                        $degreeText = htmlspecialchars($degree);
+                        if ($field) {
+                            $degreeText .= ' in ' . htmlspecialchars($field);
+                        }
+                        $html .= $degreeText;
+                    } else if ($field) {
+                        $html .= htmlspecialchars($field);
                     }
-                    $html .= $degreeText;
-                } else if ($field) {
-                    $html .= htmlspecialchars($field);
+                    
+                    $html .= '</div>';
+                    
+                    if ($university) {
+                        $html .= '<div class="item-sub">' . htmlspecialchars($university) . '</div>';
+                    }
+                    
+                    $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
+                    $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
+                    if ($startYear || $endYear) {
+                        $html .= '<div class="item-date">' . $startYear . ' - ' . $endYear . '</div>';
+                    }
+                    
+                    $html .= '</div>';
                 }
-                
-                $html .= '</div>';
-                
-                if ($university) {
-                    $html .= '<div class="item-sub">' . htmlspecialchars($university) . '</div>';
-                }
-                
-                $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
-                $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
-                if ($startYear || $endYear) {
-                    $html .= '<div class="item-date">' . $startYear . ' - ' . $endYear . '</div>';
-                }
-                
-                $html .= '</div>';
             }
         }
 
@@ -375,25 +381,48 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             }
         }
 
-        $html .= '
-            </div>
-
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Contact</div>
-                    <div class="contact-info">' . htmlspecialchars($user->city) . '</div>
-                    <div class="contact-info">' . htmlspecialchars($user->phone) . '</div>
-                    <div class="contact-info">' . htmlspecialchars($user->email) . '</div>';
-        
-        if ($user->linkedin_profile) {
-            $cleanLinkedin = str_replace(['https://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile);
-            $html .= '<div class="contact-info">' . htmlspecialchars(rtrim($cleanLinkedin, '/')) . '</div>';
-        }
-        
         $html .= '</div>
 
-                <div class="sidebar-section">
+            <!-- Sidebar -->
+            <div class="sidebar">';
+
+        // Contact Section - only show if there's at least one contact info
+        $hasContact = ($user->city && trim($user->city)) || 
+                      ($user->phone && trim($user->phone)) || 
+                      ($user->email && trim($user->email)) || 
+                      ($user->linkedin_profile && trim($user->linkedin_profile));
+        
+        if ($hasContact) {
+            $html .= '<div class="sidebar-section">
+                    <div class="sidebar-title">Contact</div>';
+            
+            if ($user->city && trim($user->city)) {
+                $html .= '<div class="contact-info">' . htmlspecialchars($user->city) . '</div>';
+            }
+            if ($user->phone && trim($user->phone)) {
+                $html .= '<div class="contact-info">' . htmlspecialchars($user->phone) . '</div>';
+            }
+            if ($user->email && trim($user->email)) {
+                $html .= '<div class="contact-info">' . htmlspecialchars($user->email) . '</div>';
+            }
+            if ($user->linkedin_profile && trim($user->linkedin_profile)) {
+                $cleanLinkedin = str_replace(['https://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile);
+                $html .= '<div class="contact-info">' . htmlspecialchars(rtrim($cleanLinkedin, '/')) . '</div>';
+            }
+            
+            $html .= '</div>';
+        }
+
+        // Skills Section - only show if there's at least one skill
+        $hasSkills = $user->skills->count() > 0 || 
+                     $user->businessSkills->count() > 0 || 
+                     $user->engineeringSkills->count() > 0 || 
+                     $user->medicalSkills->count() > 0 || 
+                     ($user->analyticalSkills->count() > 0 && $user->major === 'IT') || 
+                     $user->softSkills->count() > 0;
+        
+        if ($hasSkills) {
+            $html .= '<div class="sidebar-section">
                     <div class="sidebar-title">Skills</div>';
         
         if ($user->skills->count() > 0) {
@@ -454,69 +483,101 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             $html .= '</ul>';
         }
 
-        $html .= '</div>
+            $html .= '</div>';
+        }
 
-                <div class="sidebar-section">
+        // Languages Section
+        if ($user->languages->count() > 0) {
+            $html .= '<div class="sidebar-section">
                     <div class="sidebar-title">Languages</div>
                     <ul class="skill-list">';
-        foreach ($user->languages as $lang) {
-            $proficiency = $lang->proficiency_level ?? $lang->proficiency ?? '';
-            if ($proficiency) {
-                $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . ' (' . htmlspecialchars($proficiency) . ')</li>';
-            } else {
-                $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . '</li>';
+            foreach ($user->languages as $lang) {
+                $proficiency = $lang->proficiency_level ?? $lang->proficiency ?? '';
+                if ($proficiency) {
+                    $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . ' (' . htmlspecialchars($proficiency) . ')</li>';
+                } else {
+                    $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . '</li>';
+                }
             }
+            $html .= '</ul>
+                    </div>';
         }
-        $html .= '</ul>
-                </div>
 
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Certifications</div>
-                    <ul class="skill-list">';
+        // Certifications Section
+        $hasCertifications = false;
         foreach ($user->certifications as $cert) {
             $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
-            if ($certName) {
-                $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . htmlspecialchars($certName) . '</li>';
+            if ($certName && trim($certName)) {
+                $hasCertifications = true;
+                break;
             }
         }
-        $html .= '</ul>
-                </div>
+        
+        if ($hasCertifications) {
+            $html .= '<div class="sidebar-section">
+                    <div class="sidebar-title">Certifications</div>
+                    <ul class="skill-list">';
+            foreach ($user->certifications as $cert) {
+                $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
+                if ($certName && trim($certName)) {
+                    $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . htmlspecialchars($certName) . '</li>';
+                }
+            }
+            $html .= '</ul>
+                    </div>';
+        }
 
-                <div class="sidebar-section">
+        // Professional Memberships Section
+        if ($user->memberships->count() > 0) {
+            $html .= '<div class="sidebar-section">
                     <div class="sidebar-title">Professional Memberships</div>
                     <ul class="skill-list">';
-        foreach ($user->memberships as $m) {
-            $membershipText = htmlspecialchars($m->organization_name);
-            if ($m->membership_type) {
-                $membershipText .= ' - ' . htmlspecialchars($m->membership_type);
+            foreach ($user->memberships as $m) {
+                if ($m->organization_name && trim($m->organization_name)) {
+                    $membershipText = htmlspecialchars($m->organization_name);
+                    if ($m->membership_type && trim($m->membership_type)) {
+                        $membershipText .= ' - ' . htmlspecialchars($m->membership_type);
+                    }
+                    $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $membershipText . '</li>';
+                }
             }
-            $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $membershipText . '</li>';
+            $html .= '</ul>
+                    </div>';
         }
-        $html .= '</ul>
-                </div>
 
-                <div class="sidebar-section">
+        // Core Competencies Section
+        if ($user->coreCompetencies->count() > 0) {
+            $html .= '<div class="sidebar-section">
                     <div class="sidebar-title">Core Competencies</div>
                     <ul class="skill-list">';
-        foreach ($user->coreCompetencies as $comp) {
-            $compText = htmlspecialchars($comp->competency_name);
-            if ($comp->description && trim($comp->description)) {
-                $compText .= ' - ' . htmlspecialchars(substr(trim($comp->description), 0, 50));
+            foreach ($user->coreCompetencies as $comp) {
+                if ($comp->competency_name && trim($comp->competency_name)) {
+                    $compText = htmlspecialchars($comp->competency_name);
+                    if ($comp->description && trim($comp->description)) {
+                        $compText .= ' - ' . htmlspecialchars(substr(trim($comp->description), 0, 50));
+                    }
+                    $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $compText . '</li>';
+                }
             }
-            $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . $compText . '</li>';
+            $html .= '</ul>
+                    </div>';
         }
-        $html .= '</ul>
-                </div>
 
-                <div class="sidebar-section">
+        // Interests Section
+        if ($user->interests->count() > 0) {
+            $html .= '<div class="sidebar-section">
                     <div class="sidebar-title">Interests</div>
                     <ul class="skill-list">';
-        foreach ($user->interests as $interest) {
-            $html .= '<li class="skill-item">' . htmlspecialchars($interest->interest_name) . '</li>';
+            foreach ($user->interests as $interest) {
+                if ($interest->interest_name && trim($interest->interest_name)) {
+                    $html .= '<li class="skill-item">' . htmlspecialchars($interest->interest_name) . '</li>';
+                }
+            }
+            $html .= '</ul>
+                    </div>';
         }
-        $html .= '</ul>
-                </div>
-            </div>
+        
+        $html .= '</div>
             
             <div class="clearfix"></div>
         </div>';
