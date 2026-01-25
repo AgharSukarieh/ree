@@ -18,8 +18,11 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $user = User::with([
                 'activities',
                 'analyticalSkills',
+                'businessSkills.category',
                 'certifications',
                 'coreCompetencies',
+                'education',
+                'engineeringSkills.category',
                 'experiences',
                 'interests',
                 'languages',
@@ -75,8 +78,9 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $mpdf->autoLangToFont = true;
             
             $mpdf->WriteHTML($html);
-            $mpdf->Output('CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf', 'D');
-            exit;
+            
+            $fileName = 'CV_' . preg_replace('/[^\p{L}\p{N}]/u', '_', $user->name) . '.pdf';
+            return $mpdf->Output($fileName, 'D');
         } catch (\Exception $e) {
             abort(500, 'Error generating PDF: ' . $e->getMessage());
         }
