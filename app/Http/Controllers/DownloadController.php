@@ -400,10 +400,15 @@ class DownloadController extends Controller
                 }
                 $html .= '</div>';
                 
-                if ($exp->description) {
+                if ($exp->description && trim($exp->description)) {
                     $bullets = $this->formatBulletPoints($exp->description);
-                    foreach ($bullets as $bullet) {
-                        $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
+                    if (!empty($bullets)) {
+                        foreach ($bullets as $bullet) {
+                            $bullet = trim($bullet);
+                            if (!empty($bullet)) {
+                                $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
+                            }
+                        }
                     }
                 }
                 
@@ -423,10 +428,15 @@ class DownloadController extends Controller
                 $html .= '<div class="item">';
                 $html .= '<div class="job-title">' . htmlspecialchars($proj->project_title) . '</div>';
                 
-                if ($proj->description) {
+                if ($proj->description && trim($proj->description)) {
                     $bullets = $this->formatBulletPoints($proj->description);
-                    foreach ($bullets as $bullet) {
-                        $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
+                    if (!empty($bullets)) {
+                        foreach ($bullets as $bullet) {
+                            $bullet = trim($bullet);
+                            if (!empty($bullet)) {
+                                $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
+                            }
+                        }
                     }
                 }
                 
@@ -567,10 +577,15 @@ class DownloadController extends Controller
                     $html .= '<div class="date">' . date('M Y', strtotime($act->activity_date)) . '</div>';
                 }
                 
-                if ($act->description_activity) {
+                if ($act->description_activity && trim($act->description_activity)) {
                     $bullets = $this->formatBulletPoints($act->description_activity);
-                    foreach ($bullets as $bullet) {
-                        $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
+                    if (!empty($bullets)) {
+                        foreach ($bullets as $bullet) {
+                            $bullet = trim($bullet);
+                            if (!empty($bullet)) {
+                                $html .= '<div class="bullet">• ' . htmlspecialchars($bullet) . '</div>';
+                            }
+                        }
                     }
                 }
                 
@@ -642,6 +657,10 @@ class DownloadController extends Controller
      */
     private function formatBulletPoints($text)
     {
+        if (empty($text) || !trim($text)) {
+            return [];
+        }
+        
         $lines = explode("\n", $text);
         $bullets = [];
         
@@ -651,11 +670,19 @@ class DownloadController extends Controller
             
             // Remove existing bullets
             $line = preg_replace('/^[-•*]\s*/', '', $line);
+            $line = trim($line);
+            
+            // Skip if empty after removing bullets
+            if (empty($line)) continue;
             
             // Enhance with action verbs if needed
             $line = $this->enhanceBulletPoint($line);
+            $line = trim($line);
             
-            $bullets[] = $line;
+            // Only add if not empty after enhancement
+            if (!empty($line)) {
+                $bullets[] = $line;
+            }
         }
         
         return $bullets;
@@ -953,10 +980,15 @@ class DownloadController extends Controller
                 }
                 $section->addText($dateText, ['italic' => true, 'size' => 10], ['spaceAfter' => 60]);
                 
-                if ($exp->description) {
+                if ($exp->description && trim($exp->description)) {
                     $bullets = $this->formatBulletPoints($exp->description);
-                    foreach ($bullets as $bullet) {
-                        $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                    if (!empty($bullets)) {
+                        foreach ($bullets as $bullet) {
+                            $bullet = trim($bullet);
+                            if (!empty($bullet)) {
+                                $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                            }
+                        }
                     }
                 }
                 
@@ -973,10 +1005,15 @@ class DownloadController extends Controller
             foreach ($user->projects as $proj) {
                 $section->addText(htmlspecialchars($proj->project_title, ENT_QUOTES, 'UTF-8'), ['bold' => true, 'size' => 11], ['spaceAfter' => 60]);
                 
-                if ($proj->description) {
+                if ($proj->description && trim($proj->description)) {
                     $bullets = $this->formatBulletPoints($proj->description);
-                    foreach ($bullets as $bullet) {
-                        $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                    if (!empty($bullets)) {
+                        foreach ($bullets as $bullet) {
+                            $bullet = trim($bullet);
+                            if (!empty($bullet)) {
+                                $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                            }
+                        }
                     }
                 }
                 
@@ -1094,10 +1131,15 @@ class DownloadController extends Controller
                     $section->addText(date('M Y', strtotime($act->activity_date)), ['italic' => true, 'size' => 10], ['spaceAfter' => 60]);
                 }
                 
-                if ($act->description_activity) {
+                if ($act->description_activity && trim($act->description_activity)) {
                     $bullets = $this->formatBulletPoints($act->description_activity);
-                    foreach ($bullets as $bullet) {
-                        $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                    if (!empty($bullets)) {
+                        foreach ($bullets as $bullet) {
+                            $bullet = trim($bullet);
+                            if (!empty($bullet)) {
+                                $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                            }
+                        }
                     }
                 }
                 
@@ -1138,10 +1180,15 @@ class DownloadController extends Controller
                     $section->addText(date('M Y', strtotime($act->activity_date)), ['italic' => true, 'size' => 10]);
                 }
                 
-                if ($act->description_activity) {
+                if ($act->description_activity && trim($act->description_activity)) {
                     $bullets = $this->formatBulletPoints($act->description_activity);
-                    foreach ($bullets as $bullet) {
-                        $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                    if (!empty($bullets)) {
+                        foreach ($bullets as $bullet) {
+                            $bullet = trim($bullet);
+                            if (!empty($bullet)) {
+                                $section->addListItem(htmlspecialchars($bullet, ENT_QUOTES, 'UTF-8'), 0);
+                            }
+                        }
                     }
                 }
                 
