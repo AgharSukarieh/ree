@@ -93,7 +93,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
     }
 
     /**
-     * Generate optimized professional summary for ATS with strategic keywords
+     * Generate optimized professional summary for ATS
      */
     private function generateProfessionalSummary($user, $education)
     {
@@ -104,112 +104,43 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             return $this->enhanceSummary($summary, $user);
         }
 
-        // Generate summary from available data with strategic keywords
+        // Generate summary from available data
         $parts = [];
         
-        // Calculate years of experience
-        $yearsOfExperience = $this->calculateYearsOfExperience($user);
-        
-        // Job title and years of experience (important keywords for ATS)
+        // Job title and years of experience
         if ($user->job_title) {
-            $jobTitle = $user->job_title;
-            $parts[] = $jobTitle;
-            
-            // Add years of experience if available
-            if ($yearsOfExperience > 0) {
-                $parts[] = "with {$yearsOfExperience} years of experience";
-            }
-        } else if ($yearsOfExperience > 0) {
-            $parts[] = "Professional with {$yearsOfExperience} years of experience";
+            $parts[] = $user->job_title;
         }
         
-        // Major/field (important keyword)
+        // Major/field
         if ($user->major) {
             $majorText = $this->formatMajor($user->major);
             $parts[] = "specialized in {$majorText}";
         }
         
-        // Key skills mention (important keywords for ATS filtering)
-        $allSkills = [];
+        // Key skills mention
         if ($user->skills->count() > 0) {
-            $allSkills = array_merge($allSkills, $user->skills->take(5)->pluck('skill_name')->toArray());
-        }
-        if ($user->businessSkills->count() > 0) {
-            $allSkills = array_merge($allSkills, $user->businessSkills->take(3)->pluck('skill_name')->toArray());
-        }
-        if ($user->engineeringSkills->count() > 0) {
-            $allSkills = array_merge($allSkills, $user->engineeringSkills->take(3)->pluck('skill_name')->toArray());
+            $topSkills = $user->skills->take(3)->pluck('skill_name')->toArray();
+            if (!empty($topSkills)) {
+                $parts[] = "proficient in " . implode(', ', $topSkills);
+            }
         }
         
-        if (!empty($allSkills)) {
-            $topSkills = array_slice($allSkills, 0, 5);
-            $parts[] = "proficient in " . implode(', ', $topSkills);
-        }
-        
-        // Experience level with keywords
+        // Experience level
         if ($user->experiences->count() > 0) {
-            $expTypes = $user->experiences->pluck('title')->unique()->take(3)->toArray();
+            $parts[] = "with proven experience in";
+            $expTypes = $user->experiences->pluck('title')->unique()->take(2)->toArray();
             if (!empty($expTypes)) {
-                $parts[] = "with proven track record in " . strtolower(implode(', ', $expTypes));
+                $parts[] = strtolower(implode(' and ', $expTypes));
             }
         }
         
-        // Education mention (if available) - important keyword
-        if ($education->count() > 0) {
-            $latestEdu = $education->first();
-            $degree = $latestEdu->degree_name ?? $latestEdu->degree ?? '';
-            if ($degree) {
-                $parts[] = "holding a " . strtolower($degree);
-            }
-        }
+        // Value proposition
+        $parts[] = "focused on delivering high-quality solutions and driving results";
         
-        // Value proposition with action verbs (ATS keywords)
-        $actionVerbs = ['delivering', 'driving', 'implementing', 'optimizing', 'leading'];
-        $randomVerb = $actionVerbs[array_rand($actionVerbs)];
-        $parts[] = "focused on {$randomVerb} high-quality solutions and achieving measurable results";
-        
-        $generated = ucfirst(implode('. ', $parts)) . '.';
+        $generated = ucfirst(implode(' ', $parts)) . '.';
         
         return $this->enhanceSummary($generated, $user);
-    }
-
-    /**
-     * Calculate years of experience from user's work history
-     */
-    private function calculateYearsOfExperience($user)
-    {
-        if ($user->experiences->count() === 0) {
-            return 0;
-        }
-        
-        $earliestDate = null;
-        $latestDate = null;
-        
-        foreach ($user->experiences as $exp) {
-            if ($exp->start_date) {
-                $startDate = strtotime($exp->start_date);
-                if ($earliestDate === null || $startDate < $earliestDate) {
-                    $earliestDate = $startDate;
-                }
-            }
-            
-            if ($exp->end_date) {
-                $endDate = strtotime($exp->end_date);
-            } else {
-                $endDate = time(); // Current date for ongoing positions
-            }
-            
-            if ($latestDate === null || $endDate > $latestDate) {
-                $latestDate = $endDate;
-            }
-        }
-        
-        if ($earliestDate && $latestDate) {
-            $years = ($latestDate - $earliestDate) / (365 * 24 * 60 * 60);
-            return max(1, floor($years)); // At least 1 year if there's any experience
-        }
-        
-        return 0;
     }
 
     /**
@@ -274,23 +205,17 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
         <style>
             @page { margin: 30pt; }
             body { 
-                font-family: Arial, Helvetica, "Times New Roman", Times, serif, sans-serif; 
+                font-family: "Arial", "Helvetica", sans-serif; 
                 color: ' . $textColor . '; 
-                line-height: 1.6; 
+                line-height: 1.5; 
                 font-size: 10pt;
                 margin: 0;
                 padding: 0;
             }
             .container { width: 100%; }
-            table { border-collapse: collapse; width: 100%; }
-            td { vertical-align: top; padding: 0; }
             
             /* Header Section */
-            .header { 
-                margin-bottom: 24pt; 
-                padding-bottom: 16pt;
-                border-bottom: 1pt solid #e0e0e0;
-            }
+            .header { margin-bottom: 20pt; }
             .name { 
                 font-size: 26pt; 
                 font-weight: bold; 
@@ -307,109 +232,49 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             .summary {
                 font-size: 10pt;
                 color: ' . $textColor . ';
-                margin-bottom: 24pt;
+                margin-bottom: 20pt;
                 text-align: justify;
                 width: 100%;
-                line-height: 1.7;
-                padding: 8pt;
-                background-color: #f9f9f9;
-                border-left: 3pt solid ' . $primaryColor . ';
             }
             
-            /* Layout Columns - Using table for better ATS compatibility */
-            .main-content { width: 68%; }
-            .sidebar { width: 28%; }
+            /* Layout Columns */
+            .main-content { width: 68%; float: left; }
+            .sidebar { width: 28%; float: right; }
             
             /* Section Styling */
             .section-title {
                 font-size: 12pt;
                 font-weight: bold;
                 color: ' . $primaryColor . ';
-                margin-bottom: 12pt;
-                margin-top: 20pt;
+                margin-bottom: 8pt;
+                margin-top: 15pt;
                 text-transform: uppercase;
-                border-bottom: 1pt solid #dddddd;
-                padding-bottom: 4pt;
-                letter-spacing: 0.5pt;
+                border-bottom: 0.5pt solid #dddddd;
+                padding-bottom: 2pt;
             }
             
             /* Experience & Education Items */
-            .item { 
-                margin-bottom: 18pt; 
-                padding-bottom: 12pt;
-                border-bottom: 0.5pt solid #f0f0f0;
-            }
-            .item:last-child {
-                border-bottom: none;
-            }
-            .item-header { 
-                font-weight: bold; 
-                font-size: 10.5pt; 
-                color: #000000; 
-                margin-bottom: 4pt;
-                line-height: 1.4;
-            }
-            .item-sub { 
-                font-weight: bold; 
-                color: #555555; 
-                font-size: 10pt; 
-                margin-bottom: 3pt;
-                line-height: 1.4;
-            }
-            .item-date { 
-                color: ' . $lightTextColor . '; 
-                font-size: 9pt; 
-                margin-bottom: 6pt; 
-                font-style: italic;
-                line-height: 1.4;
-            }
+            .item { margin-bottom: 12pt; }
+            .item-header { font-weight: bold; font-size: 10.5pt; color: #000000; }
+            .item-sub { font-weight: bold; color: #555555; font-size: 10pt; }
+            .item-date { color: ' . $lightTextColor . '; font-size: 9pt; margin-bottom: 3pt; font-style: italic; }
             
-            .bullet-list { 
-                margin-top: 6pt; 
-                margin-bottom: 8pt; 
-                padding-left: 16pt; 
-                line-height: 1.6;
-            }
-            .bullet-item { 
-                margin-bottom: 4pt; 
-                list-style-type: disc;
-                line-height: 1.5;
-            }
+            .bullet-list { margin-top: 4pt; margin-bottom: 8pt; padding-left: 12pt; }
+            .bullet-item { margin-bottom: 2pt; list-style-type: disc; }
             
             /* Sidebar Styling */
-            .sidebar-section { 
-                margin-bottom: 22pt; 
-                padding-bottom: 12pt;
-                border-bottom: 0.5pt solid #f0f0f0;
-            }
-            .sidebar-section:last-child {
-                border-bottom: none;
-            }
+            .sidebar-section { margin-bottom: 18pt; }
             .sidebar-title {
                 font-size: 11pt;
                 font-weight: bold;
                 color: ' . $primaryColor . ';
-                margin-bottom: 10pt;
-                border-bottom: 1pt solid #dddddd;
-                padding-bottom: 4pt;
-                letter-spacing: 0.3pt;
+                margin-bottom: 6pt;
+                border-bottom: 0.5pt solid #dddddd;
+                padding-bottom: 2pt;
             }
-            .contact-info { 
-                font-size: 9pt; 
-                margin-bottom: 6pt; 
-                color: ' . $textColor . ';
-                line-height: 1.5;
-            }
-            .skill-list { 
-                padding-left: 12pt; 
-                margin: 0;
-                line-height: 1.6;
-            }
-            .skill-item { 
-                margin-bottom: 4pt; 
-                font-size: 9pt;
-                line-height: 1.5;
-            }
+            .contact-info { font-size: 9pt; margin-bottom: 4pt; color: ' . $textColor . '; }
+            .skill-list { padding-left: 10pt; margin: 0; }
+            .skill-item { margin-bottom: 2pt; font-size: 9pt; }
             
             .clearfix { clear: both; }
         </style>
@@ -426,22 +291,20 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
         // Professional Summary (ATS-optimized - appears first)
         if ($summary && trim($summary)) {
             $html .= '<div class="summary">
-                    <strong style="font-size: 11pt; display: block; margin-bottom: 8pt;">PROFESSIONAL SUMMARY</strong>
+                    <strong style="font-size: 11pt; display: block; margin-bottom: 5pt;">PROFESSIONAL SUMMARY</strong>
                     ' . nl2br(htmlspecialchars($summary)) . '
                 </div>';
         } else if ($user->profile_summary && trim($user->profile_summary)) {
             $html .= '<div class="summary">
-                    <strong style="font-size: 11pt; display: block; margin-bottom: 8pt;">PROFESSIONAL SUMMARY</strong>
+                    <strong style="font-size: 11pt; display: block; margin-bottom: 5pt;">PROFESSIONAL SUMMARY</strong>
                     ' . nl2br(htmlspecialchars($user->profile_summary)) . '
                 </div>';
         }
         
         $html .= '</div>
             
-            <!-- Two Column Layout using Table for ATS compatibility -->
-            <table style="width: 100%;">
-                <tr>
-                    <td class="main-content" style="width: 68%; padding-right: 15pt;">';
+            <!-- Main Column -->
+            <div class="main-content">';
 
         // Technical Skills Section (ATS filters from here - MUST be before Experience)
         if ($user->skills->count() > 0) {
@@ -451,13 +314,13 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
             foreach ($skillsByCategory as $categoryName => $skills) {
                 if ($categoryName && trim($categoryName)) {
                     $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 10pt; line-height: 1.7;">
+                    $html .= '<div style="margin-bottom: 5pt;">
                         <strong style="font-size: 10pt;">' . htmlspecialchars($categoryName) . ':</strong> 
                         <span style="font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</span>
                     </div>';
                 } else {
                     $skillNames = $skills->pluck('skill_name')->toArray();
-                    $html .= '<div style="margin-bottom: 10pt; font-size: 9.5pt; line-height: 1.7;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
+                    $html .= '<div style="margin-bottom: 5pt; font-size: 9.5pt;">' . implode(', ', array_map('htmlspecialchars', $skillNames)) . '</div>';
                 }
             }
         }
@@ -603,7 +466,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 }
                 
                 if ($proj->technologies_used && trim($proj->technologies_used)) {
-                    $html .= '<div style="font-size: 9pt; color: ' . $lightTextColor . '; margin-top: 6pt; margin-bottom: 4pt; line-height: 1.5;"><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</div>';
+                    $html .= '<div style="font-size: 9pt; color: ' . $lightTextColor . '; margin-top: 3pt;"><strong>Technologies:</strong> ' . htmlspecialchars($proj->technologies_used) . '</div>';
                 }
                 
                 if ($proj->link && trim($proj->link)) {
@@ -612,7 +475,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $proj->link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 4pt; line-height: 1.5;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -649,10 +512,10 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $html .= '<div class="item-sub">' . htmlspecialchars($university) . '</div>';
                     }
                     
-                    $startDate = $edu->start_year ? date('M Y', strtotime($edu->start_year)) : '';
-                    $endDate = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('M Y', strtotime($edu->end_year)) : 'Present';
-                    if ($startDate || $endDate) {
-                        $html .= '<div class="item-date">' . $startDate . ' - ' . $endDate . '</div>';
+                    $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
+                    $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
+                    if ($startYear || $endYear) {
+                        $html .= '<div class="item-date">' . $startYear . ' - ' . $endYear . '</div>';
                     }
                     
                     $html .= '</div>';
@@ -675,7 +538,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 }
                 
                 if ($res->description && trim($res->description)) {
-                    $html .= '<div style="font-size: 9pt; margin-top: 6pt; margin-bottom: 4pt; line-height: 1.6;">' . nl2br(htmlspecialchars($res->description)) . '</div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;">' . nl2br(htmlspecialchars($res->description)) . '</div>';
                 }
                 
                 if ($res->link && trim($res->link)) {
@@ -684,7 +547,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $res->link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 4pt; line-height: 1.5;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
@@ -739,15 +602,17 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         $link = 'https://' . $link;
                     }
                     $linkText = str_replace(['http://', 'https://'], '', $act->activity_link);
-                    $html .= '<div style="font-size: 9pt; margin-top: 4pt; line-height: 1.5;">Link: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                    $html .= '<div style="font-size: 9pt; margin-top: 3pt;"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">🔗 ' . htmlspecialchars($linkText) . '</a></div>';
                 }
                 
                 $html .= '</div>';
             }
         }
 
-        $html .= '</td>
-                    <td class="sidebar" style="width: 28%; padding-left: 15pt;">';
+        $html .= '</div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">';
 
         // Contact Section - only show if there's at least one contact info
         $hasContact = ($user->city && trim($user->city)) || 
@@ -768,7 +633,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 $html .= '<div class="contact-info">' . htmlspecialchars($user->phone) . '</div>';
             }
             if ($user->email && trim($user->email)) {
-                $html .= '<div class="contact-info">Email: ' . htmlspecialchars($user->email) . '</div>';
+                $html .= '<div class="contact-info">✉️ ' . htmlspecialchars($user->email) . '</div>';
             }
             if ($user->profile_website && trim($user->profile_website)) {
                 $link = $user->profile_website;
@@ -930,7 +795,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                         if (!preg_match('/^https?:\/\//', $link)) {
                             $link = 'https://' . $link;
                         }
-                        $html .= '<br><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; font-size: 8pt; text-decoration: none;">View Certificate</a>';
+                        $html .= '<br><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; font-size: 8pt; text-decoration: none;">🔗 View Certificate</a>';
                     }
                     
                     $html .= '</li>';
@@ -1003,9 +868,9 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     </div>';
         }
         
-        $html .= '</td>
-                </tr>
-            </table>
+        $html .= '</div>
+            
+            <div class="clearfix"></div>
         </div>';
 
         return $html;
