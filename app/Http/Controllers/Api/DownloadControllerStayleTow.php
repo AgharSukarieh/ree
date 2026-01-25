@@ -21,6 +21,7 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 'analyticalSkills',
                 'certifications',
                 'coreCompetencies',
+                'education',
                 'experiences',
                 'interests',
                 'languages',
@@ -186,30 +187,72 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 <div class="item">
                     <div class="item-header">' . htmlspecialchars($exp->title) . '</div>
                     <div class="item-sub">' . htmlspecialchars($exp->company) . '</div>
-                    <div class="item-date">' . htmlspecialchars($exp->start_date) . ' - ' . ($exp->end_date ?: 'Present') . '</div>
-                    <ul class="bullet-list">';
+                    <div class="item-date">' . htmlspecialchars($exp->start_date) . ' - ' . ($exp->end_date ?: 'Present') . '</div>';
             
-            $responsibilities = explode("\n", $exp->responsibilities);
-            foreach ($responsibilities as $res) {
-                if (trim($res)) {
-                    $html .= '<li class="bullet-item">' . htmlspecialchars(trim($res, "•- ")) . '</li>';
+            // Check if description exists (using description or responsibilities field)
+            $description = $exp->description ?? $exp->responsibilities ?? '';
+            if ($description && trim($description)) {
+                $responsibilities = explode("\n", $description);
+                $validItems = [];
+                foreach ($responsibilities as $res) {
+                    $res = trim($res);
+                    if (!empty($res)) {
+                        $res = trim($res, "•- *");
+                        if (!empty($res)) {
+                            $validItems[] = $res;
+                        }
+                    }
+                }
+                
+                if (!empty($validItems)) {
+                    $html .= '<ul class="bullet-list">';
+                    foreach ($validItems as $item) {
+                        $html .= '<li class="bullet-item">' . htmlspecialchars($item) . '</li>';
+                    }
+                    $html .= '</ul>';
                 }
             }
             
-            $html .= '</ul>
-                </div>';
+            $html .= '</div>';
         }
 
         $html .= '
                 <div class="section-title">Educational Background</div>';
 
         foreach ($education as $edu) {
-            $html .= '
-                <div class="item">
-                    <div class="item-header">' . htmlspecialchars($edu->degree) . '</div>
-                    <div class="item-sub">' . htmlspecialchars($edu->institution) . '</div>
-                    <div class="item-date">' . htmlspecialchars($edu->start_year) . ' - ' . htmlspecialchars($edu->end_year) . '</div>
-                </div>';
+            $degree = $edu->degree_name ?? $edu->degree ?? '';
+            $university = $edu->university_name ?? $edu->institution ?? '';
+            $field = $edu->field_of_study ?? '';
+            
+            if ($degree || $university) {
+                $html .= '
+                    <div class="item">
+                        <div class="item-header">';
+                
+                if ($degree) {
+                    $degreeText = htmlspecialchars($degree);
+                    if ($field) {
+                        $degreeText .= ' in ' . htmlspecialchars($field);
+                    }
+                    $html .= $degreeText;
+                } else if ($field) {
+                    $html .= htmlspecialchars($field);
+                }
+                
+                $html .= '</div>';
+                
+                if ($university) {
+                    $html .= '<div class="item-sub">' . htmlspecialchars($university) . '</div>';
+                }
+                
+                $startYear = $edu->start_year ? date('Y', strtotime($edu->start_year)) : '';
+                $endYear = ($edu->end_year && $edu->end_year != '0000-00-00') ? date('Y', strtotime($edu->end_year)) : 'Present';
+                if ($startYear || $endYear) {
+                    $html .= '<div class="item-date">' . $startYear . ' - ' . $endYear . '</div>';
+                }
+                
+                $html .= '</div>';
+            }
         }
 
         $html .= '
@@ -257,7 +300,12 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     <div class="sidebar-title">Languages</div>
                     <ul class="skill-list">';
         foreach ($user->languages as $lang) {
-            $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . ' (' . htmlspecialchars($lang->proficiency) . ')</li>';
+            $proficiency = $lang->proficiency_level ?? $lang->proficiency ?? '';
+            if ($proficiency) {
+                $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . ' (' . htmlspecialchars($proficiency) . ')</li>';
+            } else {
+                $html .= '<li class="skill-item">' . htmlspecialchars($lang->language_name) . '</li>';
+            }
         }
         $html .= '</ul>
                 </div>
@@ -266,7 +314,10 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                     <div class="sidebar-title">Certifications</div>
                     <ul class="skill-list">';
         foreach ($user->certifications as $cert) {
-            $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . htmlspecialchars($cert->certificate_name) . '</li>';
+            $certName = $cert->certifications_name ?? $cert->certificate_name ?? '';
+            if ($certName) {
+                $html .= '<li class="skill-item" style="margin-bottom:4pt;">' . htmlspecialchars($certName) . '</li>';
+            }
         }
         $html .= '</ul>
                 </div>
