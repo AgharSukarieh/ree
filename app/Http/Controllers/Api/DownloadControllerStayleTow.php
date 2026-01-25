@@ -674,38 +674,33 @@ class DownloadControllerStayleTow extends \App\Http\Controllers\Controller
                 $html .= '<div class="contact-info">' . htmlspecialchars($user->phone) . '</div>';
             }
             if ($user->email && trim($user->email)) {
-                $html .= '<div class="contact-info">Email: ' . htmlspecialchars($user->email) . '</div>';
+                $html .= '<div class="contact-info">Email: <a href="mailto:' . htmlspecialchars($user->email) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($user->email) . '</a></div>';
             }
             
-            // Profile URL (always show)
+            // Profile URL (always show) - show user name instead of full URL
             $profileUrl = route('profile', $user->qr_id);
-            $html .= '<div class="contact-info">Profile URL: <a href="' . htmlspecialchars($profileUrl) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($profileUrl) . '</a></div>';
+            $html .= '<div class="contact-info">Profile URL: <a href="' . htmlspecialchars($profileUrl) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($user->name) . '</a></div>';
             
             if ($user->linkedin_profile && trim($user->linkedin_profile)) {
                 $link = $user->linkedin_profile;
                 if (!preg_match('/^https?:\/\//', $link)) {
                     $link = 'https://' . $link;
                 }
-                $cleanLinkedin = str_replace(['https://', 'http://', 'www.', 'linkedin.com/in/'], '', $user->linkedin_profile);
-                $cleanLinkedin = rtrim($cleanLinkedin, '/');
-                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">LinkedIn: ' . htmlspecialchars($cleanLinkedin) . '</a></div>';
+                $html .= '<div class="contact-info">LinkedIn: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
             }
             if ($user->github_profile && trim($user->github_profile)) {
                 $link = $user->github_profile;
                 if (!preg_match('/^https?:\/\//', $link)) {
                     $link = 'https://' . $link;
                 }
-                $cleanGithub = str_replace(['https://', 'http://', 'www.', 'github.com/'], '', $user->github_profile);
-                $cleanGithub = rtrim($cleanGithub, '/');
-                $html .= '<div class="contact-info"><a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">GitHub: ' . htmlspecialchars($cleanGithub) . '</a></div>';
+                $html .= '<div class="contact-info">GitHub: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
             }
             if ($user->profile_website && trim($user->profile_website)) {
                 $link = $user->profile_website;
                 if (!preg_match('/^https?:\/\//', $link)) {
                     $link = 'https://' . $link;
                 }
-                $linkText = str_replace(['http://', 'https://'], '', $user->profile_website);
-                $html .= '<div class="contact-info">Portfolio: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($linkText) . '</a></div>';
+                $html .= '<div class="contact-info">Portfolio: <a href="' . htmlspecialchars($link) . '" style="color: ' . $primaryColor . '; text-decoration: none;">' . htmlspecialchars($link) . '</a></div>';
             }
             
             $html .= '</div>';
