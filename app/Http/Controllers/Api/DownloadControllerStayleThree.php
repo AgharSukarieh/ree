@@ -23,8 +23,10 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $user = User::with([
                 'activities',
                 'analyticalSkills',
+                'businessSkills.category',
                 'certifications',
                 'coreCompetencies',
+                'engineeringSkills.category',
                 'experiences',
                 'interests',
                 'languages',
@@ -544,7 +546,55 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 9. Medical Skills (for Medicine major - ATS-friendly)
+        // 9. Business Competencies (for Business major only - ATS-friendly)
+        if ($user->coreCompetencies->count() > 0 && $user->major === 'Business') {
+            $html .= '<div class="section">';
+            $html .= '<h2>BUSINESS COMPETENCIES</h2>';
+            
+            $html .= '<ul>';
+            foreach ($user->coreCompetencies as $competency) {
+                if ($competency->competency_name && trim($competency->competency_name)) {
+                    $compText = htmlspecialchars($competency->competency_name);
+                    if ($competency->competency_description && trim($competency->competency_description)) {
+                        $compText .= ': ' . htmlspecialchars($competency->competency_description);
+                    }
+                    $html .= '<li>' . $compText . '</li>';
+                }
+            }
+            $html .= '</ul>';
+            
+            $html .= '</div>';
+        }
+
+        // 10. Business Interests (for Business major only - ATS-friendly)
+        if ($user->interests->count() > 0 && $user->major === 'Business') {
+            $html .= '<div class="section">';
+            $html .= '<h2>BUSINESS INTERESTS</h2>';
+            
+            $interestsList = $user->interests->filter(function($interest) {
+                return !empty($interest->interest_name);
+            })->pluck('interest_name')->map('htmlspecialchars')->implode(', ');
+            
+            $html .= '<p style="margin-bottom: 12pt;">' . $interestsList . '</p>';
+            $html .= '</div>';
+        }
+
+        // 11. Specialized Skills (Based on Major - ATS-optimized placement before Experience)
+        
+        // 11a. Analytical Skills (for IT major - ATS-friendly)
+        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
+            $html .= '<div class="section">';
+            $html .= '<h2>ANALYTICAL SKILLS</h2>';
+            
+            $analyticalList = $user->analyticalSkills->filter(function($skill) {
+                return !empty($skill->skill_name);
+            })->pluck('skill_name')->map('htmlspecialchars')->implode(', ');
+            
+            $html .= '<p style="margin-bottom: 12pt;">' . $analyticalList . '</p>';
+            $html .= '</div>';
+        }
+
+        // 11b. Medical Skills (for Medicine major - ATS-friendly)
         if ($user->medicalSkills->count() > 0 && $user->major === 'Medicine') {
             $html .= '<div class="section">';
             $html .= '<h2>MEDICAL SKILLS</h2>';
@@ -592,20 +642,103 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 10. Analytical Skills (for IT major - ATS-friendly)
-        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
+        // 11c. Business Skills (for Business major - ATS-friendly)
+        if ($user->businessSkills->count() > 0 && $user->major === 'Business') {
             $html .= '<div class="section">';
-            $html .= '<h2>ANALYTICAL SKILLS</h2>';
+            $html .= '<h2>BUSINESS SKILLS</h2>';
             
-            $analyticalList = $user->analyticalSkills->filter(function($skill) {
-                return !empty($skill->skill_name);
-            })->pluck('skill_name')->map('htmlspecialchars')->implode(', ');
+            // Group business skills by category
+            $businessSkillsByCategory = $user->businessSkills->groupBy('category.category_name');
             
-            $html .= '<p style="margin-bottom: 12pt;">' . $analyticalList . '</p>';
+            $html .= '<table style="width: 100%; border-collapse: collapse; font-size: 10pt;">';
+            $html .= '<tr>';
+            
+            $colCount = 0;
+            foreach ($businessSkillsByCategory as $categoryName => $skills) {
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                
+                // Start a new row every 3 columns
+                if ($colCount > 0 && $colCount % 3 == 0) {
+                    $html .= '</tr><tr>';
+                }
+                
+                $html .= '<td style="width: 33%; padding-right: 10px; vertical-align: top;">';
+                
+                if ($categoryName) {
+                    $html .= '<div class="skill-category">' . htmlspecialchars($categoryName) . '</div>';
+                }
+                
+                $html .= '<ul>';
+                foreach ($skillNames as $skill) {
+                    $html .= '<li>' . htmlspecialchars($skill) . '</li>';
+                }
+                $html .= '</ul>';
+                
+                $html .= '</td>';
+                $colCount++;
+            }
+            
+            // Fill remaining columns if needed
+            while ($colCount % 3 != 0) {
+                $html .= '<td style="width: 33%;"></td>';
+                $colCount++;
+            }
+            
+            $html .= '</tr>';
+            $html .= '</table>';
+            
             $html .= '</div>';
         }
 
-        // 11. Activities & Memberships (Separate section - ATS-friendly)
+        // 11d. Engineering Skills (for Engineering major - ATS-friendly)
+        if ($user->engineeringSkills->count() > 0 && $user->major === 'Engineering') {
+            $html .= '<div class="section">';
+            $html .= '<h2>ENGINEERING SKILLS</h2>';
+            
+            // Group engineering skills by category
+            $engineeringSkillsByCategory = $user->engineeringSkills->groupBy('category.category_name');
+            
+            $html .= '<table style="width: 100%; border-collapse: collapse; font-size: 10pt;">';
+            $html .= '<tr>';
+            
+            $colCount = 0;
+            foreach ($engineeringSkillsByCategory as $categoryName => $skills) {
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                
+                // Start a new row every 3 columns
+                if ($colCount > 0 && $colCount % 3 == 0) {
+                    $html .= '</tr><tr>';
+                }
+                
+                $html .= '<td style="width: 33%; padding-right: 10px; vertical-align: top;">';
+                
+                if ($categoryName) {
+                    $html .= '<div class="skill-category">' . htmlspecialchars($categoryName) . '</div>';
+                }
+                
+                $html .= '<ul>';
+                foreach ($skillNames as $skill) {
+                    $html .= '<li>' . htmlspecialchars($skill) . '</li>';
+                }
+                $html .= '</ul>';
+                
+                $html .= '</td>';
+                $colCount++;
+            }
+            
+            // Fill remaining columns if needed
+            while ($colCount % 3 != 0) {
+                $html .= '<td style="width: 33%;"></td>';
+                $colCount++;
+            }
+            
+            $html .= '</tr>';
+            $html .= '</table>';
+            
+            $html .= '</div>';
+        }
+
+        // 12. Activities & Memberships (Separate section - ATS-friendly)
         $hasActivities = false;
         $activitiesList = [];
         
@@ -643,7 +776,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 12. Research & Publications (Separate section - ATS-friendly)
+        // 13. Research & Publications (Separate section - ATS-friendly)
         if ($user->research->count() > 0) {
             $html .= '<div class="section">';
             $html .= '<h2>RESEARCH & PUBLICATIONS</h2>';
@@ -1096,7 +1229,52 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText($softList, [], ['spaceAfter' => 120]);
         }
 
-        // 9. Medical Skills (for Medicine major - ATS-friendly)
+        // 9. Business Competencies (for Business major only - ATS-friendly)
+        if ($user->coreCompetencies->count() > 0 && $user->major === 'Business') {
+            $addSectionHeader('BUSINESS COMPETENCIES');
+            
+            foreach ($user->coreCompetencies as $competency) {
+                if ($competency->competency_name && trim($competency->competency_name)) {
+                    $compText = htmlspecialchars($competency->competency_name, ENT_QUOTES, 'UTF-8');
+                    if ($competency->competency_description && trim($competency->competency_description)) {
+                        $compText .= ': ' . htmlspecialchars($competency->competency_description, ENT_QUOTES, 'UTF-8');
+                    }
+                    $section->addListItem($compText, 0, [], 'BulletStyle');
+                }
+            }
+            
+            $section->addText('', [], ['spaceAfter' => 120]);
+        }
+
+        // 10. Business Interests (for Business major only - ATS-friendly)
+        if ($user->interests->count() > 0 && $user->major === 'Business') {
+            $addSectionHeader('BUSINESS INTERESTS');
+            
+            $interestsList = $user->interests->filter(function($interest) {
+                return !empty($interest->interest_name);
+            })->pluck('interest_name')->map(function($name) {
+                return htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+            })->implode(', ');
+            
+            $section->addText($interestsList, [], ['spaceAfter' => 120]);
+        }
+
+        // 11. Specialized Skills (Based on Major - ATS-optimized placement before Experience)
+        
+        // 11a. Analytical Skills (for IT major - ATS-friendly)
+        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
+            $addSectionHeader('ANALYTICAL SKILLS');
+            
+            $analyticalList = $user->analyticalSkills->filter(function($skill) {
+                return !empty($skill->skill_name);
+            })->pluck('skill_name')->map(function($name) {
+                return htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+            })->implode(', ');
+            
+            $section->addText($analyticalList, [], ['spaceAfter' => 120]);
+        }
+
+        // 11b. Medical Skills (for Medicine major - ATS-friendly)
         if ($user->medicalSkills->count() > 0 && $user->major === 'Medicine') {
             $addSectionHeader('MEDICAL SKILLS');
             
@@ -1131,20 +1309,77 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText('', [], ['spaceAfter' => 120]);
         }
 
-        // 10. Analytical Skills (for IT major - ATS-friendly)
-        if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
-            $addSectionHeader('ANALYTICAL SKILLS');
+        // 11c. Business Skills (for Business major - ATS-friendly)
+        if ($user->businessSkills->count() > 0 && $user->major === 'Business') {
+            $addSectionHeader('BUSINESS SKILLS');
             
-            $analyticalList = $user->analyticalSkills->filter(function($skill) {
-                return !empty($skill->skill_name);
-            })->pluck('skill_name')->map(function($name) {
-                return htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-            })->implode(', ');
+            $businessSkillsByCategory = $user->businessSkills->groupBy('category.category_name');
             
-            $section->addText($analyticalList, [], ['spaceAfter' => 120]);
+            // Use a table for a multi-column layout (2 columns for simplicity in Word)
+            $table = $section->addTable(['width' => 10000, 'unit' => TblWidth::TWIP, 'cellMargin' => 100]);
+            $table->addRow();
+            
+            $colCount = 0;
+            foreach ($businessSkillsByCategory as $categoryName => $skills) {
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                
+                // Start a new row every 2 columns
+                if ($colCount > 0 && $colCount % 2 == 0) {
+                    $table->addRow();
+                }
+                
+                $cell = $table->addCell(5000); // 50% width
+                
+                if ($categoryName) {
+                    $cell->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true], 'SkillListStyle');
+                }
+                
+                foreach ($skillNames as $skill) {
+                    $cell->addListItem(htmlspecialchars($skill, ENT_QUOTES, 'UTF-8'), 0, [], 'BulletStyle');
+                }
+                
+                $colCount++;
+            }
+            
+            $section->addText('', [], ['spaceAfter' => 120]);
         }
 
-        // 11. Activities & Memberships (Separate section - ATS-friendly)
+        // 11d. Engineering Skills (for Engineering major - ATS-friendly)
+        if ($user->engineeringSkills->count() > 0 && $user->major === 'Engineering') {
+            $addSectionHeader('ENGINEERING SKILLS');
+            
+            $engineeringSkillsByCategory = $user->engineeringSkills->groupBy('category.category_name');
+            
+            // Use a table for a multi-column layout (2 columns for simplicity in Word)
+            $table = $section->addTable(['width' => 10000, 'unit' => TblWidth::TWIP, 'cellMargin' => 100]);
+            $table->addRow();
+            
+            $colCount = 0;
+            foreach ($engineeringSkillsByCategory as $categoryName => $skills) {
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                
+                // Start a new row every 2 columns
+                if ($colCount > 0 && $colCount % 2 == 0) {
+                    $table->addRow();
+                }
+                
+                $cell = $table->addCell(5000); // 50% width
+                
+                if ($categoryName) {
+                    $cell->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true], 'SkillListStyle');
+                }
+                
+                foreach ($skillNames as $skill) {
+                    $cell->addListItem(htmlspecialchars($skill, ENT_QUOTES, 'UTF-8'), 0, [], 'BulletStyle');
+                }
+                
+                $colCount++;
+            }
+            
+            $section->addText('', [], ['spaceAfter' => 120]);
+        }
+
+        // 12. Activities & Memberships (Separate section - ATS-friendly)
         $hasActivities = false;
         $activitiesList = [];
         
@@ -1179,7 +1414,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText('', [], ['spaceAfter' => 120]); // Spacer
         }
 
-        // 12. Research & Publications (Separate section - ATS-friendly)
+        // 13. Research & Publications (Separate section - ATS-friendly)
         if ($user->research->count() > 0) {
             $addSectionHeader('RESEARCH & PUBLICATIONS');
             
