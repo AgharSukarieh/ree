@@ -531,10 +531,10 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 8. Core Competencies (ATS-friendly name for Soft Skills)
+        // 8. Soft Skills (ATS-friendly section name)
         if ($user->softSkills->count() >= 3) {
             $html .= '<div class="section">';
-            $html .= '<h2>CORE COMPETENCIES</h2>';
+            $html .= '<h2>SOFT SKILLS</h2>';
             
             $softList = $user->softSkills->filter(function($skill) {
                 return !empty($skill->soft_name);
@@ -544,7 +544,55 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 9. Analytical Skills (for IT major - ATS-friendly)
+        // 9. Medical Skills (for Medicine major - ATS-friendly)
+        if ($user->medicalSkills->count() > 0 && $user->major === 'Medicine') {
+            $html .= '<div class="section">';
+            $html .= '<h2>MEDICAL SKILLS</h2>';
+            
+            // Group medical skills by category
+            $medicalSkillsByCategory = $user->medicalSkills->groupBy('category.category_name');
+            
+            $html .= '<table style="width: 100%; border-collapse: collapse; font-size: 10pt;">';
+            $html .= '<tr>';
+            
+            $colCount = 0;
+            foreach ($medicalSkillsByCategory as $categoryName => $skills) {
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                
+                // Start a new row every 3 columns
+                if ($colCount > 0 && $colCount % 3 == 0) {
+                    $html .= '</tr><tr>';
+                }
+                
+                $html .= '<td style="width: 33%; padding-right: 10px; vertical-align: top;">';
+                
+                if ($categoryName) {
+                    $html .= '<div class="skill-category">' . htmlspecialchars($categoryName) . '</div>';
+                }
+                
+                $html .= '<ul>';
+                foreach ($skillNames as $skill) {
+                    $html .= '<li>' . htmlspecialchars($skill) . '</li>';
+                }
+                $html .= '</ul>';
+                
+                $html .= '</td>';
+                $colCount++;
+            }
+            
+            // Fill remaining columns if needed
+            while ($colCount % 3 != 0) {
+                $html .= '<td style="width: 33%;"></td>';
+                $colCount++;
+            }
+            
+            $html .= '</tr>';
+            $html .= '</table>';
+            
+            $html .= '</div>';
+        }
+
+        // 10. Analytical Skills (for IT major - ATS-friendly)
         if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
             $html .= '<div class="section">';
             $html .= '<h2>ANALYTICAL SKILLS</h2>';
@@ -557,18 +605,18 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $html .= '</div>';
         }
 
-        // 10. Additional Information (Activities, Memberships, Research)
-        $additionalInfo = [];
+        // 11. Activities & Memberships (Separate section - ATS-friendly)
+        $hasActivities = false;
+        $activitiesList = [];
         
-        // Activities & Memberships (Combined)
-        $activities = [];
         foreach ($user->activities as $act) {
             if ($act->activity_title && trim($act->activity_title)) {
                 $actText = htmlspecialchars($act->activity_title);
                 if ($act->organization && trim($act->organization)) {
                     $actText .= ' (' . htmlspecialchars($act->organization) . ')';
                 }
-                $activities[] = $actText;
+                $activitiesList[] = $actText;
+                $hasActivities = true;
             }
         }
         foreach ($user->memberships as $m) {
@@ -577,26 +625,46 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
                 if ($m->membership_type && trim($m->membership_type)) {
                     $memText .= ' (' . htmlspecialchars($m->membership_type) . ')';
                 }
-                $activities[] = $memText;
+                $activitiesList[] = $memText;
+                $hasActivities = true;
             }
         }
-        if (!empty($activities)) {
-            $additionalInfo[] = 'Activities/Memberships: ' . implode(', ', $activities);
-        }
-
-        // Research (Medical major only)
-        if ($user->research->count() > 0 && $user->major === 'Medicine') {
-            $researchList = $user->research->pluck('title')->map('htmlspecialchars')->implode(', ');
-            $additionalInfo[] = 'Research/Publications: ' . $researchList;
-        }
-
-        if (!empty($additionalInfo)) {
+        
+        if ($hasActivities) {
             $html .= '<div class="section">';
-            $html .= '<h2>ADDITIONAL INFORMATION</h2>';
+            $html .= '<h2>ACTIVITIES & MEMBERSHIPS</h2>';
             
             $html .= '<ul>';
-            foreach ($additionalInfo as $info) {
-                $html .= '<li>' . $info . '</li>';
+            foreach ($activitiesList as $activity) {
+                $html .= '<li>' . $activity . '</li>';
+            }
+            $html .= '</ul>';
+            
+            $html .= '</div>';
+        }
+
+        // 12. Research & Publications (Separate section - ATS-friendly)
+        if ($user->research->count() > 0) {
+            $html .= '<div class="section">';
+            $html .= '<h2>RESEARCH & PUBLICATIONS</h2>';
+            
+            $html .= '<ul>';
+            foreach ($user->research as $research) {
+                if ($research->title && trim($research->title)) {
+                    $researchText = htmlspecialchars($research->title);
+                    if ($research->publication_year) {
+                        $researchText .= ' (' . htmlspecialchars($research->publication_year) . ')';
+                    }
+                    if ($research->link && trim($research->link)) {
+                        $link = $research->link;
+                        if (!preg_match('/^https?:\/\//', $link)) {
+                            $link = 'https://' . $link;
+                        }
+                        $linkText = str_replace(['http://', 'https://'], '', $research->link);
+                        $researchText .= ' - <a href="' . htmlspecialchars($link) . '" style="color: #666666; text-decoration: underline;">' . htmlspecialchars($linkText) . '</a>';
+                    }
+                    $html .= '<li>' . $researchText . '</li>';
+                }
             }
             $html .= '</ul>';
             
@@ -1015,9 +1083,9 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText($langList, [], ['spaceAfter' => 120]);
         }
 
-        // 8. Core Competencies (ATS-friendly name for Soft Skills)
+        // 8. Soft Skills (ATS-friendly section name)
         if ($user->softSkills->count() >= 3) {
-            $addSectionHeader('CORE COMPETENCIES');
+            $addSectionHeader('SOFT SKILLS');
             
             $softList = $user->softSkills->filter(function($skill) {
                 return !empty($skill->soft_name);
@@ -1028,7 +1096,42 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText($softList, [], ['spaceAfter' => 120]);
         }
 
-        // 9. Analytical Skills (for IT major - ATS-friendly)
+        // 9. Medical Skills (for Medicine major - ATS-friendly)
+        if ($user->medicalSkills->count() > 0 && $user->major === 'Medicine') {
+            $addSectionHeader('MEDICAL SKILLS');
+            
+            $medicalSkillsByCategory = $user->medicalSkills->groupBy('category.category_name');
+            
+            // Use a table for a multi-column layout (2 columns for simplicity in Word)
+            $table = $section->addTable(['width' => 10000, 'unit' => TblWidth::TWIP, 'cellMargin' => 100]);
+            $table->addRow();
+            
+            $colCount = 0;
+            foreach ($medicalSkillsByCategory as $categoryName => $skills) {
+                $skillNames = $skills->pluck('skill_name')->toArray();
+                
+                // Start a new row every 2 columns
+                if ($colCount > 0 && $colCount % 2 == 0) {
+                    $table->addRow();
+                }
+                
+                $cell = $table->addCell(5000); // 50% width
+                
+                if ($categoryName) {
+                    $cell->addText(htmlspecialchars($categoryName, ENT_QUOTES, 'UTF-8'), ['bold' => true], 'SkillListStyle');
+                }
+                
+                foreach ($skillNames as $skill) {
+                    $cell->addListItem(htmlspecialchars($skill, ENT_QUOTES, 'UTF-8'), 0, [], 'BulletStyle');
+                }
+                
+                $colCount++;
+            }
+            
+            $section->addText('', [], ['spaceAfter' => 120]);
+        }
+
+        // 10. Analytical Skills (for IT major - ATS-friendly)
         if ($user->analyticalSkills->count() > 0 && $user->major === 'IT') {
             $addSectionHeader('ANALYTICAL SKILLS');
             
@@ -1041,32 +1144,61 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
             $section->addText($analyticalList, [], ['spaceAfter' => 120]);
         }
 
-        // 10. Additional Information (Activities, Memberships, Research)
-        $additionalInfo = [];
-
-        // Activities & Memberships (Combined)
-        $activities = [];
+        // 11. Activities & Memberships (Separate section - ATS-friendly)
+        $hasActivities = false;
+        $activitiesList = [];
+        
         foreach ($user->activities as $act) {
-            $activities[] = htmlspecialchars($act->activity_title) . ' (' . htmlspecialchars($act->organization) . ')';
+            if ($act->activity_title && trim($act->activity_title)) {
+                $actText = htmlspecialchars($act->activity_title, ENT_QUOTES, 'UTF-8');
+                if ($act->organization && trim($act->organization)) {
+                    $actText .= ' (' . htmlspecialchars($act->organization, ENT_QUOTES, 'UTF-8') . ')';
+                }
+                $activitiesList[] = $actText;
+                $hasActivities = true;
+            }
         }
         foreach ($user->memberships as $m) {
-            $activities[] = htmlspecialchars($m->organization_name) . ' (' . htmlspecialchars($m->membership_type) . ')';
+            if ($m->organization_name && trim($m->organization_name)) {
+                $memText = htmlspecialchars($m->organization_name, ENT_QUOTES, 'UTF-8');
+                if ($m->membership_type && trim($m->membership_type)) {
+                    $memText .= ' (' . htmlspecialchars($m->membership_type, ENT_QUOTES, 'UTF-8') . ')';
+                }
+                $activitiesList[] = $memText;
+                $hasActivities = true;
+            }
         }
-        if (!empty($activities)) {
-            $additionalInfo[] = 'Activities/Memberships: ' . implode(', ', $activities);
-        }
-
-        // Research (Medical major only)
-        if ($user->research->count() > 0 && $user->major === 'Medicine') {
-            $researchList = $user->research->pluck('title')->map('htmlspecialchars')->implode(', ');
-            $additionalInfo[] = 'Research/Publications: ' . $researchList;
-        }
-
-        if (!empty($additionalInfo)) {
-            $addSectionHeader('ADDITIONAL INFORMATION');
+        
+        if ($hasActivities) {
+            $addSectionHeader('ACTIVITIES & MEMBERSHIPS');
             
-            foreach ($additionalInfo as $info) {
-                $section->addListItem($info, 0, [], 'BulletStyle');
+            foreach ($activitiesList as $activity) {
+                $section->addListItem($activity, 0, [], 'BulletStyle');
+            }
+            
+            $section->addText('', [], ['spaceAfter' => 120]); // Spacer
+        }
+
+        // 12. Research & Publications (Separate section - ATS-friendly)
+        if ($user->research->count() > 0) {
+            $addSectionHeader('RESEARCH & PUBLICATIONS');
+            
+            foreach ($user->research as $research) {
+                if ($research->title && trim($research->title)) {
+                    $researchText = htmlspecialchars($research->title, ENT_QUOTES, 'UTF-8');
+                    if ($research->publication_year) {
+                        $researchText .= ' (' . htmlspecialchars($research->publication_year, ENT_QUOTES, 'UTF-8') . ')';
+                    }
+                    if ($research->link && trim($research->link)) {
+                        $link = $research->link;
+                        if (!preg_match('/^https?:\/\//', $link)) {
+                            $link = 'https://' . $link;
+                        }
+                        $linkText = str_replace(['http://', 'https://'], '', $research->link);
+                        $researchText .= ' - ' . htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8');
+                    }
+                    $section->addListItem($researchText, 0, [], 'BulletStyle');
+                }
             }
             
             $section->addText('', [], ['spaceAfter' => 120]); // Spacer
