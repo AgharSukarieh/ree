@@ -206,6 +206,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
                 background-color: #eeeeee; /* Light gray background */
                 padding: 5px 10px; /* Padding for the background */
                 line-height: 1.2;
+                border-radius: 5px; /* Rounded corners */
             }
             h3 { font-size: 11pt; font-weight: bold; color: #000000; margin: 10px 0 4px 0; }
             .header { text-align: left; margin-bottom: 15px; }
@@ -461,20 +462,6 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
                     $html .= '<div class="exp-date">' . htmlspecialchars($dateRange) . '</div>';
                 }
                 $html .= '</div>';
-                
-                // Field of study (if not already shown)
-                $notes = [];
-                if ($field && $degree && strpos($html, $field) === false) {
-                    $notes[] = 'Field: ' . htmlspecialchars($field);
-                }
-                
-                if (!empty($notes)) {
-                    $html .= '<ul>';
-                    foreach ($notes as $note) {
-                        $html .= '<li>' . $note . '</li>';
-                    }
-                    $html .= '</ul>';
-                }
                 
                 $html .= '</div>';
             }
@@ -1158,18 +1145,6 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
                     'ExpDate',
                     ['alignment' => Jc::RIGHT, 'spaceAfter' => 0]
                 );
-                
-                // Field of study (if not already shown)
-                $notes = [];
-                if ($field && $degree && strpos($degreeText, $field) === false) {
-                    $notes[] = 'Field: ' . htmlspecialchars($field, ENT_QUOTES, 'UTF-8');
-                }
-                
-                if (!empty($notes)) {
-                    foreach ($notes as $note) {
-                        $section->addListItem($note, 0, [], 'BulletStyle');
-                    }
-                }
                 
                 $section->addText('', [], ['spaceAfter' => 120]); // Spacer
             }
