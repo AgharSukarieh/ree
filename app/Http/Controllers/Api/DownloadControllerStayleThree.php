@@ -1146,7 +1146,7 @@ class DownloadControllerStayleThree extends \App\Http\Controllers\Controller
                     ['alignment' => Jc::RIGHT, 'spaceAfter' => 0]
                 );
                 
-                $section->addText('', [], ['spaceAfter' => 120]); // Spacer
+              
             }
         }
 
