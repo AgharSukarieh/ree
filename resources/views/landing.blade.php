@@ -31,9 +31,9 @@
         }
 
         .header-container {
-            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 4rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -103,9 +103,9 @@
 
         /* Hero Section */
         .hero {
-            max-width: 1200px;
+            width: 100%;
             margin: 5rem auto;
-            padding: 0 2rem;
+            padding: 0 4rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
@@ -220,9 +220,9 @@
         }
 
         .container {
-            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 4rem;
         }
 
         /* Services Section */
@@ -620,12 +620,24 @@
                 bottom: auto;
                 margin: 1rem 0;
             }
+
+            .header-container,
+            .hero,
+            .container {
+                padding: 0 2rem;
+            }
         }
 
         @media (max-width: 768px) {
             .header-container {
                 flex-direction: column;
                 gap: 1rem;
+                padding: 0 1.5rem;
+            }
+
+            .hero,
+            .container {
+                padding: 0 1.5rem;
             }
 
             nav ul {
