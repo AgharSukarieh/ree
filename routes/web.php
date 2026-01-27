@@ -15,7 +15,10 @@ Route::get('/test-laravel', function() {
     ]);
 });
 
-Route::get('/', [WebController::class, 'index'])->name('home');
+Route::get('/', function() {
+    return view('landing');
+})->name('home');
+Route::get('/welcome', [WebController::class, 'index'])->name('welcome');
 Route::get('/dashboard', [WebController::class, 'dashboard'])->name('dashboard');
 Route::get('/profile/{qr_id}', [WebController::class, 'profile'])->name('profile');
 
