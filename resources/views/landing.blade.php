@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -155,7 +155,7 @@
             width: 100%;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            transform: rotate(-2deg);
+            transform: rotate(2deg);
             transition: transform 0.3s;
         }
 
@@ -180,13 +180,13 @@
 
         .badge-1 {
             top: 8%;
-            right: -8%;
+            left: -8%;
             background: #f3f4f6;
         }
 
         .badge-2 {
             bottom: 15%;
-            left: -8%;
+            right: -8%;
             background: #fef3c7;
         }
 
@@ -262,11 +262,11 @@
         }
 
         .service-item:nth-child(even) {
-            direction: ltr;
+            direction: rtl;
         }
 
         .service-item:nth-child(even) .service-content {
-            direction: rtl;
+            direction: ltr;
         }
 
         .service-content h3 {
@@ -670,7 +670,7 @@
         <div class="hero-content">
             <h1>Build Your CV, Showcase Your Work & Keep Your Graduation Memories</h1>
             <p>Create a professional CV, craft a stunning Portfolio, and capture your graduation moments in a digital Notebook—all in one place, simple and interactive.</p>
-            <a href="{{ route('register') }}" class="btn-hero">Get Started Now <i class="fas fa-arrow-left"></i></a>
+            <a href="{{ route('register') }}" class="btn-hero">Get Started Now <i class="fas fa-arrow-right"></i></a>
         </div>
         <div class="hero-image">
             <img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800&h=1000&fit=crop" alt="Professional CV Template">
@@ -776,7 +776,7 @@
             <div class="who-content">
                 <h2>Who is <span>MASARAK</span> for?</h2>
                 <p>Students and graduates who want to create professional CVs, portfolios, and graduation memories easily.</p>
-                <a href="{{ route('register') }}" class="btn-hero">Get Started Now <i class="fas fa-arrow-left"></i></a>
+                <a href="{{ route('register') }}" class="btn-hero">Get Started Now <i class="fas fa-arrow-right"></i></a>
             </div>
             <div class="who-image">
                 <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&h=800&fit=crop" alt="Graduate Student">
