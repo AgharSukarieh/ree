@@ -31,9 +31,10 @@
         }
 
         .header-container {
+            max-width: 1280px;
             width: 100%;
             margin: 0 auto;
-            padding: 0 4rem;
+            padding: 0 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -103,9 +104,10 @@
 
         /* Hero Section */
         .hero {
+            max-width: 1280px;
             width: 100%;
             margin: 5rem auto;
-            padding: 0 4rem;
+            padding: 0 2rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
@@ -220,9 +222,10 @@
         }
 
         .container {
+            max-width: 1280px;
             width: 100%;
             margin: 0 auto;
-            padding: 0 4rem;
+            padding: 0 2rem;
         }
 
         /* Services Section */
@@ -621,11 +624,6 @@
                 margin: 1rem 0;
             }
 
-            .header-container,
-            .hero,
-            .container {
-                padding: 0 2rem;
-            }
         }
 
         @media (max-width: 768px) {
